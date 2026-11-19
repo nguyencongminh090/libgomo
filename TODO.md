@@ -7,6 +7,7 @@
 ## Done
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
 - [x] **GOMO-01.** Gomocup adapter - size M - [detail](docs/todo/GOMO-01-gomocup-adapter.md)
+- [x] **GOMO-02.** GomocupEngine against the real Rapfi - size M - [detail](docs/todo/GOMO-02-real-engine-rapfi.md)
 - [x] **PARSE-01.** Gomocup line parser - size M - [detail](docs/todo/PARSE-01-gomocup-line-parser.md)
 - [x] **PORT-01.** EnginePort and EventSink - size M - [detail](docs/todo/PORT-01-engine-port-event-sink.md)
 - [x] **PROC-01.** ProcessTransport (POSIX) - size M - [detail](docs/todo/PROC-01-process-transport.md)

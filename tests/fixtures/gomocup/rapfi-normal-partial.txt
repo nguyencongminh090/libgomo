@@ -1,0 +1,13 @@
+# engine: Rapfi 0.44.01 (g++ 15.2.0 on Linux SSE41 AVX2 AVX512 BMI2 VNNI), owner build pbrain-rapfi, git d14b636
+# config: partial file: [general] message_mode = normal (no model section; Eval stays 0)
+# sent: START 15; INFO TIMEOUT_TURN 1000; BOARD 7,7,2 8,7,1 7,8,2 DONE; END
+# captured: 2026-11-19, stdout only, engine lines unmodified except the config path in "Load config" (redacted)
+MESSAGE Load config from <partial config path>
+OK
+MESSAGE OptiTime 873ms | MaxTime 970ms
+MESSAGE Depth 2-3 | Eval 0 | Time 0ms | E5 B2
+MESSAGE Depth 3-4 | Eval 0 | Time 0ms | E5 B2 A1
+MESSAGE Depth 4-4 | Eval 0 | Time 1ms | E5 B2 A1
+MESSAGE Depth 4-5 | Eval 0 | Time 1ms | E5 B2 A1 B1
+MESSAGE Speed 279K | Depth 4-5 | Eval 0 | Node 279 | Time 1ms
+4,4

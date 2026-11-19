@@ -33,8 +33,10 @@ add_test(NAME smoke COMMAND pygomo_smoke)
 
 add_executable(pygomo_parse_tests
   main.cpp
-  parse/gomocup_parser_test.cpp)
+  parse/gomocup_parser_test.cpp
+  parse/rapfi_format_test.cpp)
 target_link_libraries(pygomo_parse_tests PRIVATE pygomo::parse)
+target_compile_definitions(pygomo_parse_tests PRIVATE PYGOMO_FIXTURE_DIR="${PROJECT_SOURCE_DIR}/tests/fixtures/gomocup")
 target_include_directories(pygomo_parse_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
 pygomo_enable_warnings(pygomo_parse_tests)
 foreach(group messages move info unknown)
@@ -69,5 +71,21 @@ if(UNIX)
   pygomo_enable_warnings(pygomo_process_tests)
   foreach(group lines roundtrip close exit spawnfail limit)
     add_test(NAME proc_${group} COMMAND pygomo_process_tests "-tc=proc_${group}*")
+  endforeach()
+endif()
+add_test(NAME gomo2_parse COMMAND pygomo_parse_tests "-tc=gomo2_parse*")
+add_test(NAME gomo2_fixtures COMMAND pygomo_parse_tests "-tc=gomo2_fixtures*")
+
+# Needs a real Rapfi: run with PYGOMO_RAPFI=/path/to/pbrain-rapfi. Otherwise every test is skipped.
+if(UNIX)
+  add_executable(pygomo_live_tests
+    main.cpp
+    live/rapfi_live_test.cpp)
+  target_link_libraries(pygomo_live_tests PRIVATE pygomo::gomocup pygomo::process pygomo::engine)
+  target_include_directories(pygomo_live_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
+  pygomo_enable_warnings(pygomo_live_tests)
+  foreach(group live stop close)
+    add_test(NAME gomo2_${group} COMMAND pygomo_live_tests "-tc=gomo2_${group}*")
+    set_tests_properties(gomo2_${group} PROPERTIES SKIP_REGULAR_EXPRESSION "SKIPPED")
   endforeach()
 endif()

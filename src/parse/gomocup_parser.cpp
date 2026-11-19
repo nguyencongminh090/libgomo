@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace pygomo::parse {
@@ -68,6 +69,7 @@ std::optional<std::int64_t> toCount(std::string_view s) {
             case 'K': scale = 1e3; break;
             case 'M': scale = 1e6; break;
             case 'G': scale = 1e9; break;
+            case 'T': scale = 1e12; break;
             default: break;
         }
         if (scale != 1) s.remove_suffix(1);
@@ -78,6 +80,98 @@ std::optional<std::int64_t> toCount(std::string_view s) {
         return std::nullopt;
     }
     return static_cast<std::int64_t>(std::llround(v * scale));
+}
+
+/// Rapfi prints scores as a number or as +M<n> / -M<n> for a forced mate in n.
+std::optional<Score> toScore(std::string_view s) {
+    if (s.size() >= 3 && (s[0] == '+' || s[0] == '-') && s[1] == 'M') {
+        auto n = toNonNegative(s.substr(2));
+        if (!n) return std::nullopt;
+        return Score{s[0] == '+' ? Score::Kind::MateIn : Score::Kind::MatedIn, *n};
+    }
+    if (auto v = toInt(s)) return Score{Score::Kind::Eval, *v};
+    return std::nullopt;
+}
+
+/// "1ms", "12s", "3min", "2h" as Rapfi prints them (truncated, so only approximate).
+std::optional<std::chrono::milliseconds> toDuration(std::string_view s) {
+    std::int64_t unit = 0;
+    for (auto [suffix, ms] : {std::pair<std::string_view, std::int64_t>{"ms", 1},
+                              {"min", 60'000}, {"s", 1000}, {"h", 3'600'000}}) {
+        if (s.size() > suffix.size() && s.substr(s.size() - suffix.size()) == suffix) {
+            unit = ms;
+            s.remove_suffix(suffix.size());
+            break;
+        }
+    }
+    auto n = unit ? toNonNegative(s) : std::nullopt;
+    if (!n) return std::nullopt;
+    return std::chrono::milliseconds{static_cast<std::int64_t>(*n) * unit};
+}
+
+std::vector<Coord> toPath(const std::vector<std::string_view>& tok, std::size_t from) {
+    std::vector<Coord> pv;
+    for (std::size_t i = from; i < tok.size(); ++i) {
+        auto c = toCoord(tok[i]);
+        if (!c) break;
+        pv.push_back(*c);
+    }
+    return pv;
+}
+
+/// Rapfi's normal / brief message lines, separated by '|':
+///   Speed 333K | Depth 5-6 | Eval -67 | Node 373 | Time 1ms
+///   Depth 4-5 | Eval 0 | Time 1ms | E5 B2 A1 B1          (optional "[Pondering] " prefix)
+///   Speed 12K | Visit 100 | Time 3ms                      (MCTS)
+///   (1) 34 | 5-6 | E5 B2   and   (1) 34 (W 50.00, D 10.00, S 0.10) | V 1K | SD 12 | E5 B2
+///   Bestline H7 J9 I9
+/// Values are rounded the way the engine prints them.
+std::optional<InfoEvent> parseNormalInfo(std::string_view text) {
+    constexpr std::string_view pondering = "[Pondering] ";
+    if (startsWith(text, pondering)) text.remove_prefix(pondering.size());
+
+    InfoEvent info;
+    bool any = false;
+    if (startsWith(text, "Bestline ")) {
+        info.principalVariation = toPath(split(text.substr(9)), 0);
+        if (info.principalVariation.empty()) return std::nullopt;
+        return info;
+    }
+
+    std::vector<std::string_view> fields;
+    while (true) {
+        auto bar = text.find('|');
+        fields.push_back(trim(text.substr(0, bar)));
+        if (bar == std::string_view::npos) break;
+        text.remove_prefix(bar + 1);
+    }
+    auto first = split(fields[0]);
+    if (first.empty()) return std::nullopt;
+    const bool multi = first[0].size() >= 3 && first[0].front() == '(' && first[0].back() == ')';
+    if (!multi && first[0] != "Speed" && first[0] != "Depth") return std::nullopt;
+
+    for (std::size_t f = 0; f < fields.size(); ++f) {
+        auto tok = split(fields[f]);
+        if (tok.empty()) continue;
+        if (multi && f == 0 && tok.size() >= 2) {
+            if (auto sc = toScore(tok[1])) { info.score = sc; any = true; }
+        } else if (multi && f == 1 && tok[0].front() >= '0' && tok[0].front() <= '9') {
+            if (auto d = toNonNegative(tok[0].substr(0, tok[0].find('-')))) { info.depth = d; any = true; }
+        } else if (tok[0] == "Depth" && tok.size() >= 2) {
+            if (auto d = toNonNegative(tok[1].substr(0, tok[1].find('-')))) { info.depth = d; any = true; }
+        } else if (tok[0] == "Eval" && tok.size() >= 2) {
+            if (auto sc = toScore(tok[1])) { info.score = sc; any = true; }
+        } else if ((tok[0] == "Node" || tok[0] == "Visit" || tok[0] == "V") && tok.size() >= 2) {
+            if (auto n = toCount(tok[1])) { info.nodes = n; any = true; }
+        } else if (tok[0] == "Time" && tok.size() >= 2) {
+            if (auto t = toDuration(tok[1])) { info.elapsed = t; any = true; }
+        } else if (auto pv = toPath(tok, 0); !pv.empty() && pv.size() == tok.size()) {
+            info.principalVariation = std::move(pv);
+            any = true;
+        }
+    }
+    if (!any) return std::nullopt;
+    return info;
 }
 
 /// `depth 10-12 ev 34 n 1.2M tm 900 pv 7,7 8,8`. The first token must be a known key so that
@@ -103,7 +197,7 @@ std::optional<InfoEvent> parseInfo(std::string_view text) {
         if (key == "depth") {
             if (auto d = toNonNegative(val.substr(0, val.find('-')))) { info.depth = d; any = true; }
         } else if (key == "ev") {
-            if (auto e = toInt(val)) { info.score = Score{Score::Kind::Eval, *e}; any = true; }
+            if (auto e = toScore(val)) { info.score = *e; any = true; }
         } else if (key == "n") {
             if (auto n = toCount(val)) { info.nodes = n; any = true; }
         } else if (key == "tm") {
@@ -128,6 +222,7 @@ SearchEvent parseGomocupLine(std::string_view rawLine) {
     }
     if (startsWith(line, "MESSAGE ")) {
         if (auto info = parseInfo(line.substr(8))) return *info;
+        if (auto info = parseNormalInfo(line.substr(8))) return *info;
         return unparsed();
     }
     if (auto c = toCoord(line); c && line.find(',') != std::string_view::npos) {

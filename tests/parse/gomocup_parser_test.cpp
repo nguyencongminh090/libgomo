@@ -78,5 +78,5 @@ TEST_CASE("parse_unknown: any line is total and keeps its text") {
         if (auto* u = as<UnparsedEvent>(e)) CHECK(u->line == l);
     }
     CHECK(as<UnparsedEvent>(parseGomocupLine("OK")));
-    CHECK(as<UnparsedEvent>(parseGomocupLine("MESSAGE Depth 5 | Eval 3 | Time 1s | H8")));
+    CHECK(as<UnparsedEvent>(parseGomocupLine("MESSAGE Depth five | Eval x | Time soon")));
 }

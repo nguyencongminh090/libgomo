@@ -321,6 +321,66 @@
       ],
       "checked_by": "scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "GOMO-02-fixtures",
+      "todo": "GOMO-02",
+      "description": "WHEN the parser reads every line of each real Rapfi transcript in tests/fixtures/gomocup/ THEN no line is lost (every unrecognised line is kept as Unparsed with its text) and each fixture records engine version, command and config",
+      "steps": [
+        "ctest --preset default -R gomo2_fixtures --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo2_fixtures --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GOMO-02-parse-normal",
+      "todo": "GOMO-02",
+      "description": "WHEN a line is a Rapfi Speed|Depth|Eval|Node|Time summary, a per-depth line (also with the [Pondering] prefix), a Bestline, a multipv line or an MCTS Speed|Visit|Time line THEN the parser returns an InfoEvent with the fields present (rounded K/M/G and time units as printed) and the existing UCI-like parsing is unchanged",
+      "steps": [
+        "ctest --preset default -R gomo2_parse --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo2_parse --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GOMO-02-live",
+      "todo": "GOMO-02",
+      "description": "WHEN PYGOMO_RAPFI points at the engine THEN search() through GomocupEngine and ProcessTransport returns a legal move on a 15x15 board with 3 moves and at least one info event; WHEN it is unset THEN the test is skipped",
+      "steps": [
+        "ctest --preset default -R gomo2_live --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo2_live --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GOMO-02-stop",
+      "todo": "GOMO-02",
+      "description": "WHEN stop() is called during an unlimited Rapfi search THEN a move is still delivered and the search ends within a few seconds (one retry allowed for the documented stop race)",
+      "steps": [
+        "ctest --preset default -R gomo2_stop --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo2_stop --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GOMO-02-close",
+      "todo": "GOMO-02",
+      "description": "WHEN the transport is closed during a Rapfi search THEN the sink gets exactly one error event and no Rapfi process is left",
+      "steps": [
+        "ctest --preset default -R gomo2_close --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo2_close --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GOMO-02-deps",
+      "todo": "GOMO-02",
+      "description": "WHEN the whole suite and the dependency check run without PYGOMO_RAPFI THEN everything passes and exit is 0",
+      "steps": [
+        "ctest --preset default && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }
