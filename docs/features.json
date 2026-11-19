@@ -1,0 +1,45 @@
+{
+  "features": [
+    {
+      "id": "CORE-01-build",
+      "todo": "CORE-01",
+      "description": "WHEN the default preset is configured and built THEN it succeeds as C++23 with no compiler warnings",
+      "steps": [
+        "cmake --preset default",
+        "cmake --build --preset default"
+      ],
+      "checked_by": "cmake --preset default && cmake --build --preset default",
+      "passes": true
+    },
+    {
+      "id": "CORE-01-tests",
+      "todo": "CORE-01",
+      "description": "WHEN ctest runs THEN all unit tests of Coord, Position, Rules, Limits and SearchEvent pass",
+      "steps": [
+        "ctest --preset default --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "CORE-01-core-deps",
+      "todo": "CORE-01",
+      "description": "WHEN the dependency check runs THEN pygomo_core includes no process, stream, thread or protocol-name header and the command exits 0",
+      "steps": [
+        "scripts/check-core-deps.sh"
+      ],
+      "checked_by": "scripts/check-core-deps.sh",
+      "passes": true
+    },
+    {
+      "id": "CORE-01-smoke",
+      "todo": "CORE-01",
+      "description": "WHEN the smoke command documented in CLAUDE.md runs THEN it passes",
+      "steps": [
+        "run the Smoke command from CLAUDE.md"
+      ],
+      "checked_by": "ctest --preset default -R smoke --output-on-failure",
+      "passes": true
+    }
+  ]
+}

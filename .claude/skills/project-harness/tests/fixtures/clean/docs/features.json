@@ -1,0 +1,7 @@
+{
+  "features": [
+    { "id": "WEB-01.1", "todo": "WEB-01", "description": "WHEN a user submits valid credentials THEN they are logged in", "steps": ["open /login", "submit"], "checked_by": "npm test -- login", "passes": true },
+    { "id": "WEB-02.1", "todo": "WEB-02", "description": "WHEN the cart page opens THEN items render", "steps": ["open /cart"], "checked_by": "npm test -- cart", "passes": false },
+    { "id": "WEB-03.1", "todo": "WEB-03", "description": "WHEN a user searches THEN matches show", "steps": ["open /search", "type red"], "checked_by": "npm test -- search", "passes": false }
+  ]
+}

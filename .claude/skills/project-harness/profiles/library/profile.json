@@ -1,0 +1,9 @@
+{
+  "name": "library",
+  "description": "A package that other code depends on",
+  "when_to_use": "Public API, semantic versioning, consumers outside the repository",
+  "conflicts": [],
+  "size_signals": [{ "pattern": "public API change", "size": "L" }, { "pattern": "dependency or supported-version change", "size": "M" }],
+  "definition_of_done": ["changelog entry written", "public API docs updated"],
+  "confidence": "low"
+}

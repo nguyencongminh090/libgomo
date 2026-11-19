@@ -1,0 +1,8 @@
+{
+  "name": "software-app",
+  "description": "Installable or desktop application shipped to users",
+  "when_to_use": "A packaged app with releases, versions and user data on disk",
+  "conflicts": [],
+  "size_signals": [{ "pattern": "release or packaging change", "size": "M" }, { "pattern": "user data format change", "size": "L" }],
+  "definition_of_done": ["release checklist completed for release items"]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "ai-implementation",
+  "description": "Work built on models or prompts, where behaviour is statistical",
+  "when_to_use": "Prompts, model choice, retrieval, training or fine-tuning code, evaluation",
+  "conflicts": [],
+  "size_signals": [{ "pattern": "prompt or model change", "size": "M" }, { "pattern": "training data or eval set change", "size": "L" }],
+  "definition_of_done": ["eval run recorded"],
+  "confidence": "low"
+}

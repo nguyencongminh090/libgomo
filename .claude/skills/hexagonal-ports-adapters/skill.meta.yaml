@@ -1,0 +1,12 @@
+name: hexagonal-ports-adapters
+description: "Structure code as ports and adapters with clear boundaries between domain and infrastructure"
+domain: code-design-principles
+tags: hexagonal,ports-and-adapters,clean-architecture,boundaries
+apply_when: "separating infrastructure from domain logic"
+scope: global
+project: ""
+language: en
+knowledge: style-hexagonal
+conflicts: ""
+source: "https://github.com/helmedeiros/clean-code-skills/tree/b9805c9/skills/hexagonal-ports-adapters"
+last_reviewed: 2026-09-26

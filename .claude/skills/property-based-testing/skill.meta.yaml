@@ -1,0 +1,12 @@
+name: property-based-testing
+description: "Property-based tests with Hypothesis, fast-check, proptest and others"
+domain: debugging-testing
+tags: property-based-testing,hypothesis,fast-check,testing
+apply_when: "tests should cover a whole input domain"
+scope: global
+project: ""
+language: en
+knowledge: quality-testability,webtest-strategy
+conflicts: ""
+source: "https://github.com/trailofbits/skills/tree/123037e/plugins/property-based-testing/skills/property-based-testing"
+last_reviewed: 2026-09-26

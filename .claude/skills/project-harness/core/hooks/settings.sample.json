@@ -1,0 +1,23 @@
+{
+  "_comment": "Sample. `harness-init --hooks` merges this into .claude/settings.json (or merge by hand). Exec form (command + args) avoids shell quoting of paths; $CLAUDE_PROJECT_DIR is expanded in args. SessionStart prints handoff + active todos + check counts and records the errors that already exist. PreToolUse blocks code edits while an active L todo has an unapproved planning (Bash edits are not covered). UserPromptSubmit adds a one-line reminder to record new ideas as a backlog todo instead of building them. Stop blocks finishing on errors that are new since session start (exit 2; second try allowed via stop_hook_active). To make a crashing gate block instead of warn, add \"onFailure\": \"block\" to the PreToolUse hook (Claude Code 2.1.295+). permissions.deny keeps secrets unreadable in every mode.",
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/scripts/harness/harness-check.mjs", "--session-start", "--root", "${CLAUDE_PROJECT_DIR}"], "timeout": 30 }] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/scripts/harness/harness-check.mjs", "--prompt", "--root", "${CLAUDE_PROJECT_DIR}"], "timeout": 10 }] }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [{ "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/scripts/harness/harness-check.mjs", "--gate", "--root", "${CLAUDE_PROJECT_DIR}"], "timeout": 30 }]
+      }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/scripts/harness/harness-check.mjs", "--stop", "--root", "${CLAUDE_PROJECT_DIR}"], "timeout": 60 }] }
+    ]
+  },
+  "permissions": {
+    "deny": ["Read(./.env)", "Read(./.env.*)", "Read(./secrets/**)"]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "webapp",
+  "description": "Browser app with a client/server split",
+  "when_to_use": "A web frontend plus a backend; user-visible pages, caching, deploys",
+  "conflicts": [],
+  "size_signals": [{ "pattern": "client/ edit", "size": "M" }, { "pattern": "API contract change between client and server", "size": "L" }],
+  "definition_of_done": ["audit step done for client/ changes", "no console errors on the changed page"]
+}

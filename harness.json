@@ -1,0 +1,12 @@
+{
+  "version": "0.3.3",
+  "profiles": [
+    "module-architecture"
+  ],
+  "domains": [
+    "CORE",
+    "PROTO",
+    "PARSE"
+  ],
+  "overrides": {}
+}

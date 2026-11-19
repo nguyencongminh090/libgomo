@@ -1,0 +1,12 @@
+name: fp-error-handling
+description: "Functional error handling with Result, Either and Option types instead of exceptions"
+domain: code-design-principles
+tags: functional-programming,error-handling,result-type
+apply_when: "replacing try-catch with typed errors or designing error flow"
+scope: global
+project: ""
+language: en
+knowledge: cross-error-handling-strategy
+conflicts: ""
+source: "https://github.com/helmedeiros/clean-code-skills/tree/b9805c9/skills/fp-error-handling"
+last_reviewed: 2026-09-26

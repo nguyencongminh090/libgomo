@@ -1,0 +1,12 @@
+name: project-harness
+description: "Workflow standard for AI coding agents on a big project: size work small/medium/large (S/M/L) with an approval gate before code, record new requirements instead of building them, features.json acceptance checklist with passes flag, hooks, reviewer agent"
+domain: planning-delivery
+tags: harness,workspace,project-setup,task-size,templates,agent-process,acceptance-criteria,feature-list,claude-code-hooks,task-sizing,small-medium-large,scope-control,record-do-not-build,approval-gate
+apply_when: "starting a new large project with agents; sizing work as small, medium or large before coding; keeping agents from building ideas the owner has not approved; checking an existing project's docs against the standard"
+scope: global
+project: ""
+language: en
+knowledge: process-agile-vs-vmodel,evolve-adr
+conflicts: ""
+source: "authored in tree (2026-11-04)"
+last_reviewed: 2026-11-05

@@ -1,0 +1,8 @@
+{
+  "name": "module-architecture",
+  "description": "Work whose main product is structure: module boundaries, dependencies, layering",
+  "when_to_use": "Refactors across modules, new subsystems, dependency direction questions",
+  "conflicts": [],
+  "size_signals": [{ "pattern": "module boundary change", "size": "L" }, { "pattern": "new dependency between modules", "size": "M" }],
+  "definition_of_done": ["dependency direction unchanged, or an ADR records the change"]
+}

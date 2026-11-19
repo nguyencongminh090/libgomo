@@ -1,0 +1,8 @@
+{
+  "name": "engine-perf",
+  "description": "Performance-critical engine or algorithm code",
+  "when_to_use": "Speed or strength is measured; regressions are silent without a benchmark",
+  "conflicts": [],
+  "size_signals": [{ "pattern": "hot path change", "size": "M" }, { "pattern": "search or evaluation algorithm change", "size": "L" }],
+  "definition_of_done": ["benchmark before and after recorded", "no regression on the reference suite"]
+}
