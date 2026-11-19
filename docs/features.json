@@ -40,6 +40,57 @@
       ],
       "checked_by": "ctest --preset default -R smoke --output-on-failure",
       "passes": true
+    },
+    {
+      "id": "PROTO-01-lines",
+      "todo": "PROTO-01",
+      "description": "WHEN the input stream holds \"a\\r\\nb\\n\\nlast\" (no final newline) THEN the listener receives \"a\", \"b\", \"\", \"last\" in order and then exactly one onClosed(Eof)",
+      "steps": [
+        "ctest --preset default -R transport --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R transport_lines --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PROTO-01-write",
+      "todo": "PROTO-01",
+      "description": "WHEN 8 threads each call writeLine 100 times THEN the output holds exactly 800 complete lines, none interleaved, and ThreadSanitizer reports no data race",
+      "steps": [
+        "cmake --preset tsan && cmake --build --preset tsan",
+        "ctest --preset tsan --output-on-failure"
+      ],
+      "checked_by": "cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PROTO-01-close",
+      "todo": "PROTO-01",
+      "description": "WHEN close() is called THEN later writeLine returns a Closed error and the listener receives exactly one onClosed(Requested)",
+      "steps": [
+        "ctest --preset default -R transport_close --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R transport_close --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PROTO-01-limit",
+      "todo": "PROTO-01",
+      "description": "WHEN a line is longer than maxLineLength THEN the listener receives onClosed(LineTooLong) and no later line",
+      "steps": [
+        "ctest --preset default -R transport_limit --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R transport_limit --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PROTO-01-deps",
+      "todo": "PROTO-01",
+      "description": "WHEN the dependency check runs THEN pygomo_core is still clean and the transport port headers contain no protocol or engine name, exit 0",
+      "steps": [
+        "scripts/check-core-deps.sh"
+      ],
+      "checked_by": "scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

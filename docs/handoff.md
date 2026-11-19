@@ -12,24 +12,28 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. CORE-01 (CMake skeleton + core types) is done and committed: `Coord`, `Move`,
-`Side`, `Position`, `Rules`, `Limits`, `SearchEvent` in `include/pygomo/core/`, doctest tests,
-smoke test, `scripts/check-core-deps.sh`. Planning `engine-protocol-port` is approved.
-Reference engines: Rapfi (local, read-only,
+Nothing in progress. Done and committed: CORE-01 (core value types) and PROTO-01 (`Transport` port
++ `StreamTransport` in `pygomo_transport`, ThreadSanitizer preset `tsan`). Planning
+`engine-protocol-port` is approved. Reference engines: Rapfi (local, read-only,
 `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi/`) and
-KataGomo `Gom2026` (clone was in the old session scratchpad; re-clone shallow if needed).
+KataGomo `Gom2026` (re-clone shallow when fixtures are needed).
 
 ## Next step
-Create the next todos from the planning (each at most M, `planning: engine-protocol-port`) and get
-their features approved by the owner. Proposed order: PROTO Transport port + `StreamTransport`;
-PARSE Gomocup line parser; PROTO Gomocup adapter; PARSE GTP parser; PROTO GTP adapter (position
-diffing, `kata-get-rules` check); PROTO `ProcessTransport` (POSIX); fixtures captured from real
-engines (needs building Rapfi and KataGomo).
+Draft the next todo (at most M, `planning: engine-protocol-port`) and get its features approved
+by the owner before writing them to `docs/features.json`. Proposed order: PARSE Gomocup line
+parser (text line to `SearchEvent`, pure, uses `Unparsed` for unknown lines); PROTO Gomocup
+adapter; PARSE GTP parser; PROTO GTP adapter (position diffing, `kata-get-rules` check); PROTO
+`ProcessTransport` (POSIX); fixtures captured from real engines (needs building both).
+Also pending: promote `docs/notes/2026-11-19-harness-gate-review-findings.md` to a todo once the
+owner picks a domain (none of CORE/PROTO/PARSE fits harness tooling); agreed to do it after the
+parser work starts, not before.
 
 ## Uncertain
 - Gomocup spec meaning of `RULE 2` vs `4` rests on Rapfi code only.
-- `Position` has no way to set up arbitrary stones (GTP `set_position`); add when the GTP adapter needs it.
-- `.codegraph/` is left untracked on purpose (index, not source); decide whether to gitignore it.
+- `Position` cannot set arbitrary stones (GTP `set_position`); add when the GTP adapter needs it.
+- `StreamTransport` cannot interrupt a blocked read; the owner of the stream must close it
+  (documented in the header). `ProcessTransport` must end the process to unblock the reader.
+- `.codegraph/` is left untracked on purpose; decide whether to gitignore it.
 
 ## Blockers
 None.

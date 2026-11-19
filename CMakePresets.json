@@ -11,15 +11,32 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "PYGOMO_WARNINGS_AS_ERRORS": "ON"
       }
+    },
+    {
+      "name": "tsan",
+      "displayName": "ThreadSanitizer, Ninja, warnings as errors",
+      "inherits": "default",
+      "binaryDir": "${sourceDir}/build/tsan",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_CXX_FLAGS": "-fsanitize=thread -fno-omit-frame-pointer",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=thread"
+      }
     }
   ],
   "buildPresets": [
-    { "name": "default", "configurePreset": "default" }
+    { "name": "default", "configurePreset": "default" },
+    { "name": "tsan", "configurePreset": "tsan" }
   ],
   "testPresets": [
     {
       "name": "default",
       "configurePreset": "default",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "tsan",
+      "configurePreset": "tsan",
       "output": { "outputOnFailure": true }
     }
   ]

@@ -29,5 +29,14 @@ target_include_directories(pygomo_core PUBLIC include)
 target_compile_features(pygomo_core PUBLIC cxx_std_23)
 pygomo_enable_warnings(pygomo_core)
 
+# Line-oriented text channel to an engine. Independent of the core; may use threads and streams.
+find_package(Threads REQUIRED)
+add_library(pygomo_transport STATIC src/transport/stream_transport.cpp)
+add_library(pygomo::transport ALIAS pygomo_transport)
+target_include_directories(pygomo_transport PUBLIC include)
+target_compile_features(pygomo_transport PUBLIC cxx_std_23)
+target_link_libraries(pygomo_transport PUBLIC Threads::Threads)
+pygomo_enable_warnings(pygomo_transport)
+
 enable_testing()
 add_subdirectory(tests)

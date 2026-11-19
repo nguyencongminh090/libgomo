@@ -44,4 +44,5 @@ Size by risk and ambiguity before work; choose the larger size when unsure. Stop
 - Single test: `./build/default/tests/pygomo_core_tests -tc="<test case name>"`
 - Core dependency check: `scripts/check-core-deps.sh`
 - Smoke: `ctest --preset default -R smoke`
+- ThreadSanitizer: `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan`
 - Lint: none yet (warnings as errors act as the check).

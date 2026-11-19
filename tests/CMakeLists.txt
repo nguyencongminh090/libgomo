@@ -11,6 +11,18 @@ target_include_directories(pygomo_core_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR
 pygomo_enable_warnings(pygomo_core_tests)
 add_test(NAME core_tests COMMAND pygomo_core_tests)
 
+add_executable(pygomo_transport_tests
+  main.cpp
+  transport/stream_transport_test.cpp)
+target_link_libraries(pygomo_transport_tests PRIVATE pygomo::transport)
+target_include_directories(pygomo_transport_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
+pygomo_enable_warnings(pygomo_transport_tests)
+# One ctest entry per behaviour; each selects the doctest cases whose name starts with it.
+foreach(group lines write close limit misc)
+  add_test(NAME transport_${group}
+           COMMAND pygomo_transport_tests "-tc=transport_${group}*")
+endforeach()
+
 add_executable(pygomo_smoke smoke/smoke.cpp)
 target_link_libraries(pygomo_smoke PRIVATE pygomo::core)
 pygomo_enable_warnings(pygomo_smoke)
