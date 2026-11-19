@@ -1,0 +1,4 @@
+# source-derived (not captured from a running engine). KataGomo Gom2026 @ 9a0e65c.
+# Mirrors cpp/command/gtp.cpp:615-690 (kata-analyze callback) and cpp/game/board.cpp:480-500 (vertex text).
+# Board 15x15. One reply line per search update; the first entry is the engine's best move.
+info move H8 visits 120 utility 0.12 winrate 0.56 scoreMean 0 scoreStdev 0 scoreLead 0 prior 0.31 lcb 0.52 utilityLcb 0.1 weight 120 order 0 pv H8 G7 J9 pvVisits 120 60 30 info move G7 visits 40 utility 0.02 winrate 0.51 scoreMean 0 scoreStdev 0 scoreLead 0 prior 0.1 lcb 0.4 utilityLcb 0 weight 40 order 1 pv G7 H8

@@ -381,6 +381,56 @@
       ],
       "checked_by": "ctest --preset default && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "GTP-01-header",
+      "todo": "GTP-01",
+      "description": "WHEN \"=12 hello\", \"?7 bad move\", \"= \" and \"=\" are parsed as response headers THEN each gives the right ok flag, id (12, 7, none, none) and body (\"hello\", \"bad move\", \"\", \"\"), and a line starting with neither = nor ? gives no header",
+      "steps": [
+        "ctest --preset default -R gtp_header --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp_header --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-01-vertex",
+      "todo": "GTP-01",
+      "description": "WHEN D4, j10, AA3, pass, resign and I5 are parsed on 15x15 and 19x19 boards THEN A1 is the bottom-left point, I is rejected, pass and resign are their own values, out-of-board points are rejected, and format(parse(v)) == v for every point of both boards",
+      "steps": [
+        "ctest --preset default -R gtp_vertex --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp_vertex --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-01-analyze",
+      "todo": "GTP-01",
+      "description": "WHEN the source-derived kata-analyze and lz-analyze fixture lines are parsed THEN the first info entry gives an InfoEvent with visits as nodes and the PV as 0-based Coords, and a line that is not an info line or has a bad PV vertex gives an UnparsedEvent holding the line",
+      "steps": [
+        "ctest --preset default -R gtp_analyze --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp_analyze --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-01-total",
+      "todo": "GTP-01",
+      "description": "WHEN empty, garbage, very long and out-of-range inputs are given to the three parsers THEN none throws and none reads out of bounds (also under the sanitizer run)",
+      "steps": [
+        "ctest --preset default -R gtp_total --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp_total --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-01-core-deps",
+      "todo": "GTP-01",
+      "description": "WHEN the whole suite and the dependency check run THEN everything passes and scripts/check-core-deps.sh exits 0",
+      "steps": [
+        "ctest --preset default && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

@@ -1,0 +1,4 @@
+# source-derived (not captured from a running engine). KataGomo Gom2026 @ 9a0e65c.
+# Mirrors cpp/command/gtp.cpp:575-600 (lz-analyze callback): winrate, prior and lcb are integers (x10000).
+# Board 15x15.
+info move H8 visits 33 winrate 5210 prior 910 lcb 4980 order 0 pv H8 J9 G7 info move K10 visits 5 winrate 4800 prior 120 lcb 3900 order 1 pv K10

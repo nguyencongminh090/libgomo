@@ -34,9 +34,12 @@ add_test(NAME smoke COMMAND pygomo_smoke)
 add_executable(pygomo_parse_tests
   main.cpp
   parse/gomocup_parser_test.cpp
-  parse/rapfi_format_test.cpp)
+  parse/rapfi_format_test.cpp
+  parse/gtp_parser_test.cpp)
 target_link_libraries(pygomo_parse_tests PRIVATE pygomo::parse)
-target_compile_definitions(pygomo_parse_tests PRIVATE PYGOMO_FIXTURE_DIR="${PROJECT_SOURCE_DIR}/tests/fixtures/gomocup")
+target_compile_definitions(pygomo_parse_tests PRIVATE
+  PYGOMO_FIXTURE_DIR="${PROJECT_SOURCE_DIR}/tests/fixtures/gomocup"
+  PYGOMO_GTP_FIXTURE_DIR="${PROJECT_SOURCE_DIR}/tests/fixtures/gtp")
 target_include_directories(pygomo_parse_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
 pygomo_enable_warnings(pygomo_parse_tests)
 foreach(group messages move info unknown)
@@ -89,3 +92,7 @@ if(UNIX)
     set_tests_properties(gomo2_${group} PROPERTIES SKIP_REGULAR_EXPRESSION "SKIPPED")
   endforeach()
 endif()
+
+foreach(group header vertex analyze total)
+  add_test(NAME gtp_${group} COMMAND pygomo_parse_tests "-tc=gtp_${group}*")
+endforeach()
