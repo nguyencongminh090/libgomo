@@ -28,6 +28,10 @@ Also pending: promote `docs/notes/2026-11-19-harness-gate-review-findings.md` to
 owner picks a domain (none of CORE/PROTO/PARSE fits harness tooling); agreed to do it after the
 parser work starts, not before.
 
+Waiting on the owner: may Rapfi be built in a separate directory outside the repo to capture
+real transcripts as fixtures for PARSE-01, or should the parser rely on reading `gomocup.cpp`
+only? (Default if unanswered: read the code and draft the todo; do not build anything.)
+
 ## Uncertain
 - Gomocup spec meaning of `RULE 2` vs `4` rests on Rapfi code only.
 - `Position` cannot set arbitrary stones (GTP `set_position`); add when the GTP adapter needs it.
