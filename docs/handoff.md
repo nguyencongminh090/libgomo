@@ -18,8 +18,8 @@ GOMO-02, GTP-01 (GTP parsers), GTP-02 (GtpEngine over a fake transport, source-d
 
 ## Next step
 Draft the next todo (at most M, `planning: engine-protocol-port`) and get its features approved before writing
-them to `docs/features.json`. Options: a GTP analyze stream (`kata-genmove_analyze` gives InfoEvents and, being
-interruptible, a working `stop()`); read KataGomo `cpp/command/gomprotocol.cpp` (a Gomocup-style protocol, not
+them to `docs/features.json`. Options: a GTP analyze stream (`kata-genmove_analyze` gives InfoEvents but is also synchronous, so still
+not interruptible; only `kata-analyze` runs in the background and stops on the next input line); read KataGomo `cpp/command/gomprotocol.cpp` (a Gomocup-style protocol, not
 read yet); promote `docs/notes/2026-11-19-harness-gate-review-findings.md`. Separate L item: message/resign
 events in core (planning first). Reference source (outside the repo, may be gone): KataGomo `Gom2026` @ `9a0e65c`.
 
