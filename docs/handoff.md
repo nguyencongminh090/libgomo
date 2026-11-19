@@ -30,7 +30,6 @@ GTP parser; (c) PROTO GTP adapter (position diffing, `kata-get-rules` check). Th
 - `ProcessTransport` kills only its direct child (no process group); sets SIGPIPE to ignored
   process-wide on first start.
 - Gomocup `RULE 2` vs `4` rests on Rapfi code only; `Position` cannot set arbitrary stones.
-- `.codegraph/` untracked on purpose; decide whether to gitignore.
 
 ## Blockers
 None.
