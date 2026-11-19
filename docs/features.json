@@ -141,6 +141,46 @@
       ],
       "checked_by": "ctest --preset default && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "PORT-01-sink",
+      "todo": "PORT-01",
+      "description": "WHEN a test EventSink is fed each SearchEvent type THEN it receives them in order",
+      "steps": [
+        "ctest --preset default -R port_sink --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R port_sink --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PORT-01-port",
+      "todo": "PORT-01",
+      "description": "WHEN a fake adapter implements EnginePort (startSearch, stop, sendRaw, setRules returning Unsupported, supports) in a core-only target THEN it compiles and behaves as driven",
+      "steps": [
+        "ctest --preset default -R port_contract --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R port_contract --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PORT-01-blocking",
+      "todo": "PORT-01",
+      "description": "WHEN a fake engine emits info events then a best move THEN the blocking search() returns the best move and the collected info, also when the fake emits from another thread",
+      "steps": [
+        "ctest --preset default -R port_blocking --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R port_blocking --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PORT-01-deps",
+      "todo": "PORT-01",
+      "description": "WHEN the dependency check runs THEN pygomo_core is still clean (the blocking helper lives outside core) and exit 0",
+      "steps": [
+        "scripts/check-core-deps.sh"
+      ],
+      "checked_by": "scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

@@ -46,5 +46,13 @@ target_compile_features(pygomo_parse PUBLIC cxx_std_23)
 target_link_libraries(pygomo_parse PUBLIC pygomo::core)
 pygomo_enable_warnings(pygomo_parse)
 
+# Blocking helpers on top of the engine port. Uses threads, so it is not part of the core.
+add_library(pygomo_engine STATIC src/engine/blocking_search.cpp)
+add_library(pygomo::engine ALIAS pygomo_engine)
+target_include_directories(pygomo_engine PUBLIC include)
+target_compile_features(pygomo_engine PUBLIC cxx_std_23)
+target_link_libraries(pygomo_engine PUBLIC pygomo::core Threads::Threads)
+pygomo_enable_warnings(pygomo_engine)
+
 enable_testing()
 add_subdirectory(tests)
