@@ -431,6 +431,56 @@
       ],
       "checked_by": "ctest --preset default && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "GTP-02-sequence",
+      "todo": "GTP-02",
+      "description": "WHEN startSearch runs on a 15x15 position with 2 moves THEN the lines written are, in order, boardsize 15 15, clear_board, the rule command, play B H8, play W G7, genmove B, each with an increasing id",
+      "steps": [
+        "ctest --preset default -R gtp2_sequence --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp2_sequence --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-02-result",
+      "todo": "GTP-02",
+      "description": "WHEN the fake engine replies =N H8, = pass, = resign or ?N illegal move THEN the sink gets exactly one terminal event (BestMoveEvent, PassEvent, ErrorEvent, ErrorEvent holding the engine text), and a move on an occupied point gives an ErrorEvent",
+      "steps": [
+        "ctest --preset default -R gtp2_result --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp2_result --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-02-rules",
+      "todo": "GTP-02",
+      "description": "WHEN setRules or startSearch is given Swap1, matchTime or maxDepth THEN it returns Unsupported and writes nothing; supported rules and limits give the expected commands; a 20x10 board works",
+      "steps": [
+        "ctest --preset default -R gtp2_rules --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp2_rules --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-02-lifecycle",
+      "todo": "GTP-02",
+      "description": "WHEN startSearch is called twice, or the transport closes mid-search, or stop() is called THEN the second call returns Busy, the close gives exactly one ErrorEvent, and stop() writes nothing while the search still finishes",
+      "steps": [
+        "ctest --preset default -R gtp2_lifecycle --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp2_lifecycle --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-02-deps",
+      "todo": "GTP-02",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass (no live test, no claim of working with a real engine)",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

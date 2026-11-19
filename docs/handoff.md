@@ -13,19 +13,19 @@ Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
 Nothing in progress. Done and committed: CORE-01, PROTO-01, PARSE-01, PORT-01, GOMO-01, PROC-01,
-GOMO-02, GTP-01 (GTP header/vertex/analyze parsers, source-derived fixtures). Live Rapfi tests:
+GOMO-02, GTP-01 (GTP parsers), GTP-02 (GtpEngine over a fake transport, source-derived). Live Rapfi tests:
 `PYGOMO_RAPFI=/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi/build/pbrain-rapfi ctest --preset default -R gomo2_`.
 
 ## Next step
-GTP-02: `GtpEngine` adapter (EnginePort over Transport, framing by blank line, `play`/`genmove`/`boardsize`/
-`clear_board`, stop by newline during analyze). No GTP engine exists, so test it with a fake transport that
-replays the source-derived shapes. Draft the todo (at most M, `planning: engine-protocol-port`) and get its
-features approved before writing them to `docs/features.json`.
-Reference source (outside the repo, may be gone): KataGomo `Gom2026` @ `9a0e65c`, `cpp/command/gtp.cpp`.
-It also has `cpp/command/gomprotocol.cpp` (a Gomocup-style protocol), not read yet.
+Draft the next todo (at most M, `planning: engine-protocol-port`) and get its features approved before writing
+them to `docs/features.json`. Options: a GTP analyze stream (`kata-genmove_analyze` gives InfoEvents and, being
+interruptible, a working `stop()`); read KataGomo `cpp/command/gomprotocol.cpp` (a Gomocup-style protocol, not
+read yet); promote `docs/notes/2026-11-19-harness-gate-review-findings.md`. Separate L item: message/resign
+events in core (planning first). Reference source (outside the repo, may be gone): KataGomo `Gom2026` @ `9a0e65c`.
 
 ## Uncertain
-- GTP shapes are read from source only; no real GTP engine was ever run. Rules mapping (`kata-set-rule`) not read.
+- GtpEngine::stop() is a no-op: genmove blocks KataGomo's read loop. Limits persist in the engine between searches.
+- GTP shapes are read from source only; no real GTP engine was ever run. VCN rules and `kata-set-rule` not mapped.
 - No `docs/planning` file named `engine-protocol-port` exists although todos reference it.
 - Late `[Pondering]` lines and `coord_conversion_mode` != none are not covered by any Gomocup fixture.
 - `GomocupEngine` drops lines outside a search; any `ERROR` ends the search.

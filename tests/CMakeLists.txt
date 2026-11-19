@@ -96,3 +96,13 @@ endif()
 foreach(group header vertex analyze total)
   add_test(NAME gtp_${group} COMMAND pygomo_parse_tests "-tc=gtp_${group}*")
 endforeach()
+
+add_executable(pygomo_gtp_tests
+  main.cpp
+  gtp/gtp_engine_test.cpp)
+target_link_libraries(pygomo_gtp_tests PRIVATE pygomo::gtp)
+target_include_directories(pygomo_gtp_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
+pygomo_enable_warnings(pygomo_gtp_tests)
+foreach(group sequence result rules lifecycle)
+  add_test(NAME gtp2_${group} COMMAND pygomo_gtp_tests "-tc=gtp2_${group}*")
+endforeach()

@@ -8,6 +8,7 @@
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
 - [x] **GOMO-01.** Gomocup adapter - size M - [detail](docs/todo/GOMO-01-gomocup-adapter.md)
 - [x] **GTP-01.** GTP response and vertex parser (source-derived) - size M - [detail](docs/todo/GTP-01-gtp-parser.md)
+- [x] **GTP-02.** GTP engine adapter (source-derived, fake-transport tested) - size M - [detail](docs/todo/GTP-02-gtp-adapter.md)
 - [x] **GOMO-02.** GomocupEngine against the real Rapfi - size M - [detail](docs/todo/GOMO-02-real-engine-rapfi.md)
 - [x] **PARSE-01.** Gomocup line parser - size M - [detail](docs/todo/PARSE-01-gomocup-line-parser.md)
 - [x] **PORT-01.** EnginePort and EventSink - size M - [detail](docs/todo/PORT-01-engine-port-event-sink.md)
