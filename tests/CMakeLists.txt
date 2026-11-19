@@ -27,3 +27,14 @@ add_executable(pygomo_smoke smoke/smoke.cpp)
 target_link_libraries(pygomo_smoke PRIVATE pygomo::core)
 pygomo_enable_warnings(pygomo_smoke)
 add_test(NAME smoke COMMAND pygomo_smoke)
+
+add_executable(pygomo_parse_tests
+  main.cpp
+  parse/gomocup_parser_test.cpp)
+target_link_libraries(pygomo_parse_tests PRIVATE pygomo::parse)
+target_include_directories(pygomo_parse_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
+pygomo_enable_warnings(pygomo_parse_tests)
+foreach(group messages move info unknown)
+  add_test(NAME parse_${group}
+           COMMAND pygomo_parse_tests "-tc=parse_${group}*")
+endforeach()

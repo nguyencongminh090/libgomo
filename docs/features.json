@@ -91,6 +91,56 @@
       ],
       "checked_by": "scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "PARSE-01-messages",
+      "todo": "PARSE-01",
+      "description": "WHEN the line is \"ERROR <text>\" THEN the result is ErrorEvent with that text, and plain MESSAGE/DEBUG lines come back as UnparsedEvent holding the original line",
+      "steps": [
+        "ctest --preset default -R parse_messages --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R parse_messages --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PARSE-01-move",
+      "todo": "PARSE-01",
+      "description": "WHEN the line is \"x,y\" THEN the result is BestMoveEvent with 0-based coords, \"SWAP\" gives SwapEvent, and malformed or out-of-range coordinates give UnparsedEvent",
+      "steps": [
+        "ctest --preset default -R parse_move --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R parse_move --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PARSE-01-info",
+      "todo": "PARSE-01",
+      "description": "WHEN a UCI-like MESSAGE line carries depth, ev, n, tm and pv (also partial or truncated) THEN InfoEvent holds exactly the fields present and nothing throws",
+      "steps": [
+        "ctest --preset default -R parse_info --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R parse_info --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PARSE-01-unknown",
+      "todo": "PARSE-01",
+      "description": "WHEN a line is not recognised THEN the result is UnparsedEvent with the original text and the parser never throws",
+      "steps": [
+        "ctest --preset default -R parse_unknown --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R parse_unknown --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PARSE-01-deps",
+      "todo": "PARSE-01",
+      "description": "WHEN the whole suite and the dependency check run THEN every test passes, pygomo_core is untouched and still clean, exit 0",
+      "steps": [
+        "ctest --preset default && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

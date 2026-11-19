@@ -38,5 +38,13 @@ target_compile_features(pygomo_transport PUBLIC cxx_std_23)
 target_link_libraries(pygomo_transport PUBLIC Threads::Threads)
 pygomo_enable_warnings(pygomo_transport)
 
+# Pure text-to-event parsers. Depend on the core only.
+add_library(pygomo_parse STATIC src/parse/gomocup_parser.cpp)
+add_library(pygomo::parse ALIAS pygomo_parse)
+target_include_directories(pygomo_parse PUBLIC include)
+target_compile_features(pygomo_parse PUBLIC cxx_std_23)
+target_link_libraries(pygomo_parse PUBLIC pygomo::core)
+pygomo_enable_warnings(pygomo_parse)
+
 enable_testing()
 add_subdirectory(tests)
