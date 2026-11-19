@@ -181,6 +181,66 @@
       ],
       "checked_by": "scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "GOMO-01-sequence",
+      "todo": "GOMO-01",
+      "description": "WHEN startSearch runs on a 15x15 position with 3 moves THEN the transport receives START 15, INFO RULE, the limit INFOs that are set, BOARD, the three stones with owner flags, DONE, in that order",
+      "steps": [
+        "ctest --preset default -R gomo_sequence --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo_sequence --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GOMO-01-rules",
+      "todo": "GOMO-01",
+      "description": "WHEN rules are {Renju, FreeOpen} THEN INFO RULE 4 is sent; WHEN rules are {Standard, Swap1} THEN setRules returns Unsupported and nothing is written",
+      "steps": [
+        "ctest --preset default -R gomo_rules --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo_rules --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GOMO-01-events",
+      "todo": "GOMO-01",
+      "description": "WHEN the engine prints info lines then 7,7 THEN the sink gets info events then a best move and the search ends; SWAP gives a swap event; a best move outside the board or on a stone gives an error event",
+      "steps": [
+        "ctest --preset default -R gomo_events --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo_events --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GOMO-01-stop",
+      "todo": "GOMO-01",
+      "description": "WHEN stop() is called mid-search THEN YXSTOP is sent and the best move the engine then prints is still delivered as the terminal event",
+      "steps": [
+        "ctest --preset default -R gomo_stop --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo_stop --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GOMO-01-closed",
+      "todo": "GOMO-01",
+      "description": "WHEN the transport closes mid-search THEN the sink gets exactly one error event, blocking search() returns without hanging, and a later startSearch returns NotReady",
+      "steps": [
+        "ctest --preset default -R gomo_closed --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo_closed --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GOMO-01-rect",
+      "todo": "GOMO-01",
+      "description": "WHEN the position is not square THEN startSearch returns Unsupported and writes nothing (the Gomocup RECTSTART path is not supported by the reference engine)",
+      "steps": [
+        "ctest --preset default -R gomo_rect --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo_rect --output-on-failure",
+      "passes": true
     }
   ]
 }

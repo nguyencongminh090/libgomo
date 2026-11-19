@@ -54,5 +54,13 @@ target_compile_features(pygomo_engine PUBLIC cxx_std_23)
 target_link_libraries(pygomo_engine PUBLIC pygomo::core Threads::Threads)
 pygomo_enable_warnings(pygomo_engine)
 
+# Gomocup / Piskvork engine adapter.
+add_library(pygomo_gomocup STATIC src/gomocup/gomocup_engine.cpp)
+add_library(pygomo::gomocup ALIAS pygomo_gomocup)
+target_include_directories(pygomo_gomocup PUBLIC include)
+target_compile_features(pygomo_gomocup PUBLIC cxx_std_23)
+target_link_libraries(pygomo_gomocup PUBLIC pygomo::core pygomo::parse pygomo::transport)
+pygomo_enable_warnings(pygomo_gomocup)
+
 enable_testing()
 add_subdirectory(tests)

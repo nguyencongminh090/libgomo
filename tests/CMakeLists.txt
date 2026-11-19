@@ -49,3 +49,13 @@ target_link_libraries(pygomo_engine_tests PRIVATE pygomo::engine)
 target_include_directories(pygomo_engine_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
 pygomo_enable_warnings(pygomo_engine_tests)
 add_test(NAME port_blocking COMMAND pygomo_engine_tests "-tc=port_blocking*")
+
+add_executable(pygomo_gomocup_tests
+  main.cpp
+  gomocup/gomocup_engine_test.cpp)
+target_link_libraries(pygomo_gomocup_tests PRIVATE pygomo::gomocup pygomo::engine)
+target_include_directories(pygomo_gomocup_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
+pygomo_enable_warnings(pygomo_gomocup_tests)
+foreach(group sequence rules events stop closed rect)
+  add_test(NAME gomo_${group} COMMAND pygomo_gomocup_tests "-tc=gomo_${group}*")
+endforeach()
