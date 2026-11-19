@@ -59,3 +59,15 @@ pygomo_enable_warnings(pygomo_gomocup_tests)
 foreach(group sequence rules events stop closed rect)
   add_test(NAME gomo_${group} COMMAND pygomo_gomocup_tests "-tc=gomo_${group}*")
 endforeach()
+
+if(UNIX)
+  add_executable(pygomo_process_tests
+    main.cpp
+    process/process_transport_test.cpp)
+  target_link_libraries(pygomo_process_tests PRIVATE pygomo::process)
+  target_include_directories(pygomo_process_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
+  pygomo_enable_warnings(pygomo_process_tests)
+  foreach(group lines roundtrip close exit spawnfail limit)
+    add_test(NAME proc_${group} COMMAND pygomo_process_tests "-tc=proc_${group}*")
+  endforeach()
+endif()

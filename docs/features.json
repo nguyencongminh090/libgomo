@@ -241,6 +241,86 @@
       ],
       "checked_by": "ctest --preset default -R gomo_rect --output-on-failure",
       "passes": true
+    },
+    {
+      "id": "PROC-01-lines",
+      "todo": "PROC-01",
+      "description": "WHEN the child prints \"a\\r\\nb\\n\\nlast\" (no final newline) and exits THEN the listener gets a, b, an empty line and last, then exactly one onClosed(Eof)",
+      "steps": [
+        "ctest --preset default -R proc_lines --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R proc_lines --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PROC-01-roundtrip",
+      "todo": "PROC-01",
+      "description": "WHEN cat is the child and 8 threads each write 100 lines THEN 800 complete lines come back and none interleaves",
+      "steps": [
+        "ctest --preset default -R proc_roundtrip --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R proc_roundtrip --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PROC-01-close",
+      "todo": "PROC-01",
+      "description": "WHEN close() is called while the child blocks (sleep 60) THEN onClosed(Requested) arrives within 3 seconds, the child is gone and reaped, and later writes return Closed",
+      "steps": [
+        "ctest --preset default -R proc_close --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R proc_close --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PROC-01-exit",
+      "todo": "PROC-01",
+      "description": "WHEN the child exits by itself with code 3 THEN onClosed(Eof) arrives and exitStatus() reports 3",
+      "steps": [
+        "ctest --preset default -R proc_exit --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R proc_exit --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PROC-01-spawnfail",
+      "todo": "PROC-01",
+      "description": "WHEN the executable does not exist THEN start() returns an error, no thread is left running and the listener is never called",
+      "steps": [
+        "ctest --preset default -R proc_spawnfail --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R proc_spawnfail --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PROC-01-limit",
+      "todo": "PROC-01",
+      "description": "WHEN the child prints a line longer than maxLineLength THEN the listener gets onClosed(LineTooLong) and the child is terminated",
+      "steps": [
+        "ctest --preset default -R proc_limit --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R proc_limit --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PROC-01-tsan",
+      "todo": "PROC-01",
+      "description": "WHEN the process tests run 20 times under the tsan preset THEN they all pass with no ThreadSanitizer warning",
+      "steps": [
+        "cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan --repeat until-fail:20 -R proc_"
+      ],
+      "checked_by": "cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan --repeat until-fail:20 -R proc_",
+      "passes": true
+    },
+    {
+      "id": "PROC-01-deps",
+      "todo": "PROC-01",
+      "description": "WHEN the dependency check runs THEN pygomo_core is untouched and clean, and POSIX headers appear only in pygomo_process, exit 0",
+      "steps": [
+        "scripts/check-core-deps.sh"
+      ],
+      "checked_by": "scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }
