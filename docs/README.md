@@ -8,6 +8,7 @@ This folder follows the project-harness standard. One entity, one folder.
 | `todo/` | One file per doable item, `<DOMAIN>-<NN>-<slug>.md`. Frontmatter `status` is the truth. |
 | `../features/<slug>/planning.md` | Planning for an L-size feature. Must be approved before its todos start. |
 | `design/` | Settled designs of parts. |
+| `guide/` | Developer and contributor guide : `developer-guide.tex` and its built `developer-guide.pdf`. Build out of tree (`latexmk -pdf -outdir=<dir>`), then copy the PDF here so no aux files land in the repo. |
 | `adr/` | Hard-to-reverse architecture decisions. Immutable; supersede, never edit. |
 | `audit/` | Non-bug decisions and reviews. Immutable; supersede, never edit. |
 | `notes/` | Expiring S-size notes. Delete or promote. |
