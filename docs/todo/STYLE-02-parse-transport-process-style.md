@@ -2,7 +2,7 @@
 id: STYLE-02-parse-transport-process-style
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-20
 supersedes: []
@@ -27,6 +27,10 @@ planning: code-style-normalization
 Acceptance in `docs/features.json` (`"todo": "STYLE-02"`).
 
 ## Evidence
+Commit `08cf296` (doc comments + wrapped lines). No align commit: nothing in the changed blocks was misaligned (ProcessOptions and the TransportError enum were already aligned or written aligned in commit 1), so the whitespace-only diff is empty by construction.
+- lines, docs: `check-line-length.sh` and `check-doc-comments.sh` on the STYLE-02 dirs exit 0 (before: 21 long lines, 17 undocumented declarations).
+- Parser tests: only list initialisers and statements wrapped; no string literal was split or changed, except one in process_transport_test.cpp split into adjacent literals with identical bytes.
+- green: build, `ctest --preset default` 62/62 (4 live skipped), `check-core-deps.sh` OK.
 
 ## Links
 `features/code-style-normalization/planning.md`, `.claude/rules/coding-style.md`

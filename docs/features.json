@@ -1102,7 +1102,7 @@
         "scripts/check-line-length.sh include/pygomo/parse include/pygomo/transport include/pygomo/process src/parse src/transport src/process tests/parse tests/transport tests/process"
       ],
       "checked_by": "scripts/check-line-length.sh include/pygomo/parse include/pygomo/transport include/pygomo/process src/parse src/transport src/process tests/parse tests/transport tests/process",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-02-docs",
@@ -1112,7 +1112,7 @@
         "scripts/check-doc-comments.sh include/pygomo/parse include/pygomo/transport include/pygomo/process"
       ],
       "checked_by": "scripts/check-doc-comments.sh include/pygomo/parse include/pygomo/transport include/pygomo/process",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-02-align",
@@ -1122,7 +1122,7 @@
         "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing"
       ],
       "checked_by": "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-02-green",
@@ -1132,7 +1132,7 @@
         "cmake --build --preset default && ctest --preset default && scripts/check-core-deps.sh"
       ],
       "checked_by": "cmake --build --preset default && ctest --preset default && scripts/check-core-deps.sh",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-03-lines",

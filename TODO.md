@@ -1,7 +1,6 @@
 # TODO
 
 ## Backlog
-- [ ] **STYLE-02.** Code style for parse, transport and process - size M - [detail](docs/todo/STYLE-02-parse-transport-process-style.md)
 - [ ] **STYLE-03.** Code style for engine, gomocup, gtp and katagomo - size M - [detail](docs/todo/STYLE-03-engine-adapters-style.md)
 - [ ] **STYLE-04.** Code style for the remaining tests, and the style checks in ctest - size M - [detail](docs/todo/STYLE-04-remaining-tests-and-ctest-checks.md)
 
@@ -39,4 +38,5 @@
 - [x] **PROTO-01.** Transport port and StreamTransport - size M - [detail](docs/todo/PROTO-01-transport-port-stream-transport.md)
 - [x] **RESIGN-01.** ResignEvent in core and GtpEngine - size M - [detail](docs/todo/RESIGN-01-resign-event.md)
 - [x] **STYLE-01.** Code style for core, plus the line-length and doc-comment check scripts - size M - [detail](docs/todo/STYLE-01-core-style-and-checks.md)
+- [x] **STYLE-02.** Code style for parse, transport and process - size M - [detail](docs/todo/STYLE-02-parse-transport-process-style.md)
 - [x] **TEST-01.** Check that ctest runs every doctest case - size M - [detail](docs/todo/TEST-01-ctest-covers-every-doctest-case.md)
