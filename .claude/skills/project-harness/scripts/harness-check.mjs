@@ -53,6 +53,27 @@ export async function loadProfileChecks(profiles, base = here) {
 
 // PreToolUse hook. features.json: an edit that changes more than `passes` asks the owner (JSON
 // permissionDecision "ask"). Code: exit 2 blocks while an active todo is L or its planning is unapproved.
+// Real path of the target (symlinks and ".." resolved, also through a not-yet-existing tail), relative to the real root,
+// with "/" separators; case-folded on a case-insensitive filesystem so "Docs/Features.JSON" cannot dodge the match.
+const realOf = (p) => {
+  let cur = path.resolve(p); const rest = [];
+  for (;;) {
+    try { return path.join(fs.realpathSync.native(cur), ...rest.reverse()); } catch {
+      const up = path.dirname(cur);
+      if (up === cur) return path.resolve(p);
+      rest.push(path.basename(cur)); cur = up;
+    }
+  }
+};
+export function caseInsensitiveFs(dir) {
+  const swapped = dir.replace(/[a-z]/i, (c) => (c === c.toLowerCase() ? c.toUpperCase() : c.toLowerCase()));
+  if (swapped === dir) return false;
+  try { return fs.realpathSync(swapped) === fs.realpathSync(dir); } catch { return false; }
+}
+export function canonicalRel(root, target, insensitive = caseInsensitiveFs(root)) {
+  const rel = path.relative(realOf(root), realOf(target)).split(path.sep).join('/');
+  return insensitive ? rel.toLowerCase() : rel;
+}
 const ask = (reason) => console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'ask', permissionDecisionReason: reason } }));
 const CONTROL = /^(harness\.json$|\.claude\/|docs\/|features\/[^/]+\/planning\.md$)/;
 const EXEMPT = /^docs\/(handoff\.md$|fix-log\.md$|todo\/|notes\/)/;
@@ -60,7 +81,7 @@ function gate(root) {
   let hook = {};
   try { hook = JSON.parse(fs.readFileSync(0, 'utf8')); } catch {}
   const target = hook.tool_input?.file_path ?? hook.tool_input?.notebook_path ?? '';
-  const rel = target ? path.relative(root, path.resolve(target)).split(path.sep).join('/') : '';
+  const rel = target ? canonicalRel(root, target) : '';
   if (rel === FEATURES_FILE) {
     let current = '';
     try { current = fs.readFileSync(path.join(root, FEATURES_FILE), 'utf8'); } catch {}

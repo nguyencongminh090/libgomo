@@ -2,7 +2,7 @@
 id: HARNESS-03-canonical-features-path
 type: todo
 size: M
-status: active
+status: done
 owner: claude
 created: 2026-11-20
 supersedes: []
@@ -22,7 +22,7 @@ The `features.json` match uses `path.resolve`. Use `fs.realpathSync` and case-fo
 Acceptance in `docs/features.json` (`"todo": "HARNESS-03"`), proposed and owner-approved before code.
 
 ## Evidence
-(fill in before marking done)
+Test `HARNESS-03-real` in `tests/minor-fixes.test.mjs`; suite 143/143. `canonicalRel` resolves symlinks/`..` via realpath (also for a not-yet-existing tail) and case-folds when the filesystem is case-insensitive. The case-fold branch is covered only by a unit call with insensitive=true (this machine is case-sensitive).
 
 ## Links
 Source: security review findings, formerly `docs/notes/2026-11-19-harness-gate-review-findings.md` (finding 03, deleted on promotion).

@@ -58,17 +58,31 @@ export function run(ctx) {
 }
 
 // PreToolUse guard: an edit to features.json that changes anything besides `passes` needs the owner.
-const norm = (s) => String(s ?? '').replace(/("passes"\s*:\s*)(true|false)/g, '$1_');
+// The edit is applied to the current text and the JSON is compared as data (whitespace and key layout are not changes).
+// A non-boolean `passes` is a change. Unknown tools or unparseable JSON mean ask. An old_string that is not in the
+// file makes the tool itself reject the edit (nothing is written), so it is only judged by whether old/new differ beyond `passes`.
 const semantic = (text) => {
   const j = JSON.parse(text);
-  for (const f of Array.isArray(j?.features) ? j.features : []) if (f && typeof f === 'object') f.passes = null;
+  for (const f of Array.isArray(j?.features) ? j.features : []) if (f && typeof f === 'object' && typeof f.passes === 'boolean') f.passes = null;
   return JSON.stringify(j);
 };
+const normPasses = (t) => t.replace(/("passes"\s*:\s*)(true|false)/g, '$1_');
+function applyEdit(text, e) {
+  if (typeof e?.old_string !== 'string' || typeof e?.new_string !== 'string' || !e.old_string) return null;
+  if (!text.includes(e.old_string)) return normPasses(e.old_string) === normPasses(e.new_string) ? text : null;
+  return e.replace_all === true ? text.split(e.old_string).join(e.new_string) : text.replace(e.old_string, () => e.new_string);
+}
 export function onlyPassesChanged(toolName, input, currentText) {
-  if (toolName === 'Write') {
-    // Compare as data so reformatting is not a change; unparseable either side means ask.
-    try { return semantic(input.content) === semantic(currentText); } catch { return false; }
-  }
-  const edits = toolName === 'MultiEdit' ? (input.edits ?? []) : [input];
-  return edits.every((e) => norm(e.old_string) === norm(e.new_string));
+  try {
+    let next;
+    if (toolName === 'Write') next = input.content;
+    else if (toolName === 'Edit' || toolName === 'MultiEdit') {
+      next = currentText;
+      for (const e of toolName === 'MultiEdit' ? (input.edits ?? []) : [input]) {
+        next = applyEdit(next, e);
+        if (next === null) return false;
+      }
+    } else return false;
+    return semantic(next) === semantic(currentText);
+  } catch { return false; }
 }

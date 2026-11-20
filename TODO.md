@@ -3,8 +3,6 @@
 ## Backlog
 
 ## Active
-- [~] **HARNESS-03.** Canonical path for the features.json match - size M - [detail](docs/todo/HARNESS-03-canonical-features-path.md)
-- [~] **HARNESS-04.** Semantic check for the passes-only edit - size M - [detail](docs/todo/HARNESS-04-passes-only-semantic-check.md)
 
 ## Done
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
@@ -16,6 +14,8 @@
 - [x] **GTP-03.** GtpEngine: `kata-genmove_analyze` streaming (source-derived) - size M - [detail](docs/todo/GTP-03-kata-genmove-analyze.md)
 - [x] **HARNESS-01.** Validate profile names before import() - size M - [detail](docs/todo/HARNESS-01-profile-name-validation.md)
 - [x] **HARNESS-02.** Edit gate asks for control config - size M - [detail](docs/todo/HARNESS-02-gate-control-config-ask.md)
+- [x] **HARNESS-03.** Canonical path for the features.json match - size M - [detail](docs/todo/HARNESS-03-canonical-features-path.md)
+- [x] **HARNESS-04.** Semantic check for the passes-only edit - size M - [detail](docs/todo/HARNESS-04-passes-only-semantic-check.md)
 - [x] **KATA-01.** KataGomoEngine: adapter for KataGomo `gom` mode (source-derived) - size M - [detail](docs/todo/KATA-01-katagomo-gom-adapter.md)
 - [x] **MSG-01.** MessageEvent in core and parsers - size M - [detail](docs/todo/MSG-01-message-event.md)
 - [x] **PARSE-01.** Gomocup line parser - size M - [detail](docs/todo/PARSE-01-gomocup-line-parser.md)

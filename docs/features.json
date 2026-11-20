@@ -720,7 +720,7 @@
         "node --test --test-name-pattern=\"HARNESS-03-real\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs"
       ],
       "checked_by": "node --test --test-name-pattern=\"HARNESS-03-real\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs",
-      "passes": false
+      "passes": true
     },
     {
       "id": "HARNESS-04-semantic",
@@ -730,7 +730,7 @@
         "node --test --test-name-pattern=\"HARNESS-04-semantic\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs"
       ],
       "checked_by": "node --test --test-name-pattern=\"HARNESS-04-semantic\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs",
-      "passes": false
+      "passes": true
     },
     {
       "id": "HARNESS-04-unknown",
@@ -740,7 +740,7 @@
         "node --test --test-name-pattern=\"HARNESS-04-unknown\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs"
       ],
       "checked_by": "node --test --test-name-pattern=\"HARNESS-04-unknown\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs",
-      "passes": false
+      "passes": true
     }
   ]
 }

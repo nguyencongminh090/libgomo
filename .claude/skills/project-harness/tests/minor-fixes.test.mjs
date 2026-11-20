@@ -103,3 +103,42 @@ test('HARNESS-02-exempt daily docs do not ask', () => {
     assert.equal(gateAsk(r, f, 'Write', { content: 'x' }), false, f);
   }
 });
+
+import { canonicalRel } from '../scripts/harness-check.mjs';
+test('HARNESS-03-real symlink, .. and case cannot dodge the features.json match', () => {
+  const r = tmpCopy('clean');
+  write(r, 'docs/features.json', '{"features":[]}');
+  fs.symlinkSync(path.join(r, 'docs'), path.join(r, 'alias'));
+  for (const f of ['alias/features.json', 'src/../docs/features.json', 'docs/./features.json']) {
+    assert.equal(gateAsk(r, f, 'Write', { content: '{"features":[1]}' }), true, f);
+  }
+  assert.equal(gateAsk(r, 'alias/handoff.md', 'Write', { content: 'x' }), false);
+  assert.equal(canonicalRel(r, path.join(r, 'DOCS', 'Features.JSON'), true), 'docs/features.json');
+  assert.equal(canonicalRel(r, path.join(r, 'DOCS', 'Features.JSON'), false), 'DOCS/Features.JSON');
+});
+
+const FEAT = '{\n  "features": [\n    {"id": "a", "todo": "T-01", "description": "d", "steps": [], "passes": false}\n  ]\n}\n';
+const featRoot = () => { const r = tmpCopy('clean'); write(r, 'docs/features.json', FEAT); return r; };
+test('HARNESS-04-semantic edits are applied and compared as JSON', () => {
+  const r = featRoot();
+  const t = (tool, input) => gateAsk(r, 'docs/features.json', tool, input);
+  assert.equal(t('Edit', { old_string: '"passes": false', new_string: '"passes": true' }), false);
+  assert.equal(t('Edit', { old_string: '"passes": false', new_string: '"passes":true' }), false);
+  assert.equal(t('Edit', { old_string: '"description": "d", "steps": [], "passes": false', new_string: '"description": "e", "steps": [], "passes": true' }), true);
+  assert.equal(t('Edit', { old_string: '"passes": false', new_string: '"passes": "yes"' }), true);
+  assert.equal(t('Edit', { old_string: '"passes": true', new_string: '"passes": false' }), false, 'not in file, only passes differs: the tool rejects it');
+  assert.equal(t('Edit', { old_string: 'nope', new_string: 'x' }), true, 'not in file and more than passes differs');
+  assert.equal(t('Edit', { new_string: 'x' }), true, 'malformed edit');
+  assert.equal(t('Edit', { old_string: '"todo": "T-01"', new_string: '"todo": "T-01", "passes": true' }), true);
+  assert.equal(t('MultiEdit', { edits: [{ old_string: '"passes": false', new_string: '"passes": true' }] }), false);
+  assert.equal(t('MultiEdit', { edits: [{ old_string: '"passes": false', new_string: '"passes": true' }, { old_string: '"id": "a"', new_string: '"id": "b"' }] }), true);
+  // the old regex trick: swap the flag in text that also changes another field inside one old/new pair
+  assert.equal(t('Edit', { old_string: '"todo": "T-01", "description": "d", "steps": [], "passes": false', new_string: '"todo": "T-02", "description": "d", "steps": [], "passes": false' }), true);
+  assert.equal(t('Write', { content: FEAT.replace('false', 'true') }), false);
+});
+test('HARNESS-04-unknown tool names ask', () => {
+  const r = featRoot();
+  for (const tool of ['NotebookEdit', 'Bash', 'SomethingNew', undefined]) {
+    assert.equal(gateAsk(r, 'docs/features.json', tool, {}), true, String(tool));
+  }
+});
