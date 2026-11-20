@@ -73,7 +73,8 @@ TEST_CASE("gomo2_parse: the UCI-like form and non-info messages are unchanged") 
     CHECK(info(u)->elapsed == 1ms);
     CHECK(info(u)->principalVariation == std::vector<Coord>{{4, 4}, {1, 1}});
     for (const char* l : {"MESSAGE OptiTime 873ms | MaxTime 970ms", "MESSAGE Load config from x",
-                          "MESSAGE Speed fast | Depth x", "MESSAGE Bestline", "MESSAGE Depth | | "}) {
+                          "MESSAGE Speed fast | Depth x", "MESSAGE Bestline",
+                          "MESSAGE Depth | | "}) {
         INFO(l);
         CHECK(std::holds_alternative<MessageEvent>(parseGomocupLine(l)));
     }
@@ -82,7 +83,8 @@ TEST_CASE("gomo2_parse: the UCI-like form and non-info messages are unchanged") 
 TEST_CASE("gomo2_fixtures: real Rapfi transcripts lose no line and record their origin") {
     const std::string dir = PYGOMO_FIXTURE_DIR;
     int files = 0;
-    for (const char* name : {"rapfi-brief-default", "rapfi-normal-partial", "rapfi-ucilike-partial"}) {
+    for (const char* name :
+         {"rapfi-brief-default", "rapfi-normal-partial", "rapfi-ucilike-partial"}) {
         std::ifstream in(dir + "/" + name + ".txt");
         REQUIRE_MESSAGE(in.good(), name);
         ++files;

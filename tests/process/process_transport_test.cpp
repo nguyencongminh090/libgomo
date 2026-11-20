@@ -75,7 +75,9 @@ TEST_CASE("proc_roundtrip: 8 threads x 100 lines through cat") {
     for (int w = 0; w < 8; ++w) {
         ws.emplace_back([&, w] {
             for (int i = 0; i < 100; ++i) {
-                if (!t.writeLine("line-" + std::to_string(w) + "-" + std::to_string(i) + "-end")) ++writeFailures;
+                if (!t.writeLine("line-" + std::to_string(w) + "-" + std::to_string(i) + "-end")) {
+                    ++writeFailures;
+                }
             }
         });
     }
@@ -135,7 +137,8 @@ TEST_CASE("proc_spawnfail: a missing executable is an error with no listener cal
 }
 
 TEST_CASE("proc_limit: an over-long line ends the transport and the child") {
-    ProcessOptions o = sh("printf 'ok\\n'; head -c 100 /dev/zero | tr '\\0' x; printf '\\n'; exec sleep 60");
+    ProcessOptions o = sh("printf 'ok\\n'; head -c 100 /dev/zero | tr '\\0' x; printf '\\n'; "
+                          "exec sleep 60");
     o.maxLineLength = 16;
     ProcessTransport t(o);
     Recorder r;

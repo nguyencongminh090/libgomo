@@ -10,6 +10,7 @@
 
 namespace pygomo {
 
+/// Settings for StreamTransport.
 struct StreamTransportOptions {
     /// Longest accepted line in raw characters before the newline. A longer line ends the
     /// transport with CloseReason::LineTooLong, so a misbehaving peer cannot exhaust memory.
@@ -32,14 +33,20 @@ struct StreamTransportOptions {
 /// called from another thread.
 class StreamTransport final : public Transport {
 public:
+    /// Binds the two streams; they must outlive the transport. Reads nothing until start().
     StreamTransport(std::istream& in, std::ostream& out, StreamTransportOptions options = {});
+    /// Closes the transport, then joins the reader thread; blocks until the input reaches end
+    /// of input or fails (see the class comment).
     ~StreamTransport() override;
 
     StreamTransport(const StreamTransport&) = delete;
     StreamTransport& operator=(const StreamTransport&) = delete;
 
+    /// Starts the reader thread. Fails with AlreadyStarted, or Closed after close().
     [[nodiscard]] std::expected<void, TransportError> start(TransportListener& listener) override;
+    /// Writes the line and flushes. Fails with NotStarted, InvalidLine, Closed or IoError.
     [[nodiscard]] std::expected<void, TransportError> writeLine(std::string_view line) override;
+    /// Stops writing and silences the listener at once; does not wait for the reader thread.
     void close() override;
 
 private:

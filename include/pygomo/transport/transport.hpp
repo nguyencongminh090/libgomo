@@ -5,6 +5,7 @@
 
 namespace pygomo {
 
+/// Why a transport ended, reported once through TransportListener::onClosed.
 enum class CloseReason {
     Eof,          ///< The peer ended its output.
     Requested,    ///< close() was called.
@@ -12,12 +13,13 @@ enum class CloseReason {
     IoError,      ///< The underlying stream failed.
 };
 
+/// Why start() or writeLine() failed.
 enum class TransportError {
-    NotStarted,
-    AlreadyStarted,
-    Closed,
-    InvalidLine,  ///< The line contains a newline and would break framing.
-    IoError,
+    NotStarted,      ///< writeLine() was called before start().
+    AlreadyStarted,  ///< start() was called a second time.
+    Closed,          ///< The transport was closed; nothing more can be sent.
+    InvalidLine,     ///< The line contains a newline and would break framing.
+    IoError,         ///< The underlying stream, pipe or spawn failed.
 };
 
 /// Receives what the peer sends. Implementations call it from their own reader thread,
@@ -40,7 +42,8 @@ public:
     virtual ~Transport() = default;
 
     /// Begins delivering received lines to `listener`, which must outlive the transport.
-    [[nodiscard]] virtual std::expected<void, TransportError> start(TransportListener& listener) = 0;
+    [[nodiscard]] virtual std::expected<void, TransportError> start(
+        TransportListener& listener) = 0;
 
     /// Sends one line; the terminator is added by the transport. Safe to call from any thread.
     [[nodiscard]] virtual std::expected<void, TransportError> writeLine(std::string_view line) = 0;

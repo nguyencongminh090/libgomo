@@ -151,8 +151,8 @@ TEST_CASE("gtp_analyze: PV stops at pass; bad lines stay unparsed") {
     REQUIRE(info);
     CHECK(info->principalVariation.size() == 1);
 
-    for (std::string_view bad : {"", "hello", "info", "info move H8 pv H8 Z99", "info visits many pv H8",
-                                 "info move H8 pv I5"}) {
+    for (std::string_view bad : {"", "hello", "info", "info move H8 pv H8 Z99",
+                                 "info visits many pv H8", "info move H8 pv I5"}) {
         auto u = parseGtpAnalyzeLine(bad, 15, 15);
         auto* un = std::get_if<UnparsedEvent>(&u);
         REQUIRE(un);

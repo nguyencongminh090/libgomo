@@ -17,7 +17,9 @@ bool startsWith(std::string_view s, std::string_view prefix) {
 
 std::string_view trim(std::string_view s) {
     while (!s.empty() && (s.front() == ' ' || s.front() == '\t')) s.remove_prefix(1);
-    while (!s.empty() && (s.back() == ' ' || s.back() == '\t' || s.back() == '\r')) s.remove_suffix(1);
+    while (!s.empty() && (s.back() == ' ' || s.back() == '\t' || s.back() == '\r')) {
+        s.remove_suffix(1);
+    }
     return s;
 }
 
@@ -156,9 +158,15 @@ std::optional<InfoEvent> parseNormalInfo(std::string_view text) {
         if (multi && f == 0 && tok.size() >= 2) {
             if (auto sc = toScore(tok[1])) { info.score = sc; any = true; }
         } else if (multi && f == 1 && tok[0].front() >= '0' && tok[0].front() <= '9') {
-            if (auto d = toNonNegative(tok[0].substr(0, tok[0].find('-')))) { info.depth = d; any = true; }
+            if (auto d = toNonNegative(tok[0].substr(0, tok[0].find('-')))) {
+                info.depth = d;
+                any = true;
+            }
         } else if (tok[0] == "Depth" && tok.size() >= 2) {
-            if (auto d = toNonNegative(tok[1].substr(0, tok[1].find('-')))) { info.depth = d; any = true; }
+            if (auto d = toNonNegative(tok[1].substr(0, tok[1].find('-')))) {
+                info.depth = d;
+                any = true;
+            }
         } else if (tok[0] == "Eval" && tok.size() >= 2) {
             if (auto sc = toScore(tok[1])) { info.score = sc; any = true; }
         } else if ((tok[0] == "Node" || tok[0] == "Visit" || tok[0] == "V") && tok.size() >= 2) {
@@ -195,13 +203,19 @@ std::optional<InfoEvent> parseInfo(std::string_view text) {
             break;
         }
         if (key == "depth") {
-            if (auto d = toNonNegative(val.substr(0, val.find('-')))) { info.depth = d; any = true; }
+            if (auto d = toNonNegative(val.substr(0, val.find('-')))) {
+                info.depth = d;
+                any = true;
+            }
         } else if (key == "ev") {
             if (auto e = toScore(val)) { info.score = *e; any = true; }
         } else if (key == "n") {
             if (auto n = toCount(val)) { info.nodes = n; any = true; }
         } else if (key == "tm") {
-            if (auto t = toNonNegative(val)) { info.elapsed = std::chrono::milliseconds{*t}; any = true; }
+            if (auto t = toNonNegative(val)) {
+                info.elapsed = std::chrono::milliseconds{*t};
+                any = true;
+            }
         }
     }
     if (!any) return std::nullopt;

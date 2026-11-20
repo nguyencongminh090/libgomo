@@ -13,6 +13,7 @@
 
 namespace pygomo {
 
+/// How to launch the child for ProcessTransport.
 struct ProcessOptions {
     std::string program;                 ///< Looked up in PATH when it has no '/'.
     std::vector<std::string> args{};     ///< Arguments after the program name.
@@ -36,19 +37,27 @@ struct ProcessOptions {
 /// exactly once, after the child has been reaped, so exitStatus() is valid inside it.
 ///
 /// The child runs in its own process group; when it ends, SIGKILL goes to the whole group (also if
-/// the child exited by itself), and SIGTERM first if it had to be forced, so
-/// processes it started die with it. SIGPIPE is blocked only on the thread inside writeLine, the
-/// process-wide disposition is not changed.
+/// the child exited by itself), and SIGTERM first if it had to be forced, so processes it started
+/// die with it. A process that calls setsid leaves the group and survives. SIGPIPE is blocked only
+/// on the thread inside writeLine, the process-wide disposition is not changed.
 class ProcessTransport final : public Transport {
 public:
+    /// Stores the options; nothing is spawned until start().
     explicit ProcessTransport(ProcessOptions options);
+    /// Closes the transport and joins the reader thread, so it waits for the child to be reaped.
     ~ProcessTransport() override;
 
     ProcessTransport(const ProcessTransport&) = delete;
     ProcessTransport& operator=(const ProcessTransport&) = delete;
 
+    /// Spawns the child and starts the reader thread. Fails with AlreadyStarted, Closed (close()
+    /// came first) or IoError (pipe or spawn failed; a missing program is reported here).
     [[nodiscard]] std::expected<void, TransportError> start(TransportListener& listener) override;
+    /// Writes the line to the child's stdin; blocks while the pipe is full. Fails with
+    /// InvalidLine, NotStarted, Closed or IoError (including a child that already exited).
     [[nodiscard]] std::expected<void, TransportError> writeLine(std::string_view line) override;
+    /// Ends the child (see the class comment); blocks until it is reaped unless called from the
+    /// listener. Idempotent.
     void close() override;
 
     /// Exit code of the child, or -N if it was killed by signal N. Empty until it has been reaped.

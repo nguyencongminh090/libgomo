@@ -32,7 +32,8 @@ std::vector<std::string_view> tokens(std::string_view s) {
 bool equalsIgnoreCase(std::string_view a, std::string_view b) {
     if (a.size() != b.size()) return false;
     for (std::size_t i = 0; i < a.size(); ++i)
-        if (std::tolower(static_cast<unsigned char>(a[i])) != std::tolower(static_cast<unsigned char>(b[i])))
+        if (std::tolower(static_cast<unsigned char>(a[i])) !=
+            std::tolower(static_cast<unsigned char>(b[i])))
             return false;
     return true;
 }
@@ -84,7 +85,9 @@ std::optional<GtpVertex> parseGtpVertex(std::string_view text, int width, int he
     while (!text.empty() && isBlank(text.front())) text.remove_prefix(1);
     text = trimRight(text);
     if (text.size() < 2) return std::nullopt;
-    if (equalsIgnoreCase(text, "pass") || equalsIgnoreCase(text, "pss")) return GtpVertex{GtpPass{}};
+    if (equalsIgnoreCase(text, "pass") || equalsIgnoreCase(text, "pss")) {
+        return GtpVertex{GtpPass{}};
+    }
     if (equalsIgnoreCase(text, "resign")) return GtpVertex{GtpResign{}};
 
     if (text.front() == '(') {
@@ -147,8 +150,8 @@ SearchEvent parseGtpAnalyzeLine(std::string_view line, int width, int height) {
             info.nodes = *v;
             sawField = true;
         } else if (w == "pv") {
-            while (i + 1 < words.size() && words[i + 1] != "pvVisits" && words[i + 1] != "pvEdgeVisits" &&
-                   words[i + 1] != "info") {
+            while (i + 1 < words.size() && words[i + 1] != "pvVisits" &&
+                   words[i + 1] != "pvEdgeVisits" && words[i + 1] != "info") {
                 auto vertex = parseGtpVertex(words[++i], width, height);
                 if (!vertex) return unparsed();
                 auto* coord = std::get_if<Coord>(&*vertex);

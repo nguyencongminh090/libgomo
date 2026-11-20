@@ -67,7 +67,8 @@ std::expected<void, TransportError> ProcessTransport::start(TransportListener& l
     auto cleanup = [&] {
         for (int* p : {in, out, wake}) { closeFd(p[0]); closeFd(p[1]); }
     };
-    if (::pipe2(in, O_CLOEXEC) != 0 || ::pipe2(out, O_CLOEXEC) != 0 || ::pipe2(wake, O_CLOEXEC) != 0) {
+    if (::pipe2(in, O_CLOEXEC) != 0 || ::pipe2(out, O_CLOEXEC) != 0 ||
+        ::pipe2(wake, O_CLOEXEC) != 0) {
         cleanup();
         return std::unexpected(TransportError::IoError);
     }
@@ -120,7 +121,9 @@ std::expected<void, TransportError> ProcessTransport::start(TransportListener& l
 }
 
 std::expected<void, TransportError> ProcessTransport::writeLine(std::string_view line) {
-    if (line.find('\n') != std::string_view::npos) return std::unexpected(TransportError::InvalidLine);
+    if (line.find('\n') != std::string_view::npos) {
+        return std::unexpected(TransportError::InvalidLine);
+    }
     if (!started_) return std::unexpected(TransportError::NotStarted);
     std::string data(line);
     data.push_back('\n');

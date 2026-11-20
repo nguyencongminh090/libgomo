@@ -77,7 +77,8 @@ TEST_CASE("parse_info: partial lines fill only what is present") {
 }
 
 TEST_CASE("parse_unknown: any line is total and keeps its text") {
-    for (const char* l : {"OK", "FORBID 0102.", "MESSAGE depth", "\t", "(1) 34 | V 1.2K | SD 12 | H8"}) {
+    for (const char* l :
+         {"OK", "FORBID 0102.", "MESSAGE depth", "\t", "(1) 34 | V 1.2K | SD 12 | H8"}) {
         auto e = parseGomocupLine(l);
         if (auto* u = as<UnparsedEvent>(e)) CHECK(u->line == l);
     }
