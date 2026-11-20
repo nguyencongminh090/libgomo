@@ -671,6 +671,76 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "HARNESS-01-name",
+      "todo": "HARNESS-01",
+      "description": "WHEN harness.json lists a profile name not matching /^[a-z0-9][a-z0-9-]*$/ (e.g. ../x, A, a/b) THEN loadProfileChecks imports nothing for it and harness-check reports an error finding",
+      "steps": [
+        "node --test --test-name-pattern=\"HARNESS-01-name\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs"
+      ],
+      "checked_by": "node --test --test-name-pattern=\"HARNESS-01-name\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs",
+      "passes": true
+    },
+    {
+      "id": "HARNESS-01-root",
+      "todo": "HARNESS-01",
+      "description": "WHEN a profile directory resolves (also through a symlink) outside profile-checks/ or ../profiles/ THEN it is skipped",
+      "steps": [
+        "node --test --test-name-pattern=\"HARNESS-01-root\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs"
+      ],
+      "checked_by": "node --test --test-name-pattern=\"HARNESS-01-root\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs",
+      "passes": true
+    },
+    {
+      "id": "HARNESS-02-ask",
+      "todo": "HARNESS-02",
+      "description": "WHEN an edit targets harness.json, .claude/** or docs/** (other than the exempt files) THEN the gate answers permissionDecision ask with a reason",
+      "steps": [
+        "node --test --test-name-pattern=\"HARNESS-02-ask\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs"
+      ],
+      "checked_by": "node --test --test-name-pattern=\"HARNESS-02-ask\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs",
+      "passes": false
+    },
+    {
+      "id": "HARNESS-02-exempt",
+      "todo": "HARNESS-02",
+      "description": "WHEN the target is docs/handoff.md, docs/todo/**, docs/fix-log.md or docs/notes/** THEN the gate does not ask",
+      "steps": [
+        "node --test --test-name-pattern=\"HARNESS-02-exempt\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs"
+      ],
+      "checked_by": "node --test --test-name-pattern=\"HARNESS-02-exempt\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs",
+      "passes": false
+    },
+    {
+      "id": "HARNESS-03-real",
+      "todo": "HARNESS-03",
+      "description": "WHEN the path to features.json goes through a symlink, .. or differs in case on a case-insensitive filesystem THEN the gate still recognises it and asks",
+      "steps": [
+        "node --test --test-name-pattern=\"HARNESS-03-real\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs"
+      ],
+      "checked_by": "node --test --test-name-pattern=\"HARNESS-03-real\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs",
+      "passes": false
+    },
+    {
+      "id": "HARNESS-04-semantic",
+      "todo": "HARNESS-04",
+      "description": "WHEN an Edit/MultiEdit is applied to the current features.json and the resulting JSON differs only in passes THEN the gate allows it, otherwise it asks, even if whitespace or formatting changed",
+      "steps": [
+        "node --test --test-name-pattern=\"HARNESS-04-semantic\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs"
+      ],
+      "checked_by": "node --test --test-name-pattern=\"HARNESS-04-semantic\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs",
+      "passes": false
+    },
+    {
+      "id": "HARNESS-04-unknown",
+      "todo": "HARNESS-04",
+      "description": "WHEN tool_name is not Edit, MultiEdit or Write THEN the gate asks instead of allowing",
+      "steps": [
+        "node --test --test-name-pattern=\"HARNESS-04-unknown\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs"
+      ],
+      "checked_by": "node --test --test-name-pattern=\"HARNESS-04-unknown\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs",
+      "passes": false
     }
   ]
 }

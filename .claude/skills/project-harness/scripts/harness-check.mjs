@@ -24,12 +24,24 @@ export function buildCtx(root) {
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
+// Profile names come from harness.json and reach import(): only plain kebab-case names are accepted.
+export const PROFILE_NAME = /^[a-z0-9][a-z0-9-]*$/;
+export const invalidProfileNames = (profiles) => (Array.isArray(profiles) ? profiles : []).filter((p) => typeof p !== 'string' || !PROFILE_NAME.test(p));
+
+const realOrNull = (p) => { try { return fs.realpathSync(p); } catch { return null; } };
+const inside = (dir, parent) => { const a = realOrNull(dir), b = realOrNull(parent); return !!a && !!b && a.startsWith(b + path.sep); };
+
 // Profile checks: installed copy (profile-checks/<p>/*.mjs) or running from the skill (../profiles/<p>/checks/*.mjs).
-export async function loadProfileChecks(profiles) {
+// Invalid names are skipped, and so is a directory whose real path leaves its allowed root (symlink escape).
+export async function loadProfileChecks(profiles, base = here) {
   const mods = [];
+  const bad = new Set(invalidProfileNames(profiles));
   for (const p of profiles) {
-    for (const dir of [path.join(here, 'profile-checks', p), path.join(here, '..', 'profiles', p, 'checks')]) {
+    if (bad.has(p)) continue;
+    for (const [parent, dir] of [['profile-checks', path.join(base, 'profile-checks', p)], ['profiles', path.join(base, '..', 'profiles', p, 'checks')]]) {
       if (!fs.existsSync(dir)) continue;
+      const root = parent === 'profile-checks' ? path.join(base, 'profile-checks') : path.join(base, '..', 'profiles');
+      if (!inside(dir, root)) break;
       for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.mjs')).sort()) {
         mods.push(await import(pathToFileURL(path.join(dir, f)).href));
       }
@@ -67,7 +79,8 @@ function gate(root) {
 
 async function findingsFor(ctx, pre) {
   const extra = await loadProfileChecks(ctx.config.profiles);
-  return [...pre, ...runAll(ctx, extra)];
+  const names = invalidProfileNames(ctx.config.profiles).map((p) => ({ level: 'error', code: 'PROFILE-NAME', file: 'harness.json', message: `invalid profile name ${JSON.stringify(p)}: use lower-case letters, digits and "-"` }));
+  return [...pre, ...names, ...runAll(ctx, extra)];
 }
 const line = (f) => `${f.level.toUpperCase()} ${f.code} ${f.file}: ${f.message}`;
 const readStdinJson = () => { try { return JSON.parse(fs.readFileSync(0, 'utf8') || '{}'); } catch { return {}; } };

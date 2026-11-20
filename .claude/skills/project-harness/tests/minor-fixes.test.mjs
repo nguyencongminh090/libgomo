@@ -55,3 +55,34 @@ test('M12 diff says INVALID for malformed harness.json, MISSING only when absent
   fs.rmSync(path.join(r, 'harness.json'));
   assert.match(sk('harness-diff.mjs', ['--root', r]).stdout, /^MISSING harness\.json/m);
 });
+
+import { loadProfileChecks, invalidProfileNames } from '../scripts/harness-check.mjs';
+const withProfile = (name, body = 'export function run(){return []}') => {
+  const base = tmpDir();
+  write(base, `profile-checks/${name}/a.mjs`, body);
+  return base;
+};
+test('HARNESS-01-name invalid profile names are never imported and are reported', async () => {
+  assert.deepEqual(invalidProfileNames(['ok-1', '../x', 'A', 'a/b', '-a', 5]), ['../x', 'A', 'a/b', '-a', 5]);
+  const base = tmpDir();
+  write(base, 'profile-checks/ok/a.mjs', 'export function run(){return []}');
+  write(base, 'evil.mjs', 'globalThis.__pwned = true;');
+  const mods = await loadProfileChecks(['../evil', 'ok'], path.join(base, 'scripts'));
+  assert.equal(globalThis.__pwned, undefined);
+  assert.equal(mods.length, 0); // base differs, "ok" not under scripts/
+  const r = tmpCopy('clean');
+  write(r, 'harness.json', JSON.stringify({ version: '0', profiles: ['../x'], domains: [], overrides: {} }));
+  const out = sk('harness-check.mjs', ['--root', r, '--json']);
+  assert.ok(JSON.parse(out.stdout).some((f) => f.code === 'PROFILE-NAME' && f.level === 'error'));
+});
+test('HARNESS-01-root a profile directory symlinked outside its root is skipped', async () => {
+  const base = tmpDir();
+  const outside = tmpDir();
+  write(outside, 'a.mjs', 'globalThis.__escaped = true; export function run(){return []}');
+  fs.mkdirSync(path.join(base, 'profile-checks'));
+  fs.symlinkSync(outside, path.join(base, 'profile-checks', 'link'));
+  assert.equal((await loadProfileChecks(['link'], base)).length, 0);
+  assert.equal(globalThis.__escaped, undefined);
+  const good = withProfile('fine');
+  assert.equal((await loadProfileChecks(['fine'], good)).length, 1);
+});

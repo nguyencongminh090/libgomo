@@ -2,7 +2,7 @@
 id: HARNESS-01-profile-name-validation
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-20
 supersedes: []
@@ -22,7 +22,7 @@ Profile names from `harness.json` reach an `import()` path unchecked. Validate w
 Acceptance in `docs/features.json` (`"todo": "HARNESS-01"`), proposed and owner-approved before code.
 
 ## Evidence
-(fill in before marking done)
+Tests `HARNESS-01-name`, `HARNESS-01-root` in `tests/minor-fixes.test.mjs`; full harness suite 138/138; `harness-check` 0 errors. Names validated in `loadProfileChecks`/`findingsFor` (new finding `PROFILE-NAME`); symlink escape skipped via realpath. Installed copy `scripts/harness` synced.
 
 ## Links
 Source: security review findings, formerly `docs/notes/2026-11-19-harness-gate-review-findings.md` (finding 01, deleted on promotion).
