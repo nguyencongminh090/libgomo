@@ -1,6 +1,8 @@
 # TODO
 
 ## Backlog
+- [ ] **MSG-01.** MessageEvent in core and parsers - size M - [detail](docs/todo/MSG-01-message-event.md)
+- [ ] **RESIGN-01.** ResignEvent in core and GtpEngine - size M - [detail](docs/todo/RESIGN-01-resign-event.md)
 
 ## Active
 

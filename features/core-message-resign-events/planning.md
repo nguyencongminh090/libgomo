@@ -2,7 +2,7 @@
 id: core-message-resign-events
 type: planning
 size: L
-status: draft
+status: approved
 owner: claude
 created: 2026-11-20
 supersedes: []
@@ -35,12 +35,14 @@ Resign:
 - R2. Keep `ErrorEvent{"engine resigned"}`. Callers must match text to tell resign from failure.
 
 ## Decision
-Proposed, not approved: M1 + R1, in two todos (each at most M, build green after each):
+Approved by owner 2026-11-20: M1 + R1, in two todos (each at most M, build green after each):
 1. `MessageEvent` in core + Gomocup parser + adapters and tests updated; `UnparsedEvent` documented as unknown only.
 2. `ResignEvent` (terminal) in core + GTP mapping + port contract text and tests updated.
 Feature acceptance must name the commands: `ctest --preset default`, `ctest --preset tsan`, `scripts/check-core-deps.sh`.
 
 ## Open questions
-- Does `MessageEvent` carry the raw text only, or also a severity? (Proposal: raw text only.)
-- Is `ResignEvent` terminal for the application only, or should `search()` in `blocking_search` expose it separately? (Proposal: it is a terminal event like the others.)
-- Existing tests that expect `UnparsedEvent` for `MESSAGE` lines (parser fixtures, `gomo_events`, `kata_events`): owner must approve changing those expectations, since tests may not change otherwise.
+
+## Owner answers (2026-11-20)
+- `MessageEvent` carries raw text only.
+- `ResignEvent` is an ordinary terminal event; no special handling in `search()`.
+- Tests that expect `UnparsedEvent` for `MESSAGE` lines (parser fixtures, `gomo_events`, `kata_events`) may change their expectation to `MessageEvent`, nothing else in them.
