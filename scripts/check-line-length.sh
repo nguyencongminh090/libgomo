@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Lists every C++ line over 100 columns (characters, UTF-8 aware) in the given directories.
-# Usage: scripts/check-line-length.sh [dir...]   (default: include src tests)
-# Exit 0 = clean, 1 = long line(s) printed as file:line:text, 2 = bad argument.
+# Lists every C++ line over 100 columns (characters, UTF-8 aware) in the given directories or files.
+# Usage: scripts/check-line-length.sh [dir|file...]   (default: include src tests)
+# Exit 0 = clean, 1 = long line(s) printed as file:line:text, 2 = bad argument or grep error.
 # Rule: .claude/rules/coding-style.md. third_party/ is never scanned.
 set -euo pipefail
 
@@ -9,16 +9,30 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 limit=100
 
-dirs=("$@")
-[ "${#dirs[@]}" -gt 0 ] || dirs=(include src tests)
+paths=("$@")
+[ "${#paths[@]}" -gt 0 ] || paths=(include src tests)
 
 status=0
-for d in "${dirs[@]}"; do
-    [ -d "$d" ] || { echo "missing directory: $d" >&2; exit 2; }
-    while IFS= read -r -d '' f; do
-        if LC_ALL=C.UTF-8 grep -nHP "^.{$((limit + 1)),}" "$f"; then status=1; fi
-    done < <(find "$d" -path '*/third_party' -prune -o -type f \
+scan() {
+    local rc=0
+    LC_ALL=C.UTF-8 grep -nHP "^.{$((limit + 1)),}" "$1" || rc=$?
+    case "$rc" in
+        0) status=1 ;;
+        1) ;;
+        *) echo "check-line-length: grep failed (exit $rc) on $1" >&2; exit 2 ;;
+    esac
+}
+for p in "${paths[@]}"; do
+    if [ -f "$p" ]; then
+        scan "$p"
+    elif [ -d "$p" ]; then
+        while IFS= read -r -d '' f; do scan "$f"; done < <(
+            find "$p" -path '*/third_party' -prune -o -type f \
                  \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) -print0 | sort -z)
+    else
+        echo "missing path: $p" >&2
+        exit 2
+    fi
 done
 
 if [ "$status" -ne 0 ]; then

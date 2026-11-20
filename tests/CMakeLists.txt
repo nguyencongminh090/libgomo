@@ -139,3 +139,9 @@ endforeach()
 # Fails when a doctest case above is run by no ctest entry (needs the built tree).
 add_test(NAME ctest_coverage
          COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-ctest-coverage.sh ${PROJECT_BINARY_DIR})
+
+# Style checks over the whole tree (rule: .claude/rules/coding-style.md).
+add_test(NAME style_line_length
+         COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-line-length.sh include src tests)
+add_test(NAME style_doc_comments
+         COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-doc-comments.sh include)
