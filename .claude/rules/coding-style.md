@@ -15,7 +15,8 @@ when work is finished and verified, you may remind the user once that `/align` e
 
 1. Scope: the blocks containing lines changed in this task, or the files the user names.
 2. Align, inside a contiguous block of 2+ related lines:
-   - `=` of consecutive constant or config assignments
+   - `=` of consecutive assignments: constants, config, and variable declarations or assignments
+     (`auto x = ...;`, `x = ...;`); compound operators (`+=`, `|=`) align on their `=`
    - member types, member names and default initialisers in structs, classes and enums; consecutive declarations
    - trailing comments (`///<` and `//`)
    - arguments of a multi-line call or signature when each line is one record
@@ -36,6 +37,10 @@ struct SearchOutcome {
     std::vector<SearchEvent> other{};     ///< Message and unparsed lines seen during the search.
     SearchEvent              terminal{};  ///< BestMove, Swap, Pass or Error.
 };
+
+auto       deadline = clock.now() + limits.turnTime;
+const auto size     = board.size();
+moveCount          += 1;
 ```
 
 The project has no `.clang-format` yet. Adding one (with `AlignConsecutiveAssignments`, `AlignConsecutiveDeclarations`,
