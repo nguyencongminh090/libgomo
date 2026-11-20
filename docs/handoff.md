@@ -12,7 +12,7 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. Committed and passing: HARNESS-01..04 (gate hardening), RESIGN-01 (ResignEvent), MSG-01 (MessageEvent), GTP-03 (setAnalyze streaming), KATA-01 (KataGomoEngine, fake transport, source-derived), GOMO-03 (lower-case INFO keys, live Rapfi verified), CORE-01, PROTO-01, PARSE-01, PORT-01, GOMO-01, PROC-01, GOMO-02,
+Nothing in progress. Committed and passing: PROC-02 (process group kill, thread-local SIGPIPE), HARNESS-01..04 (gate hardening), RESIGN-01 (ResignEvent), MSG-01 (MessageEvent), GTP-03 (setAnalyze streaming), KATA-01 (KataGomoEngine, fake transport, source-derived), GOMO-03 (lower-case INFO keys, live Rapfi verified), CORE-01, PROTO-01, PARSE-01, PORT-01, GOMO-01, PROC-01, GOMO-02,
 GTP-01 (GTP parsers), GTP-02 (GtpEngine, fake transport, source-derived).
 
 ## Next step
@@ -27,7 +27,7 @@ re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/
 - No `docs/planning` file named `engine-protocol-port` exists although todos reference it.
 - Late `[Pondering]` lines and `coord_conversion_mode` != none are not covered by any Gomocup fixture.
 - `GomocupEngine` drops lines outside a search; any `ERROR` ends the search.
-- `ProcessTransport` kills only its direct child; sets SIGPIPE ignored process-wide.
+- `ProcessTransport` signals its process group only when it escalates (SIGTERM/SIGKILL); grandchildren of a child that exits on its own are left running. The child no longer gets terminal Ctrl-C.
 - `MessageEvent` exists but the GTP parser/engine never emit it. Only GtpEngine emits `ResignEvent`.
 
 - Harness gate: `canonicalRel` always lower-cases (fail closed), so case variants ask even on a case-sensitive FS. `features/*/planning.md` now asks the owner (added beyond the todo text). `scripts/harness` is a manual copy of the skill scripts; re-sync after skill changes.

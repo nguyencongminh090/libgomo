@@ -35,7 +35,9 @@ struct ProcessOptions {
 /// listener it returns at once and the cleanup finishes on the reader thread. onClosed is called
 /// exactly once, after the child has been reaped, so exitStatus() is valid inside it.
 ///
-/// The first ProcessTransport started in a process sets SIGPIPE to ignored for the whole process.
+/// The child runs in its own process group; SIGTERM and SIGKILL go to the whole group, so
+/// processes it started die with it. SIGPIPE is blocked only on the thread inside writeLine, the
+/// process-wide disposition is not changed.
 class ProcessTransport final : public Transport {
 public:
     explicit ProcessTransport(ProcessOptions options);

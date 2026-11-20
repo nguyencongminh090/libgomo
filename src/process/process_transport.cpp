@@ -9,6 +9,8 @@
 
 #include <cerrno>
 #include <cstring>
+#include <csignal>
+#include <ctime>
 #include <mutex>
 
 extern char** environ;
@@ -16,10 +18,30 @@ extern char** environ;
 namespace pygomo {
 namespace {
 
-void ignoreSigpipeOnce() {
-    static std::once_flag once;
-    std::call_once(once, [] { ::signal(SIGPIPE, SIG_IGN); });
-}
+// Blocks SIGPIPE on the calling thread only, so a write to a dead child returns EPIPE without
+// the process-wide disposition being touched. discardPending() consumes the signal our own
+// failed write raised (it is thread-directed), before the old mask is restored.
+class ScopedSigpipeBlock {
+public:
+    ScopedSigpipeBlock() {
+        sigemptyset(&set_);
+        sigaddset(&set_, SIGPIPE);
+        pthread_sigmask(SIG_BLOCK, &set_, &old_);
+    }
+    ~ScopedSigpipeBlock() { pthread_sigmask(SIG_SETMASK, &old_, nullptr); }
+    ScopedSigpipeBlock(const ScopedSigpipeBlock&) = delete;
+    ScopedSigpipeBlock& operator=(const ScopedSigpipeBlock&) = delete;
+
+    void discardPending() {
+        timespec none{0, 0};
+        while (::sigtimedwait(&set_, nullptr, &none) < 0 && errno == EINTR) {
+        }
+    }
+
+private:
+    sigset_t set_{};
+    sigset_t old_{};
+};
 
 void closeFd(int& fd) {
     if (fd >= 0) ::close(fd);
@@ -40,7 +62,6 @@ ProcessTransport::~ProcessTransport() {
 std::expected<void, TransportError> ProcessTransport::start(TransportListener& listener) {
     if (started_.exchange(true)) return std::unexpected(TransportError::AlreadyStarted);
     if (requested_) return std::unexpected(TransportError::Closed);
-    ignoreSigpipeOnce();
 
     int in[2] = {-1, -1}, out[2] = {-1, -1}, wake[2] = {-1, -1};
     auto cleanup = [&] {
@@ -69,7 +90,8 @@ std::expected<void, TransportError> ProcessTransport::start(TransportListener& l
     sigemptyset(&def);
     sigaddset(&def, SIGPIPE);
     posix_spawnattr_setsigdefault(&attr, &def);
-    posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETSIGDEF);
+    posix_spawnattr_setpgroup(&attr, 0);  // own process group: terminateChild signals it whole
+    posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETSIGDEF | POSIX_SPAWN_SETPGROUP);
 
     std::vector<char*> argv;
     argv.push_back(options_.program.data());
@@ -105,12 +127,14 @@ std::expected<void, TransportError> ProcessTransport::writeLine(std::string_view
 
     std::lock_guard lock(writeMutex_);
     if (requested_ || stdinFd_ < 0) return std::unexpected(TransportError::Closed);
+    ScopedSigpipeBlock noSigpipe;
     const char* p = data.data();
     std::size_t left = data.size();
     while (left > 0) {
         ssize_t n = ::write(stdinFd_, p, left);
         if (n < 0) {
             if (errno == EINTR) continue;
+            if (errno == EPIPE) noSigpipe.discardPending();
             return std::unexpected(TransportError::IoError);
         }
         p += n;
@@ -211,9 +235,9 @@ void ProcessTransport::terminateChild() {
         if (lock.owns_lock()) closeFd(stdinFd_);
     }
     if (!waitExit(options_.grace)) {
-        ::kill(pid_, SIGTERM);
+        ::kill(-pid_, SIGTERM);  // the group: wrappers and their children go too
         if (!waitExit(options_.grace)) {
-            ::kill(pid_, SIGKILL);
+            ::kill(-pid_, SIGKILL);
             while (!reap(true)) {
                 if (errno != EINTR) break;
             }

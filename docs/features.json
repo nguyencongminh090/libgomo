@@ -741,6 +741,46 @@
       ],
       "checked_by": "node --test --test-name-pattern=\"HARNESS-04-unknown\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs",
       "passes": true
+    },
+    {
+      "id": "PROC-02-group",
+      "todo": "PROC-02",
+      "description": "WHEN the child is `sh -c 'sleep 60 & wait'` and close() is called THEN the grandchild `sleep` is also gone (not running) within 3 seconds",
+      "steps": [
+        "ctest --preset default -R proc --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R proc --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PROC-02-sigpipe",
+      "todo": "PROC-02",
+      "description": "WHEN the child closes its stdin and writeLine hits EPIPE THEN it returns IoError and the test process is not killed by SIGPIPE",
+      "steps": [
+        "ctest --preset default -R proc --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R proc --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PROC-02-nohandler",
+      "todo": "PROC-02",
+      "description": "WHEN a ProcessTransport has been started and closed THEN the process-wide SIGPIPE disposition is the same as before",
+      "steps": [
+        "ctest --preset default -R proc --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R proc --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PROC-02-deps",
+      "todo": "PROC-02",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

@@ -6,6 +6,8 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <fstream>
+#include <optional>
 #include <mutex>
 #include <set>
 #include <string>
@@ -142,4 +144,64 @@ TEST_CASE("proc_limit: an over-long line ends the transport and the child") {
     CHECK(r.reasons == std::vector<CloseReason>{CloseReason::LineTooLong});
     CHECK(r.lines == std::vector<std::string>{"ok"});
     CHECK(t.exitStatus().has_value());
+}
+
+namespace {
+
+// A zombie still answers kill(pid, 0), so read the state from /proc.
+bool running(long pid) {
+    std::ifstream f("/proc/" + std::to_string(pid) + "/stat");
+    std::string line;
+    if (!std::getline(f, line)) return false;
+    auto rp = line.rfind(')');
+    return rp != std::string::npos && rp + 2 < line.size() && line[rp + 2] != 'Z';
+}
+
+}  // namespace
+
+TEST_CASE("proc_group: close() also ends grandchildren of the child") {
+    ProcessTransport t(sh("sleep 60 & echo $!; wait"));
+    Recorder r;
+    REQUIRE(t.start(r));
+    REQUIRE(r.waitLines(1));
+    long grandchild = std::stol(r.lines.front());
+    REQUIRE(running(grandchild));
+    t.close();
+    bool gone = false;
+    for (int i = 0; i < 60 && !gone; ++i) {
+        gone = !running(grandchild);
+        if (!gone) std::this_thread::sleep_for(50ms);
+    }
+    CHECK(gone);
+    if (!gone) ::kill(static_cast<pid_t>(grandchild), SIGKILL);
+}
+
+TEST_CASE("proc_sigpipe: writing to a child that closed stdin gives IoError, not a signal") {
+    ProcessTransport t(sh("exec 0<&-; sleep 5"));
+    Recorder r;
+    REQUIRE(t.start(r));
+    std::optional<TransportError> err;
+    for (int i = 0; i < 200 && !err; ++i) {
+        auto w = t.writeLine("x");
+        if (!w) err = w.error();
+        else std::this_thread::sleep_for(10ms);
+    }
+    REQUIRE(err.has_value());
+    CHECK(*err == TransportError::IoError);
+    t.close();  // before the Recorder goes away
+}
+
+TEST_CASE("proc_nohandler: the process-wide SIGPIPE disposition is left alone") {
+    struct sigaction before {}, after {};
+    REQUIRE(::sigaction(SIGPIPE, nullptr, &before) == 0);
+    {
+        ProcessTransport t(sh("exit 0"));
+        Recorder r;
+        REQUIRE(t.start(r));
+        REQUIRE(r.waitClosed());
+        t.close();
+    }
+    REQUIRE(::sigaction(SIGPIPE, nullptr, &after) == 0);
+    CHECK(after.sa_handler == before.sa_handler);
+    CHECK((after.sa_flags & SA_SIGINFO) == (before.sa_flags & SA_SIGINFO));
 }
