@@ -8,7 +8,7 @@ namespace pygomo {
 
 struct SearchOutcome {
     std::vector<InfoEvent> info{};      ///< Progress reports, in arrival order.
-    std::vector<SearchEvent> other{};   ///< Unparsed lines seen during the search.
+    std::vector<SearchEvent> other{};   ///< Message and unparsed lines seen during the search.
     SearchEvent terminal{};             ///< BestMove, Swap, Pass or Error.
 };
 

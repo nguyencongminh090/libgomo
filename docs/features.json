@@ -611,6 +611,36 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "MSG-01-parser",
+      "todo": "MSG-01",
+      "description": "WHEN parseGomocupLine gets `MESSAGE <text>` that is not an info shape THEN it returns MessageEvent{text} with the text after `MESSAGE ` kept raw; OK, ERRORS, DEBUG, an empty line and malformed coordinates stay UnparsedEvent",
+      "steps": [
+        "ctest --preset default -R parse_ --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R parse_ --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "MSG-01-adapters",
+      "todo": "MSG-01",
+      "description": "WHEN GomocupEngine or KataGomoEngine receives a MessageEvent during a search THEN it reaches the sink as a non-terminal event and the search still ends with BestMove or Error; blocking search collects it in `other`",
+      "steps": [
+        "ctest --preset default -R 'gomo_|kata_|blocking' --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R 'gomo_|kata_|blocking' --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "MSG-01-deps",
+      "todo": "MSG-01",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

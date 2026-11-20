@@ -2,7 +2,7 @@
 id: MSG-01-message-event
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-20
 supersedes: []
@@ -22,7 +22,7 @@ planning: core-message-resign-events
 Acceptance in `docs/features.json` (`"todo": "MSG-01"`), proposed and owner-approved before code.
 
 ## Evidence
-(fill in before marking done)
+2026-11-20: `parse_*` pass (MESSAGE text -> MessageEvent, OK/ERRORS/DEBUG/empty stay Unparsed); `gomo_*`, `kata_*`, `blocking_*` pass; default 46/46 (3 live skipped), tsan 46/46, `check-core-deps.sh` OK. Tests changed: only MESSAGE expectations Unparsed -> Message (parser fixtures, `rapfi_format`, `kata_events`); `search_event_test` visitor and live `Terminal` got the new alternative.
 
 ## Links
 `features/core-message-resign-events/planning.md`

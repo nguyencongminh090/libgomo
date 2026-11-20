@@ -43,7 +43,7 @@ public:
     /// Asks the engine to end the running search early. Harmless when none is running.
     virtual void stop() = 0;
 
-    /// Sends a line as is. Replies arrive as events (usually UnparsedEvent); nothing is promised.
+    /// Sends a line as is. Replies arrive as events (usually MessageEvent or UnparsedEvent); nothing is promised.
     [[nodiscard]] virtual std::expected<void, EngineError> sendRaw(std::string_view line) = 0;
 };
 

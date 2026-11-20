@@ -223,7 +223,7 @@ SearchEvent parseGomocupLine(std::string_view rawLine) {
     if (startsWith(line, "MESSAGE ")) {
         if (auto info = parseInfo(line.substr(8))) return *info;
         if (auto info = parseNormalInfo(line.substr(8))) return *info;
-        return unparsed();
+        return SearchEvent{MessageEvent{std::string{line.substr(8)}}};
     }
     if (auto c = toCoord(line); c && line.find(',') != std::string_view::npos) {
         return BestMoveEvent{*c};

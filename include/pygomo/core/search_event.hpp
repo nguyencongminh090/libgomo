@@ -54,7 +54,15 @@ struct ErrorEvent {
     bool operator==(const ErrorEvent&) const = default;
 };
 
-/// A line the parser did not recognise. Kept so nothing an engine says is silently lost.
+/// Free text the engine sent on purpose (e.g. Gomocup `MESSAGE <text>` that is not an info shape).
+/// Not terminal; the text is kept raw.
+struct MessageEvent {
+    std::string text{};
+
+    bool operator==(const MessageEvent&) const = default;
+};
+
+/// A line the parser did not understand at all. Kept so nothing an engine says is silently lost.
 struct UnparsedEvent {
     std::string line{};
 
@@ -62,6 +70,7 @@ struct UnparsedEvent {
 };
 
 using SearchEvent =
-    std::variant<InfoEvent, BestMoveEvent, SwapEvent, PassEvent, ErrorEvent, UnparsedEvent>;
+    std::variant<InfoEvent, BestMoveEvent, SwapEvent, PassEvent, ErrorEvent, MessageEvent,
+                 UnparsedEvent>;
 
 }  // namespace pygomo

@@ -115,7 +115,7 @@ TEST_CASE("kata_events: OK dropped, MESSAGE unparsed, x,y best move, ERROR termi
     r.t.say("MESSAGE late");  // after the terminal event: dropped
     auto ev = sink.get();
     REQUIRE(ev.size() == 2);
-    CHECK(std::holds_alternative<UnparsedEvent>(ev[0]));
+    CHECK(std::holds_alternative<MessageEvent>(ev[0]));
     CHECK(std::get<BestMoveEvent>(ev[1]).coord == Coord{6, 6});
 
     Collect s2;

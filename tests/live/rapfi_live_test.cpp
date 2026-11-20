@@ -39,7 +39,8 @@ struct Terminal final : EventSink {
     void onEvent(const SearchEvent& e) override {
         std::lock_guard lock(m);
         events.push_back(e);
-        if (!std::holds_alternative<InfoEvent>(e) && !std::holds_alternative<UnparsedEvent>(e)) {
+        if (!std::holds_alternative<InfoEvent>(e) && !std::holds_alternative<MessageEvent>(e) &&
+            !std::holds_alternative<UnparsedEvent>(e)) {
             done = true;
             cv.notify_all();
         }

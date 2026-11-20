@@ -19,6 +19,7 @@ std::string describe(const SearchEvent& e) {
         std::string operator()(const SwapEvent&) const { return "swap"; }
         std::string operator()(const PassEvent&) const { return "pass"; }
         std::string operator()(const ErrorEvent&) const { return "error"; }
+        std::string operator()(const MessageEvent&) const { return "message"; }
         std::string operator()(const UnparsedEvent&) const { return "unparsed"; }
     };
     return std::visit(Visitor{}, e);
@@ -32,6 +33,7 @@ TEST_CASE("Every alternative is reachable through the variant") {
     CHECK(describe(SwapEvent{}) == "swap");
     CHECK(describe(PassEvent{}) == "pass");
     CHECK(describe(ErrorEvent{"boom"}) == "error");
+    CHECK(describe(MessageEvent{"hi"}) == "message");
     CHECK(describe(UnparsedEvent{"???"}) == "unparsed");
 }
 

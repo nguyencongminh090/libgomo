@@ -15,13 +15,17 @@ template <class T>
 const T* as(const SearchEvent& e) { return std::get_if<T>(&e); }
 }  // namespace
 
-TEST_CASE("parse_messages: ERROR becomes ErrorEvent, other text is kept as Unparsed") {
+TEST_CASE("parse_messages: ERROR becomes ErrorEvent, MESSAGE text MessageEvent, rest Unparsed") {
     auto err = parseGomocupLine("ERROR Unsupported board size!");
     REQUIRE(as<ErrorEvent>(err));
     CHECK(as<ErrorEvent>(err)->message == "Unsupported board size!");
     CHECK(*as<ErrorEvent>(parseGomocupLine("ERROR")) == ErrorEvent{""});
 
-    for (const char* l : {"MESSAGE Transposition table cleared.", "DEBUG x", "ERRORS", "UNKNOWN cmd", ""}) {
+    auto msg = parseGomocupLine("MESSAGE Transposition table cleared.");
+    REQUIRE(as<MessageEvent>(msg));
+    CHECK(as<MessageEvent>(msg)->text == "Transposition table cleared.");
+
+    for (const char* l : {"DEBUG x", "ERRORS", "UNKNOWN cmd", ""}) {
         auto e = parseGomocupLine(l);
         REQUIRE(as<UnparsedEvent>(e));
         CHECK(as<UnparsedEvent>(e)->line == l);
@@ -69,7 +73,7 @@ TEST_CASE("parse_info: partial lines fill only what is present") {
         INFO(l);
         CHECK_NOTHROW((void)parseGomocupLine(l));
     }
-    CHECK(as<UnparsedEvent>(parseGomocupLine("MESSAGE depth x ev y")));
+    CHECK(as<MessageEvent>(parseGomocupLine("MESSAGE depth x ev y")));
 }
 
 TEST_CASE("parse_unknown: any line is total and keeps its text") {
@@ -78,5 +82,5 @@ TEST_CASE("parse_unknown: any line is total and keeps its text") {
         if (auto* u = as<UnparsedEvent>(e)) CHECK(u->line == l);
     }
     CHECK(as<UnparsedEvent>(parseGomocupLine("OK")));
-    CHECK(as<UnparsedEvent>(parseGomocupLine("MESSAGE Depth five | Eval x | Time soon")));
+    CHECK(as<MessageEvent>(parseGomocupLine("MESSAGE Depth five | Eval x | Time soon")));
 }

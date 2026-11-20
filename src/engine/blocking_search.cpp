@@ -17,7 +17,8 @@ public:
                 using T = std::decay_t<decltype(e)>;
                 if constexpr (std::is_same_v<T, InfoEvent>) {
                     outcome_.info.push_back(e);
-                } else if constexpr (std::is_same_v<T, UnparsedEvent>) {
+                } else if constexpr (std::is_same_v<T, MessageEvent> ||
+                                     std::is_same_v<T, UnparsedEvent>) {
                     outcome_.other.push_back(e);
                 } else {
                     outcome_.terminal = e;

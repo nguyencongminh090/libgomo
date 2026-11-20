@@ -94,6 +94,7 @@ void KataGomoEngine::onLine(std::string_view line) {
             }
         }
         const bool terminal = !std::holds_alternative<InfoEvent>(event) &&
+                              !std::holds_alternative<MessageEvent>(event) &&
                               !std::holds_alternative<UnparsedEvent>(event);
         if (terminal) sink_ = nullptr;
     }

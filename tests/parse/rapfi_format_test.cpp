@@ -75,7 +75,7 @@ TEST_CASE("gomo2_parse: the UCI-like form and non-info messages are unchanged") 
     for (const char* l : {"MESSAGE OptiTime 873ms | MaxTime 970ms", "MESSAGE Load config from x",
                           "MESSAGE Speed fast | Depth x", "MESSAGE Bestline", "MESSAGE Depth | | "}) {
         INFO(l);
-        CHECK(std::holds_alternative<UnparsedEvent>(parseGomocupLine(l)));
+        CHECK(std::holds_alternative<MessageEvent>(parseGomocupLine(l)));
     }
 }
 
@@ -94,6 +94,7 @@ TEST_CASE("gomo2_fixtures: real Rapfi transcripts lose no line and record their 
             ++engineLines;
             auto e = parseGomocupLine(line);
             if (auto* u = std::get_if<UnparsedEvent>(&e)) CHECK(u->line == line);
+            if (auto* m = std::get_if<MessageEvent>(&e)) CHECK("MESSAGE " + m->text == line);
             infos += std::holds_alternative<InfoEvent>(e);
             moves += std::holds_alternative<BestMoveEvent>(e);
         }
