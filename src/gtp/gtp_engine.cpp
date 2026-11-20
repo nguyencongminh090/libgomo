@@ -140,18 +140,17 @@ void GtpEngine::onLine(std::string_view line) {
         std::lock_guard lock(mutex_);
         if (!inReply_) {
             auto header = parse::parseGtpResponseHeader(line);
-            if (!header) {
-                // Text outside a reply: free text while a search runs, otherwise a banner or late output.
-                if (!sink_ || line.empty()) return;
-                deliver = sink_;
-                event = MessageEvent{std::string{line}};
-            } else {
+            if (header) {
                 inReply_ = true;
                 replyOk_ = header->ok;
                 replyId_ = header->id;
                 replyText_ = std::move(header->body);
                 return;
             }
+            // Text outside a reply: free text while a search runs, otherwise a banner or late output.
+            if (!sink_ || line.empty()) return;
+            deliver = sink_;
+            event = MessageEvent{std::string{line}};
         } else if (analyzing_ && replyId_ && *replyId_ == lastId_ && sink_ && line.starts_with("info ")) {
             deliver = sink_;  // streamed analysis line: report now, the reply is still open
             event = parse::parseGtpAnalyzeLine(line, position_->width(), position_->height());

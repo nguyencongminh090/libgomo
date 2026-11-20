@@ -15,6 +15,7 @@ namespace pygomo {
 /// The transport is not owned and must outlive the engine. Call open() once before use.
 ///
 /// The sink is called from the transport's reader thread, never while the engine holds a lock.
+/// While a search runs, a line outside any reply is sent raw as a MessageEvent; outside a search it is dropped.
 ///
 /// stop() cannot interrupt a search: a GTP engine reads commands in one thread, so a line sent during
 /// `genmove` is only read after the move is chosen. Searches end by the limits given to startSearch.

@@ -314,8 +314,11 @@ TEST_CASE("gtp4_message: text outside a reply during a search is a MessageEvent"
         Rig r;
         r.e.setAnalyze(std::chrono::milliseconds{500});
         REQUIRE(r.e.startSearch(twoMoves(), Limits{}, r.sink));
-        r.t.say("some note");
-        const int id = r.ackSetup(6);
+        r.t.reply("=1");
+        r.t.reply("=2");
+        r.t.say("some note");  // after a setup reply ended, before the next one starts
+        for (int setup = 3; setup < 6; ++setup) r.t.reply("=" + std::to_string(setup));
+        const int id = 6;
         r.t.say("=" + std::to_string(id));
         r.t.say("play H9");
         r.t.say("");
