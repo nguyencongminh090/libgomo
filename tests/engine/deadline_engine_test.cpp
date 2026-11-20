@@ -1,0 +1,183 @@
+#include <doctest.h>
+
+#include <atomic>
+#include <chrono>
+#include <mutex>
+#include <thread>
+#include <vector>
+
+#include "pygomo/engine/deadline_engine.hpp"
+
+using namespace pygomo;
+using namespace std::chrono_literals;
+
+namespace {
+
+/// An engine the test plays: it stays busy until the test answers, like the real adapters.
+class FakePort final : public EnginePort {
+public:
+    bool supports(const Rules&) const override { return true; }
+    std::expected<void, EngineError> setRules(const Rules&) override { return {}; }
+    std::expected<void, EngineError> startSearch(const Position&, const Limits&, EventSink& s) override {
+        std::lock_guard l(m);
+        if (failNext) return std::unexpected(EngineError::TransportFailed);
+        if (sink) return std::unexpected(EngineError::Busy);
+        sink = &s;
+        ++starts;
+        return {};
+    }
+    void stop() override { ++stops; }
+    std::expected<void, EngineError> sendRaw(std::string_view) override { return {}; }
+
+    /// The engine says something; a terminal event releases the sink first, as the adapters do.
+    void say(const SearchEvent& e, bool terminal) {
+        EventSink* s = nullptr;
+        {
+            std::lock_guard l(m);
+            s = sink;
+            if (terminal) sink = nullptr;
+        }
+        if (s) s->onEvent(e);
+    }
+
+    std::mutex m;
+    EventSink* sink = nullptr;
+    bool failNext = false;
+    std::atomic<int> stops{0};
+    int starts = 0;
+};
+
+struct Collect final : EventSink {
+    void onEvent(const SearchEvent& e) override { std::lock_guard l(m); events.push_back(e); }
+    std::vector<SearchEvent> get() { std::lock_guard l(m); return events; }
+    std::mutex m;
+    std::vector<SearchEvent> events;
+};
+
+Position pos() {
+    auto p = Position::create(15, 15);
+    REQUIRE(p);
+    REQUIRE(p->play({7, 7}));
+    return *p;
+}
+
+Limits turn(std::chrono::milliseconds ms) {
+    Limits l;
+    l.turnTime = ms;
+    return l;
+}
+
+bool waitFor(Collect& s, std::size_t n) {
+    for (int i = 0; i < 400; ++i) {
+        if (s.get().size() >= n) return true;
+        std::this_thread::sleep_for(5ms);
+    }
+    return false;
+}
+
+const SearchEvent kMove = BestMoveEvent{{8, 8}};
+
+}  // namespace
+
+TEST_CASE("dead1_timeout: stop at turnTime+grace, ErrorEvent after another grace, Busy until the late answer") {
+    FakePort port;
+    DeadlineEngine eng{port, DeadlineEngine::Options{30ms}};
+    Collect a;
+    REQUIRE(eng.startSearch(pos(), turn(20ms), a));
+    port.say(MessageEvent{"warming up"}, false);
+    REQUIRE(waitFor(a, 2));
+    auto ev = a.get();
+    CHECK(std::holds_alternative<MessageEvent>(ev[0]));
+    CHECK(std::get<ErrorEvent>(ev[1]).message == "engine did not answer");
+    CHECK(port.stops >= 1);
+
+    Collect b;
+    CHECK(eng.startSearch(pos(), Limits{}, b).error() == EngineError::Busy);
+    port.say(InfoEvent{}, false);  // late progress: dropped
+    CHECK(eng.startSearch(pos(), Limits{}, b).error() == EngineError::Busy);
+    port.say(kMove, true);  // the late answer: dropped, engine usable again
+    CHECK(a.get().size() == 2);
+    CHECK(eng.startSearch(pos(), Limits{}, b));
+    port.say(kMove, true);
+    REQUIRE(b.get().size() == 1);
+    CHECK(std::holds_alternative<BestMoveEvent>(b.get()[0]));
+}
+
+TEST_CASE("dead1_intime: an answer before or after stop() ends the search normally") {
+    FakePort port;
+    DeadlineEngine eng{port, DeadlineEngine::Options{200ms}};
+    Collect a;
+    REQUIRE(eng.startSearch(pos(), turn(10ms), a));
+    port.say(kMove, true);
+    std::this_thread::sleep_for(400ms);
+    REQUIRE(a.get().size() == 1);
+    CHECK(port.stops == 0);
+
+    Collect b;
+    REQUIRE(eng.startSearch(pos(), turn(10ms), b));
+    for (int i = 0; i < 400 && port.stops == 0; ++i) std::this_thread::sleep_for(2ms);
+    REQUIRE(port.stops == 1);
+    port.say(kMove, true);
+    std::this_thread::sleep_for(400ms);
+    REQUIRE(b.get().size() == 1);
+    CHECK(std::holds_alternative<BestMoveEvent>(b.get()[0]));
+}
+
+TEST_CASE("dead1_nodeadline: no deadline without turnTime or with 0; an error from the engine passes through") {
+    FakePort port;
+    DeadlineEngine eng{port, DeadlineEngine::Options{10ms}};
+    Collect a;
+    REQUIRE(eng.startSearch(pos(), Limits{}, a));
+    std::this_thread::sleep_for(150ms);
+    CHECK(a.get().empty());
+    CHECK(port.stops == 0);
+    port.say(kMove, true);
+
+    Collect z;
+    REQUIRE(eng.startSearch(pos(), turn(0ms), z));
+    std::this_thread::sleep_for(150ms);
+    CHECK(z.get().empty());
+    port.say(ErrorEvent{"engine connection closed"}, true);
+    REQUIRE(z.get().size() == 1);
+    CHECK(std::get<ErrorEvent>(z.get()[0]).message == "engine connection closed");
+
+    Collect busy;
+    port.failNext = true;  // a start error leaves no state behind
+    CHECK(eng.startSearch(pos(), turn(10ms), busy).error() == EngineError::TransportFailed);
+    port.failNext = false;
+    std::this_thread::sleep_for(100ms);
+    CHECK(busy.get().empty());
+    CHECK(eng.startSearch(pos(), Limits{}, busy));
+}
+
+TEST_CASE("dead1_callback: the sink may call startSearch from the timeout callback and from a terminal event") {
+    FakePort port;
+    DeadlineEngine eng{port, DeadlineEngine::Options{10ms}};
+    struct Again final : EventSink {
+        DeadlineEngine* eng{};
+        Collect* next{};
+        std::atomic<int> calls{0};
+        std::atomic<bool> busy{false};
+        std::atomic<bool> started{false};
+        void onEvent(const SearchEvent& e) override {
+            ++calls;
+            auto r = eng->startSearch(pos(), Limits{}, *next);
+            if (std::holds_alternative<ErrorEvent>(e)) busy = !r && r.error() == EngineError::Busy;
+            else started = r.has_value();
+        }
+    } again;
+    Collect next;
+    again.eng = &eng;
+    again.next = &next;
+
+    REQUIRE(eng.startSearch(pos(), turn(10ms), again));
+    for (int i = 0; i < 400 && again.calls == 0; ++i) std::this_thread::sleep_for(5ms);
+    CHECK(again.busy);  // timed out: still owes its answer
+    port.say(kMove, true);
+
+    again.calls = 0;
+    REQUIRE(eng.startSearch(pos(), Limits{}, again));
+    port.say(kMove, true);  // terminal event: the sink starts the next search at once
+    CHECK(again.started);
+    CHECK(port.starts == 3);
+}

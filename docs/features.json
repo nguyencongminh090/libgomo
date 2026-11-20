@@ -982,7 +982,7 @@
         "ctest --preset default -R dead1 --output-on-failure"
       ],
       "checked_by": "ctest --preset default -R dead1 --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "DEAD-01-deps",
@@ -992,7 +992,7 @@
         "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
-      "passes": false
+      "passes": true
     },
     {
       "id": "DEAD-02-main",

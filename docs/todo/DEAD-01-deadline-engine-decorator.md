@@ -2,7 +2,7 @@
 id: DEAD-01-deadline-engine-decorator
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-20
 supersedes: []
@@ -31,3 +31,6 @@ Acceptance in `docs/features.json` (`"todo": "DEAD-01"`).
 
 ## Links
 Planning: `features/engine-search-deadline/planning.md` (approved 2026-11-20). Audit: `docs/audit/AUD-01-late-move-owed-answer.md`.
+
+## Evidence
+`dead1_*` (4 cases) pass 20x in a row on default and tsan; `ctest` default and tsan 59/59, `check-core-deps.sh` OK, `check-ctest-coverage.sh` OK. Tested with a fake EnginePort only.
