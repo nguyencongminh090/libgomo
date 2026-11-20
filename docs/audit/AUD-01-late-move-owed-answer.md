@@ -2,7 +2,7 @@
 id: AUD-01-late-move-owed-answer
 type: audit
 size: M
-status: active
+status: superseded
 owner: claude
 created: 2026-11-20
 supersedes: []

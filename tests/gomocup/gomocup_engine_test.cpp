@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "pygomo/engine/blocking_search.hpp"
+#include "pygomo/engine/deadline_engine.hpp"
 #include "pygomo/gomocup/gomocup_engine.hpp"
 
 using namespace pygomo;
@@ -55,9 +56,16 @@ Position threeMoves(int w = 15, int h = 15) {
 
 struct Rig {
     FakeTransport t;
-    GomocupEngine e;
-    explicit Rig(std::chrono::milliseconds grace = std::chrono::milliseconds{2000})
-        : e(t, GomocupEngine::Options{grace}) { REQUIRE(e.open()); }
+    GomocupEngine e{t};
+    Rig() { REQUIRE(e.open()); }
+};
+
+/// The engine behind a DeadlineEngine, which owns the deadline since DEAD-03.
+struct DeadlineRig {
+    FakeTransport t;
+    GomocupEngine g{t};
+    DeadlineEngine e;
+    explicit DeadlineRig(std::chrono::milliseconds grace) : e(g, DeadlineEngine::Options{grace}) { REQUIRE(g.open()); }
 };
 
 using Lines = std::vector<std::string>;
@@ -225,7 +233,7 @@ bool waitFor(Collect& s, std::size_t n) {
 }  // namespace
 
 TEST_CASE("gomo_deadline: no move after turnTime+grace -> YXSTOP, then ErrorEvent, engine reusable") {
-    Rig r{30ms};
+    DeadlineRig r{30ms};
     Collect sink;
     REQUIRE(r.e.startSearch(threeMoves(), turn(20ms), sink));
     r.t.say("ERROR something went wrong");  // a warning does not end the search
@@ -236,8 +244,8 @@ TEST_CASE("gomo_deadline: no move after turnTime+grace -> YXSTOP, then ErrorEven
     CHECK(std::get<ErrorEvent>(ev[1]).message == "engine did not answer");
     CHECK(r.t.lines().back() == "YXSTOP");
 
-    Collect s2;  // the engine still owes its answer: no new search yet (GOMO-06)
-    CHECK(r.e.startSearch(threeMoves(), Limits{}, s2).error() == EngineError::NotReady);
+    Collect s2;  // the engine still owes its answer: no new search yet (GOMO-06, Busy since DEAD-03)
+    CHECK(r.e.startSearch(threeMoves(), Limits{}, s2).error() == EngineError::Busy);
     r.t.say("6,6");  // the late move is dropped, then the engine is usable again
     CHECK(sink.get().size() == 2);
     CHECK(r.e.startSearch(threeMoves(), Limits{}, s2));
@@ -245,19 +253,19 @@ TEST_CASE("gomo_deadline: no move after turnTime+grace -> YXSTOP, then ErrorEven
 }
 
 TEST_CASE("gomo_deadline: an engine that owes an answer ignores ERROR lines, accepts a swap, refuses after close") {
-    Rig r{20ms};
+    DeadlineRig r{20ms};
     Collect a;
     REQUIRE(r.e.startSearch(threeMoves(), turn(10ms), a));
     REQUIRE(waitFor(a, 1));
     r.t.say("ERROR still busy");
     Collect b;
-    CHECK(r.e.startSearch(threeMoves(), Limits{}, b).error() == EngineError::NotReady);
+    CHECK(r.e.startSearch(threeMoves(), Limits{}, b).error() == EngineError::Busy);
     r.t.say("SWAP");
     CHECK(r.e.startSearch(threeMoves(), Limits{}, b));
     CHECK(b.get().empty());
     CHECK(a.get().size() == 1);
 
-    Rig c{20ms};
+    DeadlineRig c{20ms};
     Collect d;
     REQUIRE(c.e.startSearch(threeMoves(), turn(10ms), d));
     REQUIRE(waitFor(d, 1));
@@ -267,7 +275,7 @@ TEST_CASE("gomo_deadline: an engine that owes an answer ignores ERROR lines, acc
 }
 
 TEST_CASE("gomo_deadline: a move in time or after YXSTOP ends the search normally") {
-    Rig r{200ms};
+    DeadlineRig r{200ms};
     Collect a;
     REQUIRE(r.e.startSearch(threeMoves(), turn(10ms), a));
     r.t.say("6,6");
@@ -286,7 +294,7 @@ TEST_CASE("gomo_deadline: a move in time or after YXSTOP ends the search normall
 }
 
 TEST_CASE("gomo_deadline: no deadline without turnTime or with turnTime 0, a closed engine gets no timeout event") {
-    Rig r{10ms};
+    DeadlineRig r{10ms};
     Collect a;
     REQUIRE(r.e.startSearch(threeMoves(), Limits{}, a));
     std::this_thread::sleep_for(150ms);
@@ -308,14 +316,14 @@ TEST_CASE("gomo_deadline: no deadline without turnTime or with turnTime 0, a clo
 }
 
 TEST_CASE("gomo_deadline: the sink may call startSearch from the timeout callback (refused while owed)") {
-    Rig r{10ms};
+    DeadlineRig r{10ms};
     struct Again final : EventSink {
-        Rig* rig{};
+        DeadlineRig* rig{};
         Collect* next{};
         std::atomic<bool> called{false};
         std::atomic<bool> refused{false};
         void onEvent(const SearchEvent&) override {
-            refused = rig->e.startSearch(threeMoves(), Limits{}, *next).error() == EngineError::NotReady;
+            refused = rig->e.startSearch(threeMoves(), Limits{}, *next).error() == EngineError::Busy;
             called = true;
         }
     } again;

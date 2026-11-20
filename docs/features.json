@@ -937,7 +937,7 @@
     {
       "id": "GOMO-05-deadline",
       "todo": "GOMO-05",
-      "description": "WHEN a search has turnTime and the engine sends no move THEN after turnTime+grace YXSTOP is written and after another grace the sink gets ErrorEvent and the engine accepts a new search; a move in time, a search without turnTime and a closed engine produce no timeout event",
+      "description": "WHEN a search has turnTime and the engine sends no move THEN after turnTime+grace YXSTOP is written and after another grace the sink gets ErrorEvent and the engine accepts a new search; a move in time, a search without turnTime and a closed engine produce no timeout event (since DEAD-03 the deadline is DeadlineEngine over GomocupEngine; same cases, ctest name gomo_deadline unchanged)",
       "steps": [
         "ctest --preset default -R gomo_deadline --output-on-failure"
       ],
@@ -957,7 +957,7 @@
     {
       "id": "GOMO-06-owed",
       "todo": "GOMO-06",
-      "description": "WHEN a search ended with \"engine did not answer\" THEN startSearch returns NotReady, and a later move or swap line is dropped (no sink call) and makes startSearch work again; an ERROR line while owed does not; a closed connection still gives NotReady",
+      "description": "WHEN a search ended with \"engine did not answer\" THEN startSearch returns NotReady, and a later move or swap line is dropped (no sink call) and makes startSearch work again; an ERROR line while owed does not; a closed connection still gives NotReady (since DEAD-03: startSearch returns Busy, not NotReady, while the answer is owed; NotReady only after a closed connection)",
       "steps": [
         "ctest --preset default -R gomo_deadline --output-on-failure"
       ],
@@ -1019,10 +1019,10 @@
       "todo": "DEAD-03",
       "description": "WHEN GomocupEngine runs through DeadlineEngine THEN the former gomo_deadline cases pass with Busy instead of NotReady while owed, GomocupEngine has no thread of its own, and the live Rapfi tests pass",
       "steps": [
-        "ctest --preset default -R \"gomo_deadline|dead3\" --output-on-failure && PYGOMO_RAPFI=<path> ctest --preset default -R gomo2_"
+        "ctest --preset default -R gomo_deadline --output-on-failure && PYGOMO_RAPFI=$PYGOMO_RAPFI ctest --preset default -R gomo2_"
       ],
-      "checked_by": "ctest --preset default -R \"gomo_deadline|dead3\" --output-on-failure && PYGOMO_RAPFI=<path> ctest --preset default -R gomo2_",
-      "passes": false
+      "checked_by": "ctest --preset default -R gomo_deadline --output-on-failure && PYGOMO_RAPFI=$PYGOMO_RAPFI ctest --preset default -R gomo2_",
+      "passes": true
     },
     {
       "id": "DEAD-03-deps",
@@ -1032,7 +1032,7 @@
         "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
-      "passes": false
+      "passes": true
     }
   ]
 }
