@@ -933,6 +933,26 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "GOMO-05-deadline",
+      "todo": "GOMO-05",
+      "description": "WHEN a search has turnTime and the engine sends no move THEN after turnTime+grace YXSTOP is written and after another grace the sink gets ErrorEvent and the engine accepts a new search; a move in time, a search without turnTime and a closed engine produce no timeout event",
+      "steps": [
+        "ctest --preset default -R gomo_deadline --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo_deadline --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GOMO-05-deps",
+      "todo": "GOMO-05",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

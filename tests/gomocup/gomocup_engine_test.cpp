@@ -1,5 +1,7 @@
 #include <doctest.h>
 
+#include <atomic>
+#include <chrono>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -53,8 +55,9 @@ Position threeMoves(int w = 15, int h = 15) {
 
 struct Rig {
     FakeTransport t;
-    GomocupEngine e{t};
-    Rig() { REQUIRE(e.open()); }
+    GomocupEngine e;
+    explicit Rig(std::chrono::milliseconds grace = std::chrono::milliseconds{2000})
+        : e(t, GomocupEngine::Options{grace}) { REQUIRE(e.open()); }
 };
 
 using Lines = std::vector<std::string>;
@@ -199,4 +202,99 @@ TEST_CASE("gomo_warning: an ERROR line during a search does not end it") {
     r.t.closeNow();
     REQUIRE(s3.get().size() == 2);
     CHECK(std::holds_alternative<ErrorEvent>(s3.get()[1]));
+}
+
+namespace {
+
+using namespace std::chrono_literals;
+
+Limits turn(std::chrono::milliseconds ms) {
+    Limits l;
+    l.turnTime = ms;
+    return l;
+}
+
+bool waitFor(Collect& s, std::size_t n) {
+    for (int i = 0; i < 400; ++i) {
+        if (s.get().size() >= n) return true;
+        std::this_thread::sleep_for(5ms);
+    }
+    return false;
+}
+
+}  // namespace
+
+TEST_CASE("gomo_deadline: no move after turnTime+grace -> YXSTOP, then ErrorEvent, engine reusable") {
+    Rig r{30ms};
+    Collect sink;
+    REQUIRE(r.e.startSearch(threeMoves(), turn(20ms), sink));
+    r.t.say("ERROR something went wrong");  // a warning does not end the search
+    REQUIRE(waitFor(sink, 2));
+    auto ev = sink.get();
+    REQUIRE(ev.size() == 2);
+    CHECK(std::holds_alternative<MessageEvent>(ev[0]));
+    CHECK(std::get<ErrorEvent>(ev[1]).message == "engine did not answer");
+    CHECK(r.t.lines().back() == "YXSTOP");
+
+    Collect s2;  // the sink was released: a new search is accepted
+    CHECK(r.e.startSearch(threeMoves(), Limits{}, s2));
+}
+
+TEST_CASE("gomo_deadline: a move in time or after YXSTOP ends the search normally") {
+    Rig r{200ms};
+    Collect a;
+    REQUIRE(r.e.startSearch(threeMoves(), turn(10ms), a));
+    r.t.say("6,6");
+    std::this_thread::sleep_for(400ms);
+    REQUIRE(a.get().size() == 1);
+    CHECK(std::holds_alternative<BestMoveEvent>(a.get()[0]));
+
+    Collect b;  // engine answers after YXSTOP, inside the second grace
+    REQUIRE(r.e.startSearch(threeMoves(), turn(10ms), b));
+    for (int i = 0; i < 400 && r.t.lines().back() != "YXSTOP"; ++i) std::this_thread::sleep_for(2ms);
+    REQUIRE(r.t.lines().back() == "YXSTOP");
+    r.t.say("6,6");
+    std::this_thread::sleep_for(400ms);
+    REQUIRE(b.get().size() == 1);
+    CHECK(std::holds_alternative<BestMoveEvent>(b.get()[0]));
+}
+
+TEST_CASE("gomo_deadline: no deadline without turnTime or with turnTime 0, a closed engine gets no timeout event") {
+    Rig r{10ms};
+    Collect a;
+    REQUIRE(r.e.startSearch(threeMoves(), Limits{}, a));
+    std::this_thread::sleep_for(150ms);
+    CHECK(a.get().empty());
+    for (const auto& l : r.t.lines()) CHECK(l != "YXSTOP");
+    r.t.say("6,6");
+
+    Collect z;  // turnTime 0 means no limit, not "expire at once"
+    REQUIRE(r.e.startSearch(threeMoves(), turn(0ms), z));
+    std::this_thread::sleep_for(150ms);
+    CHECK(z.get().empty());
+
+    r.t.closeNow();
+    REQUIRE(a.get().size() == 1);
+    CHECK(std::holds_alternative<BestMoveEvent>(a.get()[0]));
+    REQUIRE(z.get().size() == 1);
+    std::this_thread::sleep_for(100ms);
+    CHECK(z.get().size() == 1);
+}
+
+TEST_CASE("gomo_deadline: the sink may start the next search from the timeout callback") {
+    Rig r{10ms};
+    struct Again final : EventSink {
+        Rig* rig{};
+        Collect* next{};
+        std::atomic<bool> started{false};
+        void onEvent(const SearchEvent&) override {
+            started = rig->e.startSearch(threeMoves(), Limits{}, *next).has_value();
+        }
+    } again;
+    Collect next;
+    again.rig = &r;
+    again.next = &next;
+    REQUIRE(r.e.startSearch(threeMoves(), turn(10ms), again));
+    for (int i = 0; i < 400 && !again.started; ++i) std::this_thread::sleep_for(5ms);
+    CHECK(again.started);
 }

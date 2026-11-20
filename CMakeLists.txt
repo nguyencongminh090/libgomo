@@ -59,7 +59,7 @@ add_library(pygomo_gomocup STATIC src/gomocup/gomocup_engine.cpp)
 add_library(pygomo::gomocup ALIAS pygomo_gomocup)
 target_include_directories(pygomo_gomocup PUBLIC include)
 target_compile_features(pygomo_gomocup PUBLIC cxx_std_23)
-target_link_libraries(pygomo_gomocup PUBLIC pygomo::core pygomo::parse pygomo::transport)
+target_link_libraries(pygomo_gomocup PUBLIC pygomo::core pygomo::parse pygomo::transport Threads::Threads)
 pygomo_enable_warnings(pygomo_gomocup)
 
 # GTP engine adapter (KataGomo Gomoku extensions).

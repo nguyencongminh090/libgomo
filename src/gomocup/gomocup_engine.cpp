@@ -23,11 +23,57 @@ std::optional<int> ruleId(const Rules& r) {
 
 }  // namespace
 
-GomocupEngine::GomocupEngine(Transport& transport) : transport_(transport) {}
+GomocupEngine::GomocupEngine(Transport& transport) : GomocupEngine(transport, Options{}) {}
+
+GomocupEngine::GomocupEngine(Transport& transport, Options options)
+    : transport_(transport), options_(options) {}
+
+GomocupEngine::~GomocupEngine() {
+    {
+        std::lock_guard lock(mutex_);
+        quit_ = true;
+    }
+    cv_.notify_all();
+    if (watchdog_.joinable()) watchdog_.join();
+}
 
 std::expected<void, EngineError> GomocupEngine::open() {
     if (!transport_.start(*this)) return std::unexpected(EngineError::NotReady);
+    if (!watchdog_.joinable()) watchdog_ = std::thread([this] { watchdog(); });
     return {};
+}
+
+void GomocupEngine::endSearchLocked() {
+    sink_ = nullptr;
+    deadline_.reset();
+}
+
+// One long-lived thread: it never joins itself, so a sink may start the next search from onEvent.
+void GomocupEngine::watchdog() {
+    std::unique_lock lock(mutex_);
+    while (!quit_) {
+        if (!deadline_) {
+            cv_.wait(lock, [this] { return quit_ || deadline_.has_value(); });
+            continue;
+        }
+        const auto at = *deadline_;
+        const auto id = searchId_;
+        if (cv_.wait_until(lock, at, [&] { return quit_ || searchId_ != id || deadline_ != at; })) continue;
+
+        if (!stopSent_) {
+            stopSent_ = true;
+            deadline_ = Clock::now() + options_.grace;
+            lock.unlock();
+            (void)transport_.writeLine("YXSTOP");
+            lock.lock();
+            continue;
+        }
+        EventSink* sink = sink_;
+        endSearchLocked();
+        lock.unlock();
+        if (sink) sink->onEvent(ErrorEvent{"engine did not answer"});
+        lock.lock();
+    }
 }
 
 bool GomocupEngine::supports(const Rules& rules) const {
@@ -70,11 +116,19 @@ std::expected<void, EngineError> GomocupEngine::startSearch(
         }
         sink_ = &sink;
         position_ = position;
+        ++searchId_;
+        stopSent_ = false;
+        if (limits.turnTime && limits.turnTime->count() > 0) {
+            deadline_ = Clock::now() + *limits.turnTime + options_.grace;
+        } else {
+            deadline_.reset();
+        }
     }
+    cv_.notify_all();
     for (const auto& l : lines) {
         if (!transport_.writeLine(l)) {
             std::lock_guard lock(mutex_);
-            sink_ = nullptr;
+            endSearchLocked();
             return std::unexpected(EngineError::TransportFailed);
         }
     }
@@ -113,7 +167,7 @@ void GomocupEngine::onLine(std::string_view line) {
         const bool terminal = !std::holds_alternative<InfoEvent>(event) &&
                               !std::holds_alternative<MessageEvent>(event) &&
                               !std::holds_alternative<UnparsedEvent>(event);
-        if (terminal) sink_ = nullptr;
+        if (terminal) endSearchLocked();
     }
     sink->onEvent(event);
 }
@@ -124,7 +178,7 @@ void GomocupEngine::onClosed(CloseReason) {
         std::lock_guard lock(mutex_);
         closed_ = true;
         sink = sink_;
-        sink_ = nullptr;
+        endSearchLocked();
     }
     if (sink) sink->onEvent(ErrorEvent{"engine connection closed"});
 }

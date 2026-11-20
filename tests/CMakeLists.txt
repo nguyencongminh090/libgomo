@@ -61,7 +61,7 @@ add_executable(pygomo_gomocup_tests
 target_link_libraries(pygomo_gomocup_tests PRIVATE pygomo::gomocup pygomo::engine)
 target_include_directories(pygomo_gomocup_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
 pygomo_enable_warnings(pygomo_gomocup_tests)
-foreach(group sequence rules events warning stop closed rect)
+foreach(group sequence rules events warning stop closed rect deadline)
   add_test(NAME gomo_${group} COMMAND pygomo_gomocup_tests "-tc=gomo_${group}*")
 endforeach()
 
