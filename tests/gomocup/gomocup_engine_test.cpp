@@ -236,8 +236,34 @@ TEST_CASE("gomo_deadline: no move after turnTime+grace -> YXSTOP, then ErrorEven
     CHECK(std::get<ErrorEvent>(ev[1]).message == "engine did not answer");
     CHECK(r.t.lines().back() == "YXSTOP");
 
-    Collect s2;  // the sink was released: a new search is accepted
+    Collect s2;  // the engine still owes its answer: no new search yet (GOMO-06)
+    CHECK(r.e.startSearch(threeMoves(), Limits{}, s2).error() == EngineError::NotReady);
+    r.t.say("6,6");  // the late move is dropped, then the engine is usable again
+    CHECK(sink.get().size() == 2);
     CHECK(r.e.startSearch(threeMoves(), Limits{}, s2));
+    CHECK(s2.get().empty());
+}
+
+TEST_CASE("gomo_deadline: an engine that owes an answer ignores ERROR lines, accepts a swap, refuses after close") {
+    Rig r{20ms};
+    Collect a;
+    REQUIRE(r.e.startSearch(threeMoves(), turn(10ms), a));
+    REQUIRE(waitFor(a, 1));
+    r.t.say("ERROR still busy");
+    Collect b;
+    CHECK(r.e.startSearch(threeMoves(), Limits{}, b).error() == EngineError::NotReady);
+    r.t.say("SWAP");
+    CHECK(r.e.startSearch(threeMoves(), Limits{}, b));
+    CHECK(b.get().empty());
+    CHECK(a.get().size() == 1);
+
+    Rig c{20ms};
+    Collect d;
+    REQUIRE(c.e.startSearch(threeMoves(), turn(10ms), d));
+    REQUIRE(waitFor(d, 1));
+    c.t.closeNow();
+    Collect f;
+    CHECK(c.e.startSearch(threeMoves(), Limits{}, f).error() == EngineError::NotReady);
 }
 
 TEST_CASE("gomo_deadline: a move in time or after YXSTOP ends the search normally") {
@@ -281,20 +307,23 @@ TEST_CASE("gomo_deadline: no deadline without turnTime or with turnTime 0, a clo
     CHECK(z.get().size() == 1);
 }
 
-TEST_CASE("gomo_deadline: the sink may start the next search from the timeout callback") {
+TEST_CASE("gomo_deadline: the sink may call startSearch from the timeout callback (refused while owed)") {
     Rig r{10ms};
     struct Again final : EventSink {
         Rig* rig{};
         Collect* next{};
-        std::atomic<bool> started{false};
+        std::atomic<bool> called{false};
+        std::atomic<bool> refused{false};
         void onEvent(const SearchEvent&) override {
-            started = rig->e.startSearch(threeMoves(), Limits{}, *next).has_value();
+            refused = rig->e.startSearch(threeMoves(), Limits{}, *next).error() == EngineError::NotReady;
+            called = true;
         }
     } again;
     Collect next;
     again.rig = &r;
     again.next = &next;
     REQUIRE(r.e.startSearch(threeMoves(), turn(10ms), again));
-    for (int i = 0; i < 400 && !again.started; ++i) std::this_thread::sleep_for(5ms);
-    CHECK(again.started);
+    for (int i = 0; i < 400 && !again.called; ++i) std::this_thread::sleep_for(5ms);
+    CHECK(again.called);
+    CHECK(again.refused);
 }

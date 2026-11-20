@@ -953,6 +953,26 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "GOMO-06-owed",
+      "todo": "GOMO-06",
+      "description": "WHEN a search ended with \"engine did not answer\" THEN startSearch returns NotReady, and a later move or swap line is dropped (no sink call) and makes startSearch work again; an ERROR line while owed does not; a closed connection still gives NotReady",
+      "steps": [
+        "ctest --preset default -R gomo_deadline --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo_deadline --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GOMO-06-deps",
+      "todo": "GOMO-06",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

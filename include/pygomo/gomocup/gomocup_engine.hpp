@@ -65,6 +65,7 @@ private:
     std::uint64_t searchId_{0};
     std::optional<Clock::time_point> deadline_;  // set while a search with a turn time runs
     bool stopSent_{false};
+    bool owed_{false};  // a search timed out and the engine has not answered it yet
     Rules rules_{};
     bool closed_{false};
     EventSink* sink_{nullptr};  // non-null while a search runs

@@ -70,6 +70,7 @@ void GomocupEngine::watchdog() {
         }
         EventSink* sink = sink_;
         endSearchLocked();
+        owed_ = sink != nullptr;
         lock.unlock();
         if (sink) sink->onEvent(ErrorEvent{"engine did not answer"});
         lock.lock();
@@ -94,7 +95,7 @@ std::expected<void, EngineError> GomocupEngine::startSearch(
     std::vector<std::string> lines;
     {
         std::lock_guard lock(mutex_);
-        if (closed_) return std::unexpected(EngineError::NotReady);
+        if (closed_ || owed_) return std::unexpected(EngineError::NotReady);
         if (sink_) return std::unexpected(EngineError::Busy);
         lines.push_back("START " + std::to_string(position.width()));
         lines.push_back("INFO rule " + std::to_string(*ruleId(rules_)));
@@ -154,7 +155,12 @@ void GomocupEngine::onLine(std::string_view line) {
     {
         std::lock_guard lock(mutex_);
         sink = sink_;
-        if (!sink) return;  // engine banner or reply outside a search
+        if (!sink) {  // engine banner or reply outside a search
+            if (owed_ && (std::holds_alternative<BestMoveEvent>(event) || std::holds_alternative<SwapEvent>(event))) {
+                owed_ = false;  // the late answer to a timed-out search: dropped
+            }
+            return;
+        }
         if (std::holds_alternative<ErrorEvent>(event)) {
             // Engines such as Rapfi print non-fatal ERROR lines and still answer with a move.
             event = MessageEvent{std::string{line}};
