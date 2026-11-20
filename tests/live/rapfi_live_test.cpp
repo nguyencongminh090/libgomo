@@ -2,14 +2,20 @@
 // every test prints SKIPPED (ctest treats that as skipped, not passed).
 #include <doctest.h>
 
+#include <signal.h>
+#include <unistd.h>
+
 #include <condition_variable>
 #include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <mutex>
 #include <string>
 #include <vector>
 
 #include "pygomo/engine/blocking_search.hpp"
+#include "pygomo/engine/deadline_engine.hpp"
 #include "pygomo/gomocup/gomocup_engine.hpp"
 #include "pygomo/process/process_transport.hpp"
 
@@ -59,6 +65,27 @@ ProcessOptions rapfi() {
     ProcessOptions o;
     o.program = rapfiPath();
     return o;
+}
+
+/// The pid of this process's only child (the engine), read from /proc; -1 if there is none.
+pid_t childPid() {
+    pid_t found = -1;
+    for (const auto& entry : std::filesystem::directory_iterator("/proc")) {
+        const std::string name = entry.path().filename().string();
+        if (name.empty() || name.find_first_not_of("0123456789") != std::string::npos) continue;
+        std::ifstream stat(entry.path() / "stat");
+        std::string line;
+        if (!std::getline(stat, line)) continue;
+        const auto close = line.rfind(')');  // the name in parentheses may contain spaces
+        if (close == std::string::npos) continue;
+        char state = 0;
+        long ppid = 0;
+        if (std::sscanf(line.c_str() + close + 1, " %c %ld", &state, &ppid) == 2 && ppid == getpid()) {
+            if (found != -1) return -1;  // more than one child: do not guess
+            found = static_cast<pid_t>(std::stol(name));
+        }
+    }
+    return found;
 }
 
 }  // namespace
@@ -124,4 +151,50 @@ TEST_CASE("gomo2_close: closing mid-search gives one error event and no process"
         CHECK(errors == 1);
     }
     CHECK(t.exitStatus().has_value());  // reaped: no zombie, no live child
+}
+
+TEST_CASE("gomo2_deadline: a frozen engine times out, its late move is dropped, then it is usable again") {
+    REQUIRE_RAPFI();
+    ProcessTransport t(rapfi());
+    GomocupEngine engine(t);
+    REQUIRE(engine.open());
+    DeadlineEngine guarded(engine, DeadlineEngine::Options{300ms});
+    const pid_t child = childPid();
+    REQUIRE(child > 0);
+
+    Limits lim;
+    lim.turnTime = 200ms;
+    Terminal first;
+    auto pos = threeMoves();
+    REQUIRE(guarded.startSearch(pos, lim, first));
+    REQUIRE(kill(child, SIGSTOP) == 0);  // frozen: reads nothing, answers nothing
+    const bool timedOut = first.wait(5s);
+    {
+        std::lock_guard lock(first.m);
+        REQUIRE(timedOut);
+        REQUIRE(first.events.size() == 1);
+        REQUIRE(std::holds_alternative<ErrorEvent>(first.events[0]));
+        CHECK(std::get<ErrorEvent>(first.events[0]).message == "engine did not answer");
+    }
+    Terminal second;
+    CHECK(guarded.startSearch(pos, lim, second).error() == EngineError::Busy);
+
+    REQUIRE(kill(child, SIGCONT) == 0);  // it now reads YXSTOP and sends the move it owes
+    bool free = false;
+    for (int i = 0; i < 100 && !free; ++i) {
+        free = guarded.startSearch(pos, Limits{}, second).has_value();
+        if (!free) std::this_thread::sleep_for(50ms);
+    }
+    REQUIRE(free);
+    guarded.stop();
+    REQUIRE(second.wait(5s));
+    {
+        std::lock_guard lock(first.m);
+        CHECK(first.events.size() == 1);  // the late move never reached the first sink
+    }
+    std::lock_guard lock(second.m);
+    REQUIRE(std::holds_alternative<BestMoveEvent>(second.events.back()));
+    CHECK(pos.contains(std::get<BestMoveEvent>(second.events.back()).coord));
+    CHECK_FALSE(pos.occupied(std::get<BestMoveEvent>(second.events.back()).coord));
+    t.close();
 }

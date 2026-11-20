@@ -1033,6 +1033,16 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "DEAD-04-live",
+      "todo": "DEAD-04",
+      "description": "WHEN PYGOMO_RAPFI is set and the Rapfi child is frozen with SIGSTOP during a search with turnTime THEN the sink gets ErrorEvent, startSearch is Busy, and after SIGCONT the late move is dropped and a new search returns a legal move; WHEN it is unset THEN the test is skipped",
+      "steps": [
+        "PYGOMO_RAPFI=$PYGOMO_RAPFI ctest --preset default -R gomo2_deadline --output-on-failure"
+      ],
+      "checked_by": "PYGOMO_RAPFI=$PYGOMO_RAPFI ctest --preset default -R gomo2_deadline --output-on-failure",
+      "passes": true
     }
   ]
 }
