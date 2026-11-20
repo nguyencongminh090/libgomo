@@ -1,7 +1,6 @@
 # TODO
 
 ## Backlog
-- [ ] **DEAD-02.** DeadlineEngine over GtpEngine and KataGomoEngine (fake-transport tests) - size M - [detail](docs/todo/DEAD-02-deadline-gtp-katagomo.md)
 - [ ] **DEAD-03.** GomocupEngine: retire the built-in deadline, use DeadlineEngine - size M - [detail](docs/todo/DEAD-03-retire-gomocup-builtin-deadline.md)
 
 ## Active
@@ -9,6 +8,7 @@
 ## Done
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
 - [x] **DEAD-01.** DeadlineEngine: decorator that gives any EnginePort a search deadline - size M - [detail](docs/todo/DEAD-01-deadline-engine-decorator.md)
+- [x] **DEAD-02.** DeadlineEngine over GtpEngine and KataGomoEngine (fake-transport tests) - size M - [detail](docs/todo/DEAD-02-deadline-gtp-katagomo.md)
 - [x] **GOMO-01.** Gomocup adapter - size M - [detail](docs/todo/GOMO-01-gomocup-adapter.md)
 - [x] **GOMO-02.** GomocupEngine against the real Rapfi - size M - [detail](docs/todo/GOMO-02-real-engine-rapfi.md)
 - [x] **GOMO-03.** GomocupEngine: `INFO` upper case, keys lower case - size M - [detail](docs/todo/GOMO-03-lowercase-info-keys.md)

@@ -2,7 +2,7 @@
 id: DEAD-02-deadline-gtp-katagomo
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-20
 supersedes: []
@@ -26,3 +26,6 @@ Acceptance in `docs/features.json` (`"todo": "DEAD-02"`).
 
 ## Links
 Planning: `features/engine-search-deadline/planning.md` (approved 2026-11-20). Audit: `docs/audit/AUD-01-late-move-owed-answer.md`.
+
+## Evidence
+`dead2_*` (4 cases, both adapters over a fake transport) pass 20x on default and tsan; `ctest` default and tsan 61/61, `check-core-deps.sh` and `check-ctest-coverage.sh` OK. No change was needed in `GtpEngine` or `KataGomoEngine`. Not run against a real GTP or KataGomo engine.
