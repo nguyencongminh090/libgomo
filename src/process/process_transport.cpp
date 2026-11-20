@@ -212,21 +212,21 @@ void ProcessTransport::readLoop() {
 }
 
 void ProcessTransport::terminateChild() {
-    auto reap = [&](bool block) {
-        int status = 0;
-        pid_t r = ::waitpid(pid_, &status, block ? 0 : WNOHANG);
-        if (r != pid_) return false;
-        exit_ = WIFEXITED(status) ? WEXITSTATUS(status) : -WTERMSIG(status);
-        exited_ = true;
-        return true;
+    // The leader is only observed (WNOWAIT) until the group has been signalled: while it is a
+    // zombie its pid, and so the group id, cannot be reused by an unrelated process.
+    auto exited = [&] {
+        siginfo_t si{};
+        si.si_pid = 0;
+        return ::waitid(P_PID, static_cast<id_t>(pid_), &si, WEXITED | WNOHANG | WNOWAIT) == 0 &&
+               si.si_pid != 0;
     };
     auto waitExit = [&](std::chrono::milliseconds limit) {
         auto end = std::chrono::steady_clock::now() + limit;
         while (std::chrono::steady_clock::now() < end) {
-            if (reap(false)) return true;
+            if (exited()) return true;
             ::usleep(5000);
         }
-        return reap(false);
+        return exited();
     };
 
     {
@@ -236,12 +236,16 @@ void ProcessTransport::terminateChild() {
     }
     if (!waitExit(options_.grace)) {
         ::kill(-pid_, SIGTERM);  // the group: wrappers and their children go too
-        if (!waitExit(options_.grace)) {
-            ::kill(-pid_, SIGKILL);
-            while (!reap(true)) {
-                if (errno != EINTR) break;
-            }
-        }
+        waitExit(options_.grace);
+    }
+    // The child ended (or is about to), its group may still hold processes: end them too.
+    ::kill(-pid_, SIGKILL);
+    int status = 0;
+    pid_t r;
+    while ((r = ::waitpid(pid_, &status, 0)) < 0 && errno == EINTR) {}
+    if (r == pid_) {
+        exit_ = WIFEXITED(status) ? WEXITSTATUS(status) : -WTERMSIG(status);
+        exited_ = true;
     }
     std::lock_guard lock(writeMutex_);
     closeFd(stdinFd_);

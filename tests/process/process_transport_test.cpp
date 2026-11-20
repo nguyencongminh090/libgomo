@@ -176,6 +176,23 @@ TEST_CASE("proc_group: close() also ends grandchildren of the child") {
     if (!gone) ::kill(static_cast<pid_t>(grandchild), SIGKILL);
 }
 
+TEST_CASE("proc_orphan: close() ends grandchildren of a child that exited by itself") {
+    ProcessTransport t(sh("sleep 60 & echo $!; exit 0"));
+    Recorder r;
+    REQUIRE(t.start(r));
+    REQUIRE(r.waitLines(1));
+    long grandchild = std::stol(r.lines.front());
+    REQUIRE(running(grandchild));
+    t.close();
+    bool gone = false;
+    for (int i = 0; i < 60 && !gone; ++i) {
+        gone = !running(grandchild);
+        if (!gone) std::this_thread::sleep_for(50ms);
+    }
+    CHECK(gone);
+    if (!gone) ::kill(static_cast<pid_t>(grandchild), SIGKILL);
+}
+
 TEST_CASE("proc_sigpipe: writing to a child that closed stdin gives IoError, not a signal") {
     ProcessTransport t(sh("exec 0<&-; sleep 5"));
     Recorder r;

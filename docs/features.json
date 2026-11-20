@@ -893,6 +893,26 @@
       ],
       "checked_by": "ctest --preset default -R ctest_coverage --output-on-failure",
       "passes": true
+    },
+    {
+      "id": "PROC-03-orphan",
+      "todo": "PROC-03",
+      "description": "WHEN the child is `sh -c 'sleep 60 & echo $!; exit 0'` (it exits by itself, the grandchild keeps running) and close() is called THEN the grandchild `sleep` is gone within 3 seconds",
+      "steps": [
+        "ctest --preset default -R proc --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R proc --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PROC-03-deps",
+      "todo": "PROC-03",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

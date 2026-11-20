@@ -5,7 +5,6 @@
 ## Active
 
 ## Done
-- [x] **TEST-01.** Check that ctest runs every doctest case - size M - [detail](docs/todo/TEST-01-ctest-covers-every-doctest-case.md)
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
 - [x] **GOMO-01.** Gomocup adapter - size M - [detail](docs/todo/GOMO-01-gomocup-adapter.md)
 - [x] **GOMO-02.** GomocupEngine against the real Rapfi - size M - [detail](docs/todo/GOMO-02-real-engine-rapfi.md)
@@ -26,5 +25,7 @@
 - [x] **PORT-02.** port_blocking test: worker uses the sink after search() returned - size M - [detail](docs/todo/PORT-02-blocking-test-sink-lifetime.md)
 - [x] **PROC-01.** ProcessTransport (POSIX) - size M - [detail](docs/todo/PROC-01-process-transport.md)
 - [x] **PROC-02.** ProcessTransport: kill the process group, no process-wide SIGPIPE change - size M - [detail](docs/todo/PROC-02-process-group-sigpipe.md)
+- [x] **PROC-03.** ProcessTransport: also end the process group when the child exits by itself - size M - [detail](docs/todo/PROC-03-kill-orphans-after-child-exit.md)
 - [x] **PROTO-01.** Transport port and StreamTransport - size M - [detail](docs/todo/PROTO-01-transport-port-stream-transport.md)
 - [x] **RESIGN-01.** ResignEvent in core and GtpEngine - size M - [detail](docs/todo/RESIGN-01-resign-event.md)
+- [x] **TEST-01.** Check that ctest runs every doctest case - size M - [detail](docs/todo/TEST-01-ctest-covers-every-doctest-case.md)
