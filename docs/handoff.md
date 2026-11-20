@@ -33,7 +33,7 @@ re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/
 - ProcessTransport: the child no longer gets terminal Ctrl-C (own process group). Processes that call setsid in the group escape the kill.
 - Harness gate: `canonicalRel` always lower-cases (fail closed), so case variants ask even on a case-sensitive FS. `features/*/planning.md` now asks the owner (added beyond the todo text). `scripts/harness` is a manual copy of the skill scripts; re-sync after skill changes.
 
-- GOMO-05: a late move after the timeout may be taken as the answer of the next search; callers should close an engine that did not answer. Not run against real Rapfi. GtpEngine/KataGomoEngine have no deadline.
+- GOMO-05: a late move after the timeout may be taken as the answer of the next search; callers should close an engine that did not answer. Live Rapfi tests pass with the watchdog, but the timeout path never fired against a real engine. GtpEngine/KataGomoEngine have no deadline.
 
 ## Blockers
 None.

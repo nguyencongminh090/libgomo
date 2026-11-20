@@ -34,4 +34,4 @@ Acceptance in `docs/features.json` (`"todo": "GOMO-05"`).
 Source: handoff "Uncertain" point on `GomocupEngine` (no timeout); owner decision 2026-11-20 (option 1).
 
 ## Evidence
-`gomo_deadline` (4 cases) passes 20x in a row on default and tsan. `ctest --preset default` 55/55 and `--preset tsan` pass (live skipped, no real Rapfi run), `scripts/check-core-deps.sh` OK. No live Rapfi run: the deadline is only tested against a fake transport.
+`gomo_deadline` (4 cases) passes 20x in a row on default and tsan. `ctest --preset default` 55/55 and `--preset tsan` pass (live skipped, no real Rapfi run), `scripts/check-core-deps.sh` OK. Live: `PYGOMO_RAPFI=…/build/pbrain-rapfi ctest -R gomo2_` 5/5 x5 on default and once on tsan (engine answers within turnTime, so the deadline never fires; this only shows no regression with the real engine). The timeout path itself is tested with a fake transport only.
