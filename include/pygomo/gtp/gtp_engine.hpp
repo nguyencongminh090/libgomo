@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -23,6 +24,11 @@ public:
 
     /// Starts reading from the transport.
     [[nodiscard]] std::expected<void, EngineError> open();
+
+    /// Uses `kata-genmove_analyze` instead of `genmove` for later searches: the engine streams `info`
+    /// lines (sent as InfoEvents, about every `interval`) before the final `play X`. Off by default.
+    /// The interval is rounded to whole centiseconds, at least 1. Still synchronous: stop() stays a no-op.
+    void setAnalyze(std::optional<std::chrono::milliseconds> interval);
 
     [[nodiscard]] bool supports(const Rules& rules) const override;
     [[nodiscard]] std::expected<void, EngineError> setRules(const Rules& rules) override;
@@ -49,6 +55,8 @@ private:
     int nextId_{1};
     int firstId_{0};  // ids of the running search: [firstId_, lastId_]; lastId_ is the genmove
     int lastId_{0};
+    std::optional<std::chrono::milliseconds> analyzeInterval_{};  // setting for the next search
+    bool analyzing_{false};                                       // the running search uses analyze
 
     // Reply framing: a header line, then body lines, ended by a blank line.
     bool inReply_{false};

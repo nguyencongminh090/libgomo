@@ -1,5 +1,7 @@
 #include "pygomo/gtp/gtp_engine.hpp"
 
+#include <algorithm>
+#include <cstdint>
 #include <format>
 #include <vector>
 
@@ -67,7 +69,13 @@ std::expected<void, EngineError> GtpEngine::startSearch(
         }
         if (limits.maxNodes) all.push_back(std::format("kata-set-param maxVisits {}", *limits.maxNodes));
         for (auto& c : commands) all.push_back(std::move(c));
-        all.push_back(std::format("genmove {}", color(position.sideToMove())));
+        analyzing_ = analyzeInterval_.has_value();
+        if (analyzing_) {
+            const auto cs = std::max<std::int64_t>(1, analyzeInterval_->count() / 10);
+            all.push_back(std::format("kata-genmove_analyze {} interval {}", color(position.sideToMove()), cs));
+        } else {
+            all.push_back(std::format("genmove {}", color(position.sideToMove())));
+        }
 
         firstId_ = nextId_;
         for (auto& c : all) lines.push_back(std::format("{} {}", nextId_++, c));
@@ -84,6 +92,11 @@ std::expected<void, EngineError> GtpEngine::startSearch(
         }
     }
     return {};
+}
+
+void GtpEngine::setAnalyze(std::optional<std::chrono::milliseconds> interval) {
+    std::lock_guard lock(mutex_);
+    analyzeInterval_ = interval;
 }
 
 void GtpEngine::stop() {}  // See the class comment: a running genmove cannot be interrupted.
@@ -106,7 +119,12 @@ void GtpEngine::onReply(bool ok, std::optional<int> id, const std::string& text,
     if (!id) return finish(ErrorEvent{"engine reply carries no id"});
     if (*id != lastId_) return;  // setup command accepted
 
-    auto vertex = parse::parseGtpVertex(text, position_->width(), position_->height());
+    std::string_view move = text;
+    if (analyzing_) {  // the reply body ends with `play <vertex>`
+        if (!move.starts_with("play ")) return finish(ErrorEvent{"engine reply has no final play: " + text});
+        move.remove_prefix(5);
+    }
+    auto vertex = parse::parseGtpVertex(move, position_->width(), position_->height());
     if (!vertex) return finish(ErrorEvent{"engine returned an unreadable move: " + text});
     if (std::holds_alternative<parse::GtpPass>(*vertex)) return finish(PassEvent{});
     if (std::holds_alternative<parse::GtpResign>(*vertex)) return finish(ErrorEvent{"engine resigned"});
@@ -129,13 +147,17 @@ void GtpEngine::onLine(std::string_view line) {
             replyText_ = std::move(header->body);
             return;
         }
-        if (!line.empty()) {
+        if (analyzing_ && replyId_ && *replyId_ == lastId_ && sink_ && line.starts_with("info ")) {
+            deliver = sink_;  // streamed analysis line: report now, the reply is still open
+            event = parse::parseGtpAnalyzeLine(line, position_->width(), position_->height());
+        } else if (!line.empty()) {
             if (!replyText_.empty()) replyText_ += '\n';
             replyText_ += line;
             return;
+        } else {
+            inReply_ = false;
+            onReply(replyOk_, replyId_, replyText_, deliver, event);
         }
-        inReply_ = false;
-        onReply(replyOk_, replyId_, replyText_, deliver, event);
     }
     if (deliver) deliver->onEvent(*event);
 }

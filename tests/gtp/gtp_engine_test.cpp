@@ -232,3 +232,66 @@ TEST_CASE("gtp2_lifecycle: a new search after an error ignores the old search's 
     REQUIRE(r.sink.events.size() == 2);
     CHECK(r.sink.events[1] == SearchEvent{BestMoveEvent{Coord{7, 6}}});
 }
+
+TEST_CASE("gtp3_sequence: analyze mode sends kata-genmove_analyze with an interval; default stays genmove") {
+    Rig r;
+    r.e.setAnalyze(std::chrono::milliseconds{500});
+    Limits lim;
+    lim.maxNodes = 4000;
+    REQUIRE(r.e.startSearch(twoMoves(), lim, r.sink));
+    CHECK(r.t.lines().back() == "7 kata-genmove_analyze B interval 50");  // two moves played: Black to move
+
+    Rig d;
+    REQUIRE(d.e.startSearch(twoMoves(), Limits{}, d.sink));
+    CHECK(d.t.lines().back() == "6 genmove B");
+}
+
+TEST_CASE("gtp3_stream: info lines become InfoEvents while the reply is open, then play X ends it") {
+    Rig r;
+    r.e.setAnalyze(std::chrono::milliseconds{500});
+    REQUIRE(r.e.startSearch(twoMoves(), Limits{}, r.sink));
+    const int id = r.ackSetup(6);
+    r.t.say("=" + std::to_string(id));  // printed before the first info line
+    r.t.say("info move H8 visits 120 winrate 5600 prior 3100 order 0 pv H8 G7 J9");
+    REQUIRE(r.sink.events.size() == 1);
+    CHECK(std::get<InfoEvent>(r.sink.events[0]).nodes == 120);
+    r.t.say("info move H8 visits 240 winrate 5600 prior 3100 order 0 pv H8 G7 J9");
+    CHECK(r.sink.events.size() == 2);  // search still running: no terminal event yet
+    r.t.say("play H9");
+    r.t.say("");
+    REQUIRE(r.sink.events.size() == 3);
+    CHECK(std::get<BestMoveEvent>(r.sink.events[2]).coord == Coord{7, 6});
+    r.t.say("info move H8 visits 999 order 0 pv H8");  // outside a reply: dropped
+    CHECK(r.sink.events.size() == 3);
+}
+
+TEST_CASE("gtp3_errors: ? reply, missing play, close") {
+    {
+        Rig r;
+        r.e.setAnalyze(std::chrono::milliseconds{500});
+        REQUIRE(r.e.startSearch(twoMoves(), Limits{}, r.sink));
+        const int id = r.ackSetup(6);
+        r.t.reply("?" + std::to_string(id) + " Could not parse genmove_analyze arguments");
+        REQUIRE(r.sink.events.size() == 1);
+        CHECK(std::holds_alternative<ErrorEvent>(r.sink.events[0]));
+    }
+    {
+        Rig r;
+        r.e.setAnalyze(std::chrono::milliseconds{500});
+        REQUIRE(r.e.startSearch(twoMoves(), Limits{}, r.sink));
+        const int id = r.ackSetup(6);
+        r.t.reply("=" + std::to_string(id) + " H9");  // not an analyze answer
+        REQUIRE(r.sink.events.size() == 1);
+        CHECK(std::holds_alternative<ErrorEvent>(r.sink.events[0]));
+    }
+    {
+        Rig r;
+        r.e.setAnalyze(std::chrono::milliseconds{500});
+        REQUIRE(r.e.startSearch(twoMoves(), Limits{}, r.sink));
+        r.t.say("=6");
+        r.t.say("info move H8 visits 1 order 0 pv H8");
+        r.t.closeNow();
+        REQUIRE(r.sink.events.size() == 2);
+        CHECK(std::holds_alternative<ErrorEvent>(r.sink.events[1]));
+    }
+}

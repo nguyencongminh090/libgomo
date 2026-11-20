@@ -5,6 +5,7 @@
 ## Active
 
 ## Done
+- [x] **GTP-03.** GtpEngine kata-genmove_analyze streaming (source-derived) - size M - [detail](docs/todo/GTP-03-kata-genmove-analyze.md)
 - [x] **KATA-01.** KataGomoEngine for KataGomo gom mode (source-derived, fake-transport tested) - size M - [detail](docs/todo/KATA-01-katagomo-gom-adapter.md)
 - [x] **GOMO-03.** GomocupEngine: INFO upper case, keys lower case - size M - [detail](docs/todo/GOMO-03-lowercase-info-keys.md)
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)

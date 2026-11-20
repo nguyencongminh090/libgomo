@@ -561,6 +561,56 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "GTP-03-sequence",
+      "todo": "GTP-03",
+      "description": "WHEN setAnalyze is set THEN startSearch sends kata-genmove_analyze <color> interval <cs> as the last command, with the same setup commands before it; WHEN it is not set THEN genmove is sent as before",
+      "steps": [
+        "ctest --preset default -R gtp3_sequence --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp3_sequence --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-03-stream",
+      "todo": "GTP-03",
+      "description": "WHEN info lines arrive in the open reply of an analyze search THEN each becomes an InfoEvent at once; WHEN the play X line and the blank line arrive THEN one BestMoveEvent ends the search",
+      "steps": [
+        "ctest --preset default -R gtp3_stream --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp3_stream --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-03-errors",
+      "todo": "GTP-03",
+      "description": "WHEN the analyze reply is ?, lacks a final play, or the connection closes mid-stream THEN exactly one ErrorEvent ends the search",
+      "steps": [
+        "ctest --preset default -R gtp3_errors --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp3_errors --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-03-regress",
+      "todo": "GTP-03",
+      "description": "WHEN the gtp2_* tests run THEN they pass unchanged, and stop() is still a no-op",
+      "steps": [
+        "ctest --preset default -R gtp2_ --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp2_ --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-03-deps",
+      "todo": "GTP-03",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

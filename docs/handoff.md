@@ -12,13 +12,11 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. Committed and passing: KATA-01 (KataGomoEngine, fake transport, source-derived), GOMO-03 (lower-case INFO keys, live Rapfi verified), CORE-01, PROTO-01, PARSE-01, PORT-01, GOMO-01, PROC-01, GOMO-02,
+Nothing in progress. Committed and passing: GTP-03 (setAnalyze streaming), KATA-01 (KataGomoEngine, fake transport, source-derived), GOMO-03 (lower-case INFO keys, live Rapfi verified), CORE-01, PROTO-01, PARSE-01, PORT-01, GOMO-01, PROC-01, GOMO-02,
 GTP-01 (GTP parsers), GTP-02 (GtpEngine, fake transport, source-derived).
 
 ## Next step
-Pick next, one per session, each needing its features approved by the owner before they go to `docs/features.json`:
-- `GTP-03`: `kata-genmove_analyze` in `GtpEngine` (owner: it is a GTP extension, support it). Streams `info` lines as `InfoEvent`s,
-  final `play X`. Needs streaming framing (today a reply is handled only at the blank line). Still synchronous, so `stop()` stays a no-op.
+Nothing queued. New work needs a todo and owner-approved features first.
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`);
 re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi`.
 Separate L item: message/resign events in core (planning first). Also promote `docs/notes/2026-11-19-harness-gate-review-findings.md`.
