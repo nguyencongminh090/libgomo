@@ -23,7 +23,7 @@ re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/
 
 
 ## Uncertain
-- check-doc-comments.sh is a heuristic: it checks types, aliases, free functions and public methods, not data members or enumerators (those are reviewed by hand). Overrides need their own `///` line each; STYLE-03 may decide to accept a group comment in the script instead. On `include/` today it lists 43 gaps outside core.
+- check-doc-comments.sh is a heuristic: it checks types, aliases, free functions and public methods, not data members or enumerators (those are reviewed by hand). Overrides need their own `///` line each; accepting one group comment for them in the script would loosen the rule, so it needs an owner decision. check-line-length.sh treats a grep error (exit 2) as clean; fix before it becomes a ctest entry (STYLE-04). On `include/` today it lists 43 gaps outside core.
 - GtpEngine::stop() is a no-op by protocol: docs/audit/AUD-02 (KataGomo reads stdin on one thread; genmove cannot be interrupted). Limits persist in the engine between searches.
 - GTP and KataGomo `gom` shapes (GtpEngine, KataGomoEngine) are read from source only; no such engine was ever run. VCN rules and `kata-set-rule` not mapped.
 - Late `[Pondering]` lines and `coord_conversion_mode` != none are not covered by any Gomocup fixture.

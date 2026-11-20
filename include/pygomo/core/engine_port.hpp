@@ -47,6 +47,8 @@ public:
         const Position& position, const Limits& limits, EventSink& sink) = 0;
 
     /// Asks the engine to end the running search early. Harmless when none is running.
+    /// May be called from any thread. An engine whose protocol cannot interrupt a search lets it
+    /// run to its own end; the terminal event still arrives.
     virtual void stop() = 0;
 
     /// Sends a line as is. Replies arrive as events (usually MessageEvent or UnparsedEvent);
