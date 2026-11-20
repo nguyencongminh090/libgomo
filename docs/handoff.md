@@ -28,7 +28,7 @@ re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/
 - No `docs/planning` file named `engine-protocol-port` exists although todos reference it.
 - Late `[Pondering]` lines and `coord_conversion_mode` != none are not covered by any Gomocup fixture.
 - `GomocupEngine` drops lines outside a search; any `ERROR` ends the search.
-- GtpEngine emits `MessageEvent` only for text outside a reply during a search; `info string` lines and unparsable analyze lines still give no MessageEvent (not decided, KataGomo output not checked).
+- GtpEngine: text outside a reply during a search -> `MessageEvent`; unparsable analyze lines -> `UnparsedEvent` (kept, not lost). KataGomo (Gom2026 @ checked 2026-11-20) never prints `info string`, so nothing more is planned.
 - `GTP-04-deps` tsan check no longer hangs after PORT-02 (owner may confirm it can stay passing).
 
 - ProcessTransport: the child no longer gets terminal Ctrl-C (own process group). Processes that call setsid in the group escape the kill.
