@@ -1,6 +1,8 @@
 # TODO
 
 ## Backlog
+- [ ] **GTP-05.** GTP: free text starting with `=` or `?` is taken as a reply header - size M - [detail](docs/todo/GTP-05-free-text-mistaken-for-header.md)
+- [ ] **PORT-02.** port_blocking test: worker uses the sink after search() returned - size M - [detail](docs/todo/PORT-02-blocking-test-sink-lifetime.md)
 
 ## Active
 
