@@ -8,9 +8,9 @@ namespace pygomo {
 
 /// Everything one blocking search reported, split by kind.
 struct SearchOutcome {
-    std::vector<InfoEvent> info{};      ///< Progress reports, in arrival order.
-    std::vector<SearchEvent> other{};   ///< Message and unparsed lines seen during the search.
-    SearchEvent terminal{};             ///< BestMove, Swap, Pass, Resign or Error.
+    std::vector<InfoEvent>   info{};      ///< Progress reports, in arrival order.
+    std::vector<SearchEvent> other{};     ///< Message and unparsed lines seen during the search.
+    SearchEvent              terminal{};  ///< BestMove, Swap, Pass, Resign or Error.
 };
 
 /// Runs one search and waits for its terminal event. Built on EnginePort::startSearch, so it
