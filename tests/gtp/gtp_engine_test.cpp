@@ -295,3 +295,31 @@ TEST_CASE("gtp3_errors: ? reply, missing play, close") {
         CHECK(std::holds_alternative<ErrorEvent>(r.sink.events[1]));
     }
 }
+
+TEST_CASE("gtp4_message: text outside a reply during a search is a MessageEvent") {
+    SUBCASE("genmove") {
+        Rig r;
+        r.t.say("KataGo ready");  // before the search: dropped
+        REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));
+        r.t.say("Loaded model, 8 threads");
+        r.t.say("");  // a blank line outside a reply carries nothing
+        const int id = r.ackSetup(6);
+        r.t.reply("=" + std::to_string(id) + " K10");
+        CHECK(r.sink.events ==
+              std::vector<SearchEvent>{MessageEvent{"Loaded model, 8 threads"}, BestMoveEvent{Coord{9, 5}}});
+        r.t.say("late text");  // the search ended: dropped
+        CHECK(r.sink.events.size() == 2);
+    }
+    SUBCASE("analyze, between replies") {
+        Rig r;
+        r.e.setAnalyze(std::chrono::milliseconds{500});
+        REQUIRE(r.e.startSearch(twoMoves(), Limits{}, r.sink));
+        r.t.say("some note");
+        const int id = r.ackSetup(6);
+        r.t.say("=" + std::to_string(id));
+        r.t.say("play H9");
+        r.t.say("");
+        CHECK(r.sink.events ==
+              std::vector<SearchEvent>{MessageEvent{"some note"}, BestMoveEvent{Coord{7, 6}}});
+    }
+}

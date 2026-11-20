@@ -12,6 +12,7 @@
 - [x] **GTP-01.** GTP response and vertex parser (source-derived) - size M - [detail](docs/todo/GTP-01-gtp-parser.md)
 - [x] **GTP-02.** GTP engine adapter (source-derived, fake-transport tested) - size M - [detail](docs/todo/GTP-02-gtp-adapter.md)
 - [x] **GTP-03.** GtpEngine: `kata-genmove_analyze` streaming (source-derived) - size M - [detail](docs/todo/GTP-03-kata-genmove-analyze.md)
+- [x] **GTP-04.** GtpEngine: text outside a reply becomes MessageEvent - size M - [detail](docs/todo/GTP-04-message-event-outside-reply.md)
 - [x] **HARNESS-01.** Validate profile names before import() - size M - [detail](docs/todo/HARNESS-01-profile-name-validation.md)
 - [x] **HARNESS-02.** Edit gate asks for control config - size M - [detail](docs/todo/HARNESS-02-gate-control-config-ask.md)
 - [x] **HARNESS-03.** Canonical path for the features.json match - size M - [detail](docs/todo/HARNESS-03-canonical-features-path.md)

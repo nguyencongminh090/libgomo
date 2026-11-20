@@ -773,6 +773,36 @@
       "passes": true
     },
     {
+      "id": "GTP-04-message",
+      "todo": "GTP-04",
+      "description": "WHEN GtpEngine gets a line outside any reply while a search runs (also in kata-genmove_analyze mode, before or between replies) THEN the sink receives MessageEvent{line} with the text raw and the search is not ended; the search still ends with BestMove, Pass, Resign or Error",
+      "steps": [
+        "ctest --preset default -R gtp --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-04-dropped",
+      "todo": "GTP-04",
+      "description": "WHEN GtpEngine gets a line outside any reply while no search runs (before startSearch or after the search ended) THEN nothing reaches any sink; the existing gtp2_result and gtp3 tests pass unchanged",
+      "steps": [
+        "ctest --preset default -R gtp --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-04-deps",
+      "todo": "GTP-04",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": true
+    },
+    {
       "id": "PROC-02-deps",
       "todo": "PROC-02",
       "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
