@@ -1,11 +1,11 @@
 # TODO
 
 ## Backlog
-- [ ] **TEST-01.** Check that ctest runs every doctest case - size M - [detail](docs/todo/TEST-01-ctest-covers-every-doctest-case.md)
 
 ## Active
 
 ## Done
+- [x] **TEST-01.** Check that ctest runs every doctest case - size M - [detail](docs/todo/TEST-01-ctest-covers-every-doctest-case.md)
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
 - [x] **GOMO-01.** Gomocup adapter - size M - [detail](docs/todo/GOMO-01-gomocup-adapter.md)
 - [x] **GOMO-02.** GomocupEngine against the real Rapfi - size M - [detail](docs/todo/GOMO-02-real-engine-rapfi.md)
