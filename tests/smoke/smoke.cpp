@@ -6,6 +6,7 @@
 #include "pygomo/core/rules.hpp"
 #include "pygomo/core/search_event.hpp"
 
+// Prints the failed step and returns false so run() can bail out in one line.
 namespace {
 
 bool fail(const char* what) {

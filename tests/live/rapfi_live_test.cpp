@@ -24,14 +24,17 @@ using namespace std::chrono_literals;
 
 namespace {
 
+// Path of the engine binary from the environment, or null when the live tests are off.
 const char* rapfiPath() { return std::getenv("PYGOMO_RAPFI"); }
 
+// Skips the current test case when no engine binary is configured.
 #define REQUIRE_RAPFI()                                  \
     if (!rapfiPath()) {                                  \
         std::cout << "SKIPPED: PYGOMO_RAPFI not set\n";  \
         return;                                          \
     }
 
+// Black (7,7), White (8,7), Black (7,8): a small non-empty 15x15 start.
 Position threeMoves() {
     auto p = Position::create(15, 15);
     REQUIRE(p);
@@ -41,6 +44,7 @@ Position threeMoves() {
     return *p;
 }
 
+// Sink that records every event and wakes wait() once a terminal event arrives.
 struct Terminal final : EventSink {
     void onEvent(const SearchEvent& e) override {
         std::lock_guard lock(m);
@@ -61,6 +65,7 @@ struct Terminal final : EventSink {
     bool done = false;
 };
 
+// Launch options for the engine named by PYGOMO_RAPFI.
 ProcessOptions rapfi() {
     ProcessOptions o;
     o.program = rapfiPath();
@@ -80,7 +85,8 @@ pid_t childPid() {
         if (close == std::string::npos) continue;
         char state = 0;
         long ppid = 0;
-        if (std::sscanf(line.c_str() + close + 1, " %c %ld", &state, &ppid) == 2 && ppid == getpid()) {
+        if (std::sscanf(line.c_str() + close + 1, " %c %ld", &state, &ppid) == 2 &&
+            ppid == getpid()) {
             if (found != -1) return -1;  // more than one child: do not guess
             found = static_cast<pid_t>(std::stol(name));
         }
@@ -153,7 +159,8 @@ TEST_CASE("gomo2_close: closing mid-search gives one error event and no process"
     CHECK(t.exitStatus().has_value());  // reaped: no zombie, no live child
 }
 
-TEST_CASE("gomo2_deadline: a frozen engine times out, its late move is dropped, then it is usable again") {
+TEST_CASE("gomo2_deadline: a frozen engine times out, its late move is dropped, "
+          "then it is usable again") {
     REQUIRE_RAPFI();
     ProcessTransport t(rapfi());
     GomocupEngine engine(t);
