@@ -32,9 +32,9 @@ struct FakeEngine final : EnginePort {
         raw.emplace_back(l);
         return {};
     }
-    bool running = false;
-    bool stopped = false;
-    EventSink* sink = nullptr;
+    bool                     running = false;
+    bool                     stopped = false;
+    EventSink*               sink    = nullptr;
     std::vector<std::string> raw;
 };
 

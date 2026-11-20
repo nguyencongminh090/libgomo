@@ -14,13 +14,13 @@ namespace {
 // which is the point (every consumer must decide what to do with a new event).
 std::string describe(const SearchEvent& e) {
     struct Visitor {
-        std::string operator()(const InfoEvent&) const { return "info"; }
+        std::string operator()(const InfoEvent&) const     { return "info"; }
         std::string operator()(const BestMoveEvent&) const { return "bestmove"; }
-        std::string operator()(const SwapEvent&) const { return "swap"; }
-        std::string operator()(const PassEvent&) const { return "pass"; }
-        std::string operator()(const ResignEvent&) const { return "resign"; }
-        std::string operator()(const ErrorEvent&) const { return "error"; }
-        std::string operator()(const MessageEvent&) const { return "message"; }
+        std::string operator()(const SwapEvent&) const     { return "swap"; }
+        std::string operator()(const PassEvent&) const     { return "pass"; }
+        std::string operator()(const ResignEvent&) const   { return "resign"; }
+        std::string operator()(const ErrorEvent&) const    { return "error"; }
+        std::string operator()(const MessageEvent&) const  { return "message"; }
         std::string operator()(const UnparsedEvent&) const { return "unparsed"; }
     };
     return std::visit(Visitor{}, e);
@@ -49,10 +49,10 @@ TEST_CASE("InfoEvent has no mandatory field") {
 }
 
 TEST_CASE("InfoEvent carries what the engine reported") {
-    InfoEvent e{.depth = 14,
-                .nodes = 4'000'000'000LL,
-                .score = Score{Score::Kind::MateIn, 5},
-                .elapsed = 1200ms,
+    InfoEvent e{.depth              = 14,
+                .nodes              = 4'000'000'000LL,
+                .score              = Score{Score::Kind::MateIn, 5},
+                .elapsed            = 1200ms,
                 .principalVariation = {{7, 7}, {8, 8}}};
     CHECK(*e.depth == 14);
     CHECK(*e.nodes == 4'000'000'000LL);

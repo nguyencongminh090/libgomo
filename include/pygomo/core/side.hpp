@@ -4,8 +4,8 @@ namespace pygomo {
 
 /// The two players. Black moves first.
 enum class Side {
-    Black, ///< Moves first.
-    White ///< Moves second.
+    Black,  ///< Moves first.
+    White   ///< Moves second.
 };
 
 /// Returns the other side.

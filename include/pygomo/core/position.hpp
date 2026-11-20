@@ -10,9 +10,9 @@ namespace pygomo {
 
 /// Why a Position could not be created or a move could not be played.
 enum class PositionError {
-    InvalidBoardSize, ///< Width or height below 1 or above Position::kMaxSide.
-    OutOfBounds, ///< The point is not on the board.
-    Occupied ///< The point already has a stone.
+    InvalidBoardSize,  ///< Width or height below 1 or above Position::kMaxSide.
+    OutOfBounds,       ///< The point is not on the board.
+    Occupied           ///< The point already has a stone.
 };
 
 /// A board of any rectangular size plus the ordered moves played on it.
@@ -51,8 +51,8 @@ private:
 
     [[nodiscard]] std::size_t index(Coord c) const noexcept;
 
-    int width_;
-    int height_;
+    int               width_;
+    int               height_;
     std::vector<Move> moves_;
     std::vector<bool> occupied_;
 };

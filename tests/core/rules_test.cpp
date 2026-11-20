@@ -13,8 +13,8 @@ TEST_CASE("Default rules are freestyle with a free opening and no move limit") {
 }
 
 TEST_CASE("Board rule and opening rule vary independently") {
-    Rules a{BoardRule::Renju, OpeningRule::Swap2};
-    Rules b{BoardRule::Renju, OpeningRule::FreeOpen};
+    Rules a{BoardRule::Renju,    OpeningRule::Swap2};
+    Rules b{BoardRule::Renju,    OpeningRule::FreeOpen};
     Rules c{BoardRule::Standard, OpeningRule::Swap2};
     CHECK(a != b);
     CHECK(a != c);

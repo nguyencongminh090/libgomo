@@ -15,22 +15,22 @@ namespace pygomo {
 struct Score {
     /// What `value` measures.
     enum class Kind {
-        Eval, ///< A heuristic evaluation; higher is better for the side to move.
-        MateIn, ///< The side to move wins in `value` moves.
-        MatedIn ///< The side to move loses in `value` moves.
+        Eval,     ///< A heuristic evaluation; higher is better for the side to move.
+        MateIn,   ///< The side to move wins in `value` moves.
+        MatedIn   ///< The side to move loses in `value` moves.
     };
 
-    Kind kind{Kind::Eval}; ///< How to read `value`.
-    int value{};  ///< Engine units for Eval; number of moves for MateIn / MatedIn.
+    Kind kind{Kind::Eval};  ///< How to read `value`.
+    int  value{};           ///< Engine units for Eval; number of moves for MateIn / MatedIn.
 
     constexpr bool operator==(const Score&) const = default;
 };
 
 /// Progress report during a search. Every field is optional: engines differ in what they print.
 struct InfoEvent {
-    std::optional<int> depth{}; ///< Search depth reached, in plies.
-    std::optional<std::int64_t> nodes{}; ///< Nodes searched so far.
-    std::optional<Score> score{}; ///< Evaluation of the best line.
+    std::optional<int>          depth{};  ///< Search depth reached, in plies.
+    std::optional<std::int64_t> nodes{};  ///< Nodes searched so far.
+    std::optional<Score>        score{};  ///< Evaluation of the best line.
     std::optional<std::chrono::milliseconds> elapsed{}; ///< Time since the search started.
     std::vector<Coord> principalVariation{}; ///< Best line, first move first; empty if not sent.
 
