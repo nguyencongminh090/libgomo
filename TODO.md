@@ -1,6 +1,9 @@
 # TODO
 
 ## Backlog
+- [ ] **DEAD-01.** DeadlineEngine: decorator that gives any EnginePort a search deadline - size M - [detail](docs/todo/DEAD-01-deadline-engine-decorator.md)
+- [ ] **DEAD-02.** DeadlineEngine over GtpEngine and KataGomoEngine (fake-transport tests) - size M - [detail](docs/todo/DEAD-02-deadline-gtp-katagomo.md)
+- [ ] **DEAD-03.** GomocupEngine: retire the built-in deadline, use DeadlineEngine - size M - [detail](docs/todo/DEAD-03-retire-gomocup-builtin-deadline.md)
 
 ## Active
 

@@ -973,6 +973,66 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "DEAD-01-main",
+      "todo": "DEAD-01",
+      "description": "WHEN DeadlineEngine wraps a silent fake engine and a search has turnTime THEN inner.stop() is called at turnTime+grace and the sink gets ErrorEvent \\\"engine did not answer\\\" after another grace; a move in time, no turnTime and turnTime 0 give no timeout event; startSearch is Busy until the late terminal event, which is dropped; the sink may call startSearch from the timeout callback",
+      "steps": [
+        "ctest --preset default -R dead1 --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R dead1 --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "DEAD-01-deps",
+      "todo": "DEAD-01",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": false
+    },
+    {
+      "id": "DEAD-02-main",
+      "todo": "DEAD-02",
+      "description": "WHEN DeadlineEngine wraps GtpEngine or KataGomoEngine over a fake transport and the engine stays silent THEN the sink gets ErrorEvent, and a late reply is dropped and does not end the next search",
+      "steps": [
+        "ctest --preset default -R dead2 --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R dead2 --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "DEAD-02-deps",
+      "todo": "DEAD-02",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": false
+    },
+    {
+      "id": "DEAD-03-main",
+      "todo": "DEAD-03",
+      "description": "WHEN GomocupEngine runs through DeadlineEngine THEN the former gomo_deadline cases pass with Busy instead of NotReady while owed, GomocupEngine has no thread of its own, and the live Rapfi tests pass",
+      "steps": [
+        "ctest --preset default -R \"gomo_deadline|dead3\" --output-on-failure && PYGOMO_RAPFI=<path> ctest --preset default -R gomo2_"
+      ],
+      "checked_by": "ctest --preset default -R \"gomo_deadline|dead3\" --output-on-failure && PYGOMO_RAPFI=<path> ctest --preset default -R gomo2_",
+      "passes": false
+    },
+    {
+      "id": "DEAD-03-deps",
+      "todo": "DEAD-03",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": false
     }
   ]
 }
