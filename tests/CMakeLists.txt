@@ -106,3 +106,13 @@ pygomo_enable_warnings(pygomo_gtp_tests)
 foreach(group sequence result rules lifecycle)
   add_test(NAME gtp2_${group} COMMAND pygomo_gtp_tests "-tc=gtp2_${group}*")
 endforeach()
+
+add_executable(pygomo_katagomo_tests
+  main.cpp
+  katagomo/katagomo_engine_test.cpp)
+target_link_libraries(pygomo_katagomo_tests PRIVATE pygomo::katagomo)
+target_include_directories(pygomo_katagomo_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
+pygomo_enable_warnings(pygomo_katagomo_tests)
+foreach(group sequence rules limits events)
+  add_test(NAME kata_${group} COMMAND pygomo_katagomo_tests "-tc=kata_${group}*")
+endforeach()

@@ -511,6 +511,56 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "KATA-01-sequence",
+      "todo": "KATA-01",
+      "description": "WHEN startSearch runs on a 15x15 position with 3 moves THEN the transport receives START 15, the rule command, BOARD, the three stones as plain x,y in play order, DONE; an empty board sends BOARD then DONE",
+      "steps": [
+        "ctest --preset default -R kata_sequence --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R kata_sequence --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "KATA-01-rules",
+      "todo": "KATA-01",
+      "description": "WHEN rules are {Renju, FreeOpen, maxMoves 200} THEN RENJU and maxmoves 200 are sent after START; WHEN the opening is Swap1 or Swap2 THEN setRules returns Unsupported and nothing is written",
+      "steps": [
+        "ctest --preset default -R kata_rules --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R kata_rules --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "KATA-01-limits",
+      "todo": "KATA-01",
+      "description": "WHEN turnTime and maxNodes are set THEN INFO timeout_turn MS and kata-set-param maxVisits N are sent; WHEN maxDepth or matchTime is set THEN startSearch returns Unsupported and nothing is written",
+      "steps": [
+        "ctest --preset default -R kata_limits --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R kata_limits --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "KATA-01-events",
+      "todo": "KATA-01",
+      "description": "WHEN the engine replies OK, MESSAGE lines, x,y, or ERROR THEN OK is dropped, MESSAGE becomes UnparsedEvent, x,y the best move and ERROR ends the search",
+      "steps": [
+        "ctest --preset default -R kata_events --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R kata_events --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "KATA-01-deps",
+      "todo": "KATA-01",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

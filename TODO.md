@@ -5,6 +5,7 @@
 ## Active
 
 ## Done
+- [x] **KATA-01.** KataGomoEngine for KataGomo gom mode (source-derived, fake-transport tested) - size M - [detail](docs/todo/KATA-01-katagomo-gom-adapter.md)
 - [x] **GOMO-03.** GomocupEngine: INFO upper case, keys lower case - size M - [detail](docs/todo/GOMO-03-lowercase-info-keys.md)
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
 - [x] **GOMO-01.** Gomocup adapter - size M - [detail](docs/todo/GOMO-01-gomocup-adapter.md)

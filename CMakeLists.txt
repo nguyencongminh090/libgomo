@@ -70,6 +70,14 @@ target_compile_features(pygomo_gtp PUBLIC cxx_std_23)
 target_link_libraries(pygomo_gtp PUBLIC pygomo::core pygomo::parse pygomo::transport)
 pygomo_enable_warnings(pygomo_gtp)
 
+# KataGomo `gom` mode adapter.
+add_library(pygomo_katagomo STATIC src/katagomo/katagomo_engine.cpp)
+add_library(pygomo::katagomo ALIAS pygomo_katagomo)
+target_include_directories(pygomo_katagomo PUBLIC include)
+target_compile_features(pygomo_katagomo PUBLIC cxx_std_23)
+target_link_libraries(pygomo_katagomo PUBLIC pygomo::core pygomo::parse pygomo::transport)
+pygomo_enable_warnings(pygomo_katagomo)
+
 if(UNIX)
   add_library(pygomo_process STATIC src/process/process_transport.cpp)
   add_library(pygomo::process ALIAS pygomo_process)
