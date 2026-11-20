@@ -481,6 +481,36 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "GOMO-03-keys",
+      "todo": "GOMO-03",
+      "description": "WHEN startSearch runs with a rule, maxMoves and all four limits set THEN the lines written are INFO rule N, INFO max_moves N, INFO timeout_turn MS, INFO timeout_match MS, INFO max_depth N, INFO max_node N (INFO upper case, keys lower case) while START, BOARD and DONE stay upper case",
+      "steps": [
+        "ctest --preset default -R gomo_ --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo_ --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "GOMO-03-live",
+      "todo": "GOMO-03",
+      "description": "WHEN the gomo2_* live tests run with PYGOMO_RAPFI set THEN search, stop and close still pass with the lower-case keys",
+      "steps": [
+        "PYGOMO_RAPFI=/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi/build/pbrain-rapfi ctest --preset default -R gomo2_ --output-on-failure"
+      ],
+      "checked_by": "PYGOMO_RAPFI=/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi/build/pbrain-rapfi ctest --preset default -R gomo2_ --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "GOMO-03-deps",
+      "todo": "GOMO-03",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": false
     }
   ]
 }

@@ -1,6 +1,7 @@
 # TODO
 
 ## Backlog
+- [ ] **GOMO-03.** GomocupEngine: INFO upper case, keys lower case - size M - [detail](docs/todo/GOMO-03-lowercase-info-keys.md)
 
 ## Active
 
