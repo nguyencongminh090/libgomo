@@ -1142,7 +1142,7 @@
         "scripts/check-line-length.sh include/pygomo/engine include/pygomo/gomocup include/pygomo/gtp include/pygomo/katagomo src/engine src/gomocup src/gtp src/katagomo tests/engine tests/gomocup tests/gtp tests/katagomo"
       ],
       "checked_by": "scripts/check-line-length.sh include/pygomo/engine include/pygomo/gomocup include/pygomo/gtp include/pygomo/katagomo src/engine src/gomocup src/gtp src/katagomo tests/engine tests/gomocup tests/gtp tests/katagomo",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-03-docs",
@@ -1152,7 +1152,7 @@
         "scripts/check-doc-comments.sh include/pygomo/engine include/pygomo/gomocup include/pygomo/gtp include/pygomo/katagomo"
       ],
       "checked_by": "scripts/check-doc-comments.sh include/pygomo/engine include/pygomo/gomocup include/pygomo/gtp include/pygomo/katagomo",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-03-align",
@@ -1162,7 +1162,7 @@
         "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing"
       ],
       "checked_by": "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-03-green",
@@ -1172,7 +1172,7 @@
         "cmake --build --preset default && ctest --preset default && scripts/check-core-deps.sh"
       ],
       "checked_by": "cmake --build --preset default && ctest --preset default && scripts/check-core-deps.sh",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-04-lines",

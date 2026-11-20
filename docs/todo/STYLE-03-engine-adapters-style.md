@@ -2,7 +2,7 @@
 id: STYLE-03-engine-adapters-style
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-20
 supersedes: []
@@ -28,6 +28,10 @@ planning: code-style-normalization
 Acceptance in `docs/features.json` (`"todo": "STYLE-03"`).
 
 ## Evidence
+Commits `8009ad6` (doc comments + wrapped lines) and the `style: align columns (STYLE-03)` commit (only `SearchOutcome` members needed alignment; `git diff -w HEAD~1 HEAD -- include src tests` prints nothing).
+- lines, docs: `check-line-length.sh` and `check-doc-comments.sh` on the STYLE-03 dirs exit 0 (before: 31 long lines in src/tests/include, 28 undocumented declarations).
+- Adapter doc comments (thread, deadline, stop, errors) were written from the sources and their tests. `TEST_CASE` names over 100 columns were split into adjacent literals with identical bytes; no logic or API change.
+- green: build, `ctest --preset default` 62/62 (4 live skipped), `check-core-deps.sh` OK.
 
 ## Links
 `features/code-style-normalization/planning.md`, `.claude/rules/coding-style.md`
