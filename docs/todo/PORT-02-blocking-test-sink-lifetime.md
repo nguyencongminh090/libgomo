@@ -2,7 +2,7 @@
 id: PORT-02-blocking-test-sink-lifetime
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-20
 supersedes: []
@@ -29,6 +29,7 @@ planning:
 Acceptance in `docs/features.json` (`"todo": "PORT-02"`), proposed and owner-approved before code.
 
 ## Evidence
+Reproduced (TSan SEGV at blocking_search_test.cpp:27), fixed; tsan x50 and default+tsan suites pass. Fix-log PORT-02-01.
 
 ## Links
 `docs/todo/PORT-01-engine-port-event-sink.md`, `src/engine/blocking_search.cpp`, feature `GTP-04-deps` (its `checked_by` runs the tsan preset).

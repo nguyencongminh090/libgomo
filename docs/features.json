@@ -811,7 +811,7 @@
         "ctest --preset tsan -R port_blocking --repeat until-fail:50 --timeout 60 --output-on-failure"
       ],
       "checked_by": "ctest --preset tsan -R port_blocking --repeat until-fail:50 --timeout 60 --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "PORT-02-kept",
@@ -822,7 +822,7 @@
         "read tests/engine/blocking_search_test.cpp: the after-terminal event is still sent and asserted"
       ],
       "checked_by": "ctest --preset default -R port --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "PORT-02-deps",
@@ -832,7 +832,7 @@
         "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
-      "passes": false
+      "passes": true
     },
     {
       "id": "GTP-05-text",

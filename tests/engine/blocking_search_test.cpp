@@ -16,7 +16,8 @@ struct ScriptedEngine final : EnginePort {
     bool supports(const Rules&) const override { return true; }
     std::expected<void, EngineError> setRules(const Rules&) override { return {}; }
     std::expected<void, EngineError> startSearch(const Position&, const Limits&, EventSink& s) override {
-        auto emit = [&s] {
+        const bool late = !threaded;
+        auto emit = [&s, late] {
             InfoEvent i;
             i.depth = 3;
             s.onEvent(i);
@@ -24,7 +25,9 @@ struct ScriptedEngine final : EnginePort {
             i.depth = 4;
             s.onEvent(i);
             s.onEvent(BestMoveEvent{{7, 7}});
-            s.onEvent(InfoEvent{});  // after the terminal event: must be ignored
+            // After the terminal event: must be ignored. Sync variant only: once search()
+            // returns, its sink is destroyed, so a worker thread must not touch it (PORT-02).
+            if (late) s.onEvent(InfoEvent{});
         };
         if (threaded) worker = std::thread(emit); else emit();
         return {};
