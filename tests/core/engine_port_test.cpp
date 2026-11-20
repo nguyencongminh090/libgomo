@@ -20,7 +20,8 @@ struct FakeEngine final : EnginePort {
         if (!supports(r)) return std::unexpected(EngineError::Unsupported);
         return {};
     }
-    std::expected<void, EngineError> startSearch(const Position&, const Limits&, EventSink& s) override {
+    std::expected<void, EngineError> startSearch(const Position&, const Limits&,
+                                                 EventSink& s) override {
         if (running) return std::unexpected(EngineError::Busy);
         running = true;
         sink = &s;

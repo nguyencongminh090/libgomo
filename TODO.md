@@ -1,12 +1,12 @@
 # TODO
 
 ## Backlog
-- [ ] **STYLE-01.** Code style for core, plus the line-length and doc-comment check scripts - size M - [detail](docs/todo/STYLE-01-core-style-and-checks.md)
 - [ ] **STYLE-02.** Code style for parse, transport and process - size M - [detail](docs/todo/STYLE-02-parse-transport-process-style.md)
 - [ ] **STYLE-03.** Code style for engine, gomocup, gtp and katagomo - size M - [detail](docs/todo/STYLE-03-engine-adapters-style.md)
 - [ ] **STYLE-04.** Code style for the remaining tests, and the style checks in ctest - size M - [detail](docs/todo/STYLE-04-remaining-tests-and-ctest-checks.md)
 
 ## Active
+- [~] **STYLE-01.** Code style for core, plus the line-length and doc-comment check scripts - size M - [detail](docs/todo/STYLE-01-core-style-and-checks.md)
 
 ## Done
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
