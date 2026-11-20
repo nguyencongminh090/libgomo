@@ -803,6 +803,58 @@
       "passes": true
     },
     {
+      "id": "PORT-02-no-hang",
+      "todo": "PORT-02",
+      "description": "WHEN port_blocking runs 50 times in a row under the tsan preset, with no other ctest run at the same time THEN every run passes within 60 s and TSan reports nothing",
+      "steps": [
+        "cmake --build --preset tsan",
+        "ctest --preset tsan -R port_blocking --repeat until-fail:50 --timeout 60 --output-on-failure"
+      ],
+      "checked_by": "ctest --preset tsan -R port_blocking --repeat until-fail:50 --timeout 60 --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "PORT-02-kept",
+      "todo": "PORT-02",
+      "description": "WHEN port_blocking runs THEN it still checks, in the sync and threaded variants, the best move, two InfoEvents and one other event, and still checks that an event after the terminal one is ignored",
+      "steps": [
+        "ctest --preset default -R port --output-on-failure",
+        "read tests/engine/blocking_search_test.cpp: the after-terminal event is still sent and asserted"
+      ],
+      "checked_by": "ctest --preset default -R port --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "PORT-02-deps",
+      "todo": "PORT-02",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": false
+    },
+    {
+      "id": "GTP-05-text",
+      "todo": "GTP-05",
+      "description": "WHEN during a search GtpEngine gets, outside a reply, a line starting with = or ? whose next char after the optional id digits is neither a space nor the end of the line (e.g. `=== Loaded ===`, `??x`) THEN the sink receives MessageEvent{line} and the search still ends with the genmove result",
+      "steps": [
+        "ctest --preset default -R gtp --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "GTP-05-header",
+      "todo": "GTP-05",
+      "description": "WHEN parseGtpResponseHeader reads `=`, `= text`, `=7`, `=7 K10`, `?`, `? msg` or `?3 msg` THEN it still returns a header with the same ok, id and body as before; the existing gtp_header, gtp2, gtp3 and gtp4 tests pass unchanged",
+      "steps": [
+        "ctest --preset default -R gtp --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp --output-on-failure",
+      "passes": false
+    },
+    {
       "id": "PROC-02-deps",
       "todo": "PROC-02",
       "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
