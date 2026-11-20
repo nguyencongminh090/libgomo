@@ -1043,6 +1043,176 @@
       ],
       "checked_by": "PYGOMO_RAPFI=$PYGOMO_RAPFI ctest --preset default -R gomo2_deadline --output-on-failure",
       "passes": true
+    },
+    {
+      "id": "STYLE-01-scripts",
+      "todo": "STYLE-01",
+      "description": "WHEN scripts/check-line-length.sh and scripts/check-doc-comments.sh run on a tree with a 101-column line or a public declaration without `///` THEN each lists the offending file:line and exits non-zero; on a clean tree they exit 0",
+      "steps": [
+        "scripts/check-line-length.sh include/pygomo/core src/core tests/core && scripts/check-doc-comments.sh include/pygomo/core  # plus a manual negative case"
+      ],
+      "checked_by": "scripts/check-line-length.sh include/pygomo/core src/core tests/core && scripts/check-doc-comments.sh include/pygomo/core  # plus a manual negative case",
+      "passes": false
+    },
+    {
+      "id": "STYLE-01-lines",
+      "todo": "STYLE-01",
+      "description": "WHEN check-line-length.sh runs on the STYLE-01 directories THEN no line is over 100 columns",
+      "steps": [
+        "scripts/check-line-length.sh include/pygomo/core src/core tests/core"
+      ],
+      "checked_by": "scripts/check-line-length.sh include/pygomo/core src/core tests/core",
+      "passes": false
+    },
+    {
+      "id": "STYLE-01-docs",
+      "todo": "STYLE-01",
+      "description": "WHEN check-doc-comments.sh runs on the STYLE-01 headers THEN every public declaration has a /// doc comment (summary first, then errors, ownership, thread-safety, blocking where relevant)",
+      "steps": [
+        "scripts/check-doc-comments.sh include/pygomo/core"
+      ],
+      "checked_by": "scripts/check-doc-comments.sh include/pygomo/core",
+      "passes": false
+    },
+    {
+      "id": "STYLE-01-align",
+      "todo": "STYLE-01",
+      "description": "WHEN the STYLE-01 align commit is diffed ignoring whitespace THEN it is empty (alignment changed whitespace only)",
+      "steps": [
+        "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing"
+      ],
+      "checked_by": "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing",
+      "passes": false
+    },
+    {
+      "id": "STYLE-01-green",
+      "todo": "STYLE-01",
+      "description": "WHEN the project is built and the suite and core dependency check run THEN all pass (behaviour unchanged)",
+      "steps": [
+        "cmake --build --preset default && ctest --preset default && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "cmake --build --preset default && ctest --preset default && scripts/check-core-deps.sh",
+      "passes": false
+    },
+    {
+      "id": "STYLE-02-lines",
+      "todo": "STYLE-02",
+      "description": "WHEN check-line-length.sh runs on the STYLE-02 directories THEN no line is over 100 columns",
+      "steps": [
+        "scripts/check-line-length.sh include/pygomo/parse include/pygomo/transport include/pygomo/process src/parse src/transport src/process tests/parse tests/transport tests/process"
+      ],
+      "checked_by": "scripts/check-line-length.sh include/pygomo/parse include/pygomo/transport include/pygomo/process src/parse src/transport src/process tests/parse tests/transport tests/process",
+      "passes": false
+    },
+    {
+      "id": "STYLE-02-docs",
+      "todo": "STYLE-02",
+      "description": "WHEN check-doc-comments.sh runs on the STYLE-02 headers THEN every public declaration has a /// doc comment (summary first, then errors, ownership, thread-safety, blocking where relevant)",
+      "steps": [
+        "scripts/check-doc-comments.sh include/pygomo/parse include/pygomo/transport include/pygomo/process"
+      ],
+      "checked_by": "scripts/check-doc-comments.sh include/pygomo/parse include/pygomo/transport include/pygomo/process",
+      "passes": false
+    },
+    {
+      "id": "STYLE-02-align",
+      "todo": "STYLE-02",
+      "description": "WHEN the STYLE-02 align commit is diffed ignoring whitespace THEN it is empty (alignment changed whitespace only)",
+      "steps": [
+        "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing"
+      ],
+      "checked_by": "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing",
+      "passes": false
+    },
+    {
+      "id": "STYLE-02-green",
+      "todo": "STYLE-02",
+      "description": "WHEN the project is built and the suite and core dependency check run THEN all pass (behaviour unchanged)",
+      "steps": [
+        "cmake --build --preset default && ctest --preset default && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "cmake --build --preset default && ctest --preset default && scripts/check-core-deps.sh",
+      "passes": false
+    },
+    {
+      "id": "STYLE-03-lines",
+      "todo": "STYLE-03",
+      "description": "WHEN check-line-length.sh runs on the STYLE-03 directories THEN no line is over 100 columns",
+      "steps": [
+        "scripts/check-line-length.sh include/pygomo/engine include/pygomo/gomocup include/pygomo/gtp include/pygomo/katagomo src/engine src/gomocup src/gtp src/katagomo tests/engine tests/gomocup tests/gtp tests/katagomo"
+      ],
+      "checked_by": "scripts/check-line-length.sh include/pygomo/engine include/pygomo/gomocup include/pygomo/gtp include/pygomo/katagomo src/engine src/gomocup src/gtp src/katagomo tests/engine tests/gomocup tests/gtp tests/katagomo",
+      "passes": false
+    },
+    {
+      "id": "STYLE-03-docs",
+      "todo": "STYLE-03",
+      "description": "WHEN check-doc-comments.sh runs on the STYLE-03 headers THEN every public declaration has a /// doc comment (summary first, then errors, ownership, thread-safety, blocking where relevant)",
+      "steps": [
+        "scripts/check-doc-comments.sh include/pygomo/engine include/pygomo/gomocup include/pygomo/gtp include/pygomo/katagomo"
+      ],
+      "checked_by": "scripts/check-doc-comments.sh include/pygomo/engine include/pygomo/gomocup include/pygomo/gtp include/pygomo/katagomo",
+      "passes": false
+    },
+    {
+      "id": "STYLE-03-align",
+      "todo": "STYLE-03",
+      "description": "WHEN the STYLE-03 align commit is diffed ignoring whitespace THEN it is empty (alignment changed whitespace only)",
+      "steps": [
+        "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing"
+      ],
+      "checked_by": "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing",
+      "passes": false
+    },
+    {
+      "id": "STYLE-03-green",
+      "todo": "STYLE-03",
+      "description": "WHEN the project is built and the suite and core dependency check run THEN all pass (behaviour unchanged)",
+      "steps": [
+        "cmake --build --preset default && ctest --preset default && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "cmake --build --preset default && ctest --preset default && scripts/check-core-deps.sh",
+      "passes": false
+    },
+    {
+      "id": "STYLE-04-lines",
+      "todo": "STYLE-04",
+      "description": "WHEN check-line-length.sh runs on tests/live tests/smoke tests/main.cpp THEN no line is over 100 columns",
+      "steps": [
+        "scripts/check-line-length.sh tests/live tests/smoke tests/main.cpp"
+      ],
+      "checked_by": "scripts/check-line-length.sh tests/live tests/smoke tests/main.cpp",
+      "passes": false
+    },
+    {
+      "id": "STYLE-04-align",
+      "todo": "STYLE-04",
+      "description": "WHEN the STYLE-04 align commit is diffed ignoring whitespace THEN it is empty",
+      "steps": [
+        "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing"
+      ],
+      "checked_by": "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing",
+      "passes": false
+    },
+    {
+      "id": "STYLE-04-ctest",
+      "todo": "STYLE-04",
+      "description": "WHEN ctest --preset default runs THEN it includes line-length (include src tests) and doc-comment (include) entries that pass, and a deliberately over-long line makes the run fail",
+      "steps": [
+        "ctest --preset default -R style --output-on-failure  # plus a manual negative case, reverted"
+      ],
+      "checked_by": "ctest --preset default -R style --output-on-failure  # plus a manual negative case, reverted",
+      "passes": false
+    },
+    {
+      "id": "STYLE-04-green",
+      "todo": "STYLE-04",
+      "description": "WHEN the whole suite, the tsan preset, core deps and ctest coverage checks run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh && scripts/check-ctest-coverage.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh && scripts/check-ctest-coverage.sh",
+      "passes": false
     }
   ]
 }

@@ -1,6 +1,10 @@
 # TODO
 
 ## Backlog
+- [ ] **STYLE-01.** Code style for core, plus the line-length and doc-comment check scripts - size M - [detail](docs/todo/STYLE-01-core-style-and-checks.md)
+- [ ] **STYLE-02.** Code style for parse, transport and process - size M - [detail](docs/todo/STYLE-02-parse-transport-process-style.md)
+- [ ] **STYLE-03.** Code style for engine, gomocup, gtp and katagomo - size M - [detail](docs/todo/STYLE-03-engine-adapters-style.md)
+- [ ] **STYLE-04.** Code style for the remaining tests, and the style checks in ctest - size M - [detail](docs/todo/STYLE-04-remaining-tests-and-ctest-checks.md)
 
 ## Active
 
@@ -15,7 +19,7 @@
 - [x] **GOMO-03.** GomocupEngine: `INFO` upper case, keys lower case - size M - [detail](docs/todo/GOMO-03-lowercase-info-keys.md)
 - [x] **GOMO-04.** GomocupEngine: an ERROR line during a search is a warning, not the end - size M - [detail](docs/todo/GOMO-04-error-line-does-not-end-search.md)
 - [x] **GOMO-05.** GomocupEngine: a search with a turn time has a deadline - size M - [detail](docs/todo/GOMO-05-search-deadline.md)
-- [x] **GOMO-06.** GomocupEngine: a move after the timeout is not the next search's answer - size M - [detail](docs/todo/GOMO-06-late-move-after-timeout.md)
+- [x] **GOMO-06.** GomocupEngine: a move that arrives after the timeout is not taken as the next search's answer - size M - [detail](docs/todo/GOMO-06-late-move-after-timeout.md)
 - [x] **GTP-01.** GTP response and vertex parser (source-derived) - size M - [detail](docs/todo/GTP-01-gtp-parser.md)
 - [x] **GTP-02.** GTP engine adapter (source-derived, fake-transport tested) - size M - [detail](docs/todo/GTP-02-gtp-adapter.md)
 - [x] **GTP-03.** GtpEngine: `kata-genmove_analyze` streaming (source-derived) - size M - [detail](docs/todo/GTP-03-kata-genmove-analyze.md)
