@@ -12,6 +12,10 @@ namespace pygomo {
 /// The transport is not owned and must outlive the engine. Call open() once before use.
 ///
 /// The sink is called from the transport's reader thread, never while the engine holds a lock.
+/// An `ERROR` line during a search is not the end of it: it is sent raw as a MessageEvent and the search
+/// waits for a move (engines print non-fatal errors and still answer). A search ends with a move, swap,
+/// an illegal move (ErrorEvent) or a closed connection; an engine that fails and sends no move leaves it
+/// open until close().
 class GomocupEngine final : public EnginePort, private TransportListener {
 public:
     explicit GomocupEngine(Transport& transport);

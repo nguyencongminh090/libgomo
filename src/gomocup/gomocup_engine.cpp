@@ -101,6 +101,10 @@ void GomocupEngine::onLine(std::string_view line) {
         std::lock_guard lock(mutex_);
         sink = sink_;
         if (!sink) return;  // engine banner or reply outside a search
+        if (std::holds_alternative<ErrorEvent>(event)) {
+            // Engines such as Rapfi print non-fatal ERROR lines and still answer with a move.
+            event = MessageEvent{std::string{line}};
+        }
         if (auto* best = std::get_if<BestMoveEvent>(&event)) {
             if (!position_->contains(best->coord) || position_->occupied(best->coord)) {
                 event = ErrorEvent{"engine returned an illegal move: " + std::string{line}};

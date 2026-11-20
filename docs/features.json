@@ -905,6 +905,26 @@
       "passes": true
     },
     {
+      "id": "GOMO-04-warning",
+      "todo": "GOMO-04",
+      "description": "WHEN a search is running and the engine sends `ERROR <text>` and later a move THEN the sink gets MessageEvent{\"ERROR <text>\"} and then BestMoveEvent, and no ErrorEvent; an illegal move and a closed connection still end the search with ErrorEvent",
+      "steps": [
+        "ctest --preset default -R gomo --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gomo --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GOMO-04-deps",
+      "todo": "GOMO-04",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": true
+    },
+    {
       "id": "PROC-03-deps",
       "todo": "PROC-03",
       "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",

@@ -173,3 +173,30 @@ TEST_CASE("gomo_rect: a non-square board is Unsupported and writes nothing") {
     CHECK(r.e.startSearch(threeMoves(15, 12), Limits{}, sink).error() == EngineError::Unsupported);
     CHECK(r.t.lines().empty());
 }
+
+TEST_CASE("gomo_warning: an ERROR line during a search does not end it") {
+    Rig r;
+    Collect sink;
+    REQUIRE(r.e.startSearch(threeMoves(), Limits{}, sink));
+    r.t.say("ERROR Unknown rule id: 9. Rule is reset to freestyle...");
+    r.t.say("6,6");
+    auto ev = sink.get();
+    REQUIRE(ev.size() == 2);
+    CHECK(std::get<MessageEvent>(ev[0]).text == "ERROR Unknown rule id: 9. Rule is reset to freestyle...");
+    CHECK(std::get<BestMoveEvent>(ev[1]).coord == Coord{6, 6});
+
+    // Still terminal: an illegal move, and a closed connection.
+    Collect s2;
+    REQUIRE(r.e.startSearch(threeMoves(), Limits{}, s2));
+    r.t.say("ERROR something");
+    r.t.say("7,7");
+    REQUIRE(s2.get().size() == 2);
+    CHECK(std::holds_alternative<ErrorEvent>(s2.get()[1]));
+
+    Collect s3;
+    REQUIRE(r.e.startSearch(threeMoves(), Limits{}, s3));
+    r.t.say("ERROR something");
+    r.t.closeNow();
+    REQUIRE(s3.get().size() == 2);
+    CHECK(std::holds_alternative<ErrorEvent>(s3.get()[1]));
+}
