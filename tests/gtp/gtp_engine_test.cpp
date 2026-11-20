@@ -326,3 +326,15 @@ TEST_CASE("gtp4_message: text outside a reply during a search is a MessageEvent"
               std::vector<SearchEvent>{MessageEvent{"some note"}, BestMoveEvent{Coord{7, 6}}});
     }
 }
+
+TEST_CASE("gtp5_text: free text starting with = or ? is a MessageEvent, not a reply header") {
+    Rig r;
+    REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));
+    r.t.say("=== Loaded ===");
+    r.t.say("??x");
+    r.t.say("");
+    const int id = r.ackSetup(6);
+    r.t.reply("=" + std::to_string(id) + " K10");
+    CHECK(r.sink.events == std::vector<SearchEvent>{MessageEvent{"=== Loaded ==="}, MessageEvent{"??x"},
+                                                   BestMoveEvent{Coord{9, 5}}});
+}

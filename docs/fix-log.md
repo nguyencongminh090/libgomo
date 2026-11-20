@@ -45,3 +45,23 @@ assertions (`info.size() == 2`) still prove it is ignored. The threaded variant 
 
 ### Check that would have caught it
 `ctest --preset tsan -R port_blocking --repeat until-fail:50 --timeout 60` (feature PORT-02-no-hang).
+
+## GTP-05-01-free-text-mistaken-for-header (2026-11-20, owner: claude)
+
+### Symptom
+Free text such as `=== Loaded ===` or `??x` during a search opened a reply in `GtpEngine::onLine`; at the next
+blank line the search ended with `ErrorEvent{"engine reply carries no id"}` instead of delivering a MessageEvent.
+
+### First fix
+None.
+
+### Real source
+`parse::parseGtpResponseHeader` accepted any line starting with `=` or `?`. GTP requires marker, optional id
+digits, then a space or the end of the line. The engine layer was right to trust the parser.
+
+### Corrected fix
+The parser returns nullopt when the char after the optional id is not blank (`src/parse/gtp_parser.cpp`).
+`=`, `= text`, `=7`, `=7 K10`, `?`, `? msg` parse as before.
+
+### Check that would have caught it
+`gtp_header: a marker glued to other text is not a header` and `gtp5_text` (registered in `tests/CMakeLists.txt`).

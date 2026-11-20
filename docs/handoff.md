@@ -12,11 +12,11 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. Committed and passing: PORT-02 (test worker no longer uses a destroyed sink; tsan x50 passes), GTP-04 (text outside a reply during a search -> MessageEvent; follow-up 0136bdc tests text between replies; d1c2377 registers gtp4_message with ctest, it was never run before), PROC-02 (process group kill, thread-local SIGPIPE), HARNESS-01..04 (gate hardening), RESIGN-01 (ResignEvent), MSG-01 (MessageEvent), GTP-03 (setAnalyze streaming), KATA-01 (KataGomoEngine, fake transport, source-derived), GOMO-03 (lower-case INFO keys, live Rapfi verified), CORE-01, PROTO-01, PARSE-01, PORT-01, GOMO-01, PROC-01, GOMO-02,
+Nothing in progress. Committed and passing: GTP-05 (header needs a space or end of line after the id), PORT-02 (test worker no longer uses a destroyed sink; tsan x50 passes), GTP-04 (text outside a reply during a search -> MessageEvent; follow-up 0136bdc tests text between replies; d1c2377 registers gtp4_message with ctest, it was never run before), PROC-02 (process group kill, thread-local SIGPIPE), HARNESS-01..04 (gate hardening), RESIGN-01 (ResignEvent), MSG-01 (MessageEvent), GTP-03 (setAnalyze streaming), KATA-01 (KataGomoEngine, fake transport, source-derived), GOMO-03 (lower-case INFO keys, live Rapfi verified), CORE-01, PROTO-01, PARSE-01, PORT-01, GOMO-01, PROC-01, GOMO-02,
 GTP-01 (GTP parsers), GTP-02 (GtpEngine, fake transport, source-derived).
 
 ## Next step
-Backlog: GTP-05 (free text starting with `=`/`?` taken as a reply header). It has owner-approved features in `docs/features.json` (d1c2377); set the chosen todo active before code.
+Backlog: empty.
 Possible todo: script that fails when a doctest case matches no registered ctest `-tc=` filter (see fix-log GTP-04-01).
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`);
 re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi`.

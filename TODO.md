@@ -1,11 +1,11 @@
 # TODO
 
 ## Backlog
-- [ ] **GTP-05.** GTP: free text starting with `=` or `?` is taken as a reply header - size M - [detail](docs/todo/GTP-05-free-text-mistaken-for-header.md)
 
 ## Active
 
 ## Done
+- [x] **GTP-05.** GTP: free text starting with `=` or `?` is taken as a reply header - size M - [detail](docs/todo/GTP-05-free-text-mistaken-for-header.md)
 - [x] **PORT-02.** port_blocking test: worker uses the sink after search() returned - size M - [detail](docs/todo/PORT-02-blocking-test-sink-lifetime.md)
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
 - [x] **GOMO-01.** Gomocup adapter - size M - [detail](docs/todo/GOMO-01-gomocup-adapter.md)

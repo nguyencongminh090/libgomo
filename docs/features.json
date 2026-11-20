@@ -842,7 +842,7 @@
         "ctest --preset default -R gtp --output-on-failure"
       ],
       "checked_by": "ctest --preset default -R gtp --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "GTP-05-header",
@@ -852,7 +852,7 @@
         "ctest --preset default -R gtp --output-on-failure"
       ],
       "checked_by": "ctest --preset default -R gtp --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "PROC-02-deps",

@@ -182,3 +182,13 @@ TEST_CASE("gtp_total: no input makes a parser throw or read out of bounds") {
     CHECK_NOTHROW((void)formatGtpVertex(Coord{1 << 30, -(1 << 30)}, 19, 19));
     CHECK_FALSE(parseGtpVertex("A1", 1 << 30, 1 << 30));
 }
+
+TEST_CASE("gtp_header: a marker glued to other text is not a header") {
+    CHECK_FALSE(parseGtpResponseHeader("=== Loaded ==="));
+    CHECK_FALSE(parseGtpResponseHeader("??x"));
+    CHECK_FALSE(parseGtpResponseHeader("=7K10"));
+    CHECK_FALSE(parseGtpResponseHeader("?3x"));
+    CHECK(parseGtpResponseHeader("="));
+    CHECK(parseGtpResponseHeader("=7"));
+    CHECK(parseGtpResponseHeader("? msg"));
+}

@@ -2,7 +2,7 @@
 id: GTP-05-free-text-mistaken-for-header
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-20
 supersedes: []
@@ -28,6 +28,7 @@ planning:
 Acceptance in `docs/features.json` (`"todo": "GTP-05"`), proposed and owner-approved before code.
 
 ## Evidence
+Reproduced with gtp5_text and gtp_header tests (both failed), fixed in parseGtpResponseHeader; default and tsan suites pass. Fix-log GTP-05-01.
 
 ## Links
 `docs/todo/GTP-04-message-event-outside-reply.md`, `src/gtp/gtp_engine.cpp` (`onLine`, `onReply`).

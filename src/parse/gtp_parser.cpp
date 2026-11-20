@@ -72,6 +72,8 @@ std::optional<GtpResponseHeader> parseGtpResponseHeader(std::string_view line) {
         header.id = toNumber<int>(line.substr(0, digits));
         line.remove_prefix(digits);
     }
+    // GTP: marker, optional id, then a space or the end of the line. `=== x ===` is free text.
+    if (!line.empty() && !isBlank(line.front())) return std::nullopt;
     if (!line.empty() && line.front() == ' ') line.remove_prefix(1);
     header.body = std::string{trimRight(line)};
     return header;
