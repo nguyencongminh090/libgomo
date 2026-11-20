@@ -1,7 +1,6 @@
 # TODO
 
 ## Backlog
-- [ ] **STYLE-04.** Code style for the remaining tests, and the style checks in ctest - size M - [detail](docs/todo/STYLE-04-remaining-tests-and-ctest-checks.md)
 
 ## Active
 
@@ -39,4 +38,5 @@
 - [x] **STYLE-01.** Code style for core, plus the line-length and doc-comment check scripts - size M - [detail](docs/todo/STYLE-01-core-style-and-checks.md)
 - [x] **STYLE-02.** Code style for parse, transport and process - size M - [detail](docs/todo/STYLE-02-parse-transport-process-style.md)
 - [x] **STYLE-03.** Code style for engine, gomocup, gtp and katagomo - size M - [detail](docs/todo/STYLE-03-engine-adapters-style.md)
+- [x] **STYLE-04.** Code style for the remaining tests, and the style checks in ctest - size M - [detail](docs/todo/STYLE-04-remaining-tests-and-ctest-checks.md)
 - [x] **TEST-01.** Check that ctest runs every doctest case - size M - [detail](docs/todo/TEST-01-ctest-covers-every-doctest-case.md)

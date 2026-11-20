@@ -2,7 +2,7 @@
 id: STYLE-04-remaining-tests-and-ctest-checks
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-20
 supersedes: []
@@ -29,6 +29,10 @@ planning: code-style-normalization
 Acceptance in `docs/features.json` (`"todo": "STYLE-04"`).
 
 ## Evidence
+Commits: comments + wraps (live, smoke, main), `style checks as ctest entries`, and `style: align columns (STYLE-04)` (only the `Terminal` members; `git diff -w HEAD~1 HEAD -- include src tests` prints nothing).
+- lines: `check-line-length.sh tests/live tests/smoke tests/main.cpp` exit 0 (before: 2 long lines). The script now accepts files and exits 2 on a grep error (it used to read an error as clean).
+- ctest: `style_line_length` (include src tests) and `style_doc_comments` (include) pass. Negative case: a 110-column `tests/zz_long.cpp` made `style_line_length` fail; file removed.
+- green: `ctest --preset default` and `ctest --preset tsan` 64/64 (4 live skipped), `check-core-deps.sh` and `check-ctest-coverage.sh` OK.
 
 ## Links
 `features/code-style-normalization/planning.md`, `.claude/rules/coding-style.md`

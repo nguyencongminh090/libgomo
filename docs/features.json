@@ -1182,7 +1182,7 @@
         "scripts/check-line-length.sh tests/live tests/smoke tests/main.cpp"
       ],
       "checked_by": "scripts/check-line-length.sh tests/live tests/smoke tests/main.cpp",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-04-align",
@@ -1192,7 +1192,7 @@
         "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing"
       ],
       "checked_by": "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-04-ctest",
@@ -1202,7 +1202,7 @@
         "ctest --preset default -R style --output-on-failure  # plus a manual negative case, reverted"
       ],
       "checked_by": "ctest --preset default -R style --output-on-failure  # plus a manual negative case, reverted",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-04-green",
@@ -1212,7 +1212,7 @@
         "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh && scripts/check-ctest-coverage.sh"
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh && scripts/check-ctest-coverage.sh",
-      "passes": false
+      "passes": true
     }
   ]
 }
