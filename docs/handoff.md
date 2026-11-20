@@ -12,17 +12,18 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. Committed and passing: DEAD-04 (live test: frozen Rapfi times out, late move dropped, usable again), DEAD-01..03 (DeadlineEngine in pygomo::engine gives Gomocup, GTP and KataGomo a search deadline; planning engine-search-deadline), GOMO-06 (after a timeout the engine owes its answer: startSearch -> NotReady until the late move/swap arrives, dropped), GOMO-05 (search deadline in GomocupEngine: turnTime+grace -> YXSTOP, +grace -> ErrorEvent), GOMO-04 (ERROR line during a search -> MessageEvent, search stays open), PROC-03 (SIGKILL to the process group also when the child exited by itself, leader still a zombie), TEST-01 (scripts/check-ctest-coverage.sh, ctest entry ctest_coverage), GTP-05 (header needs a space or end of line after the id), PORT-02 (test worker no longer uses a destroyed sink; tsan x50 passes), GTP-04 (text outside a reply during a search -> MessageEvent; follow-up 0136bdc tests text between replies; d1c2377 registers gtp4_message with ctest, it was never run before), PROC-02 (process group kill, thread-local SIGPIPE), HARNESS-01..04 (gate hardening), RESIGN-01 (ResignEvent), MSG-01 (MessageEvent), GTP-03 (setAnalyze streaming), KATA-01 (KataGomoEngine, fake transport, source-derived), GOMO-03 (lower-case INFO keys, live Rapfi verified), CORE-01, PROTO-01, PARSE-01, PORT-01, GOMO-01, PROC-01, GOMO-02,
-GTP-01 (GTP parsers), GTP-02 (GtpEngine, fake transport, source-derived).
+Nothing in progress. Committed and passing: STYLE-01 (planning code-style-normalization): scripts/check-line-length.sh and scripts/check-doc-comments.sh; core headers documented and aligned (86d6fd9 comments + wrap, 6fa582c `style: align columns`). Before it: DEAD-04, DEAD-01..03, GOMO-06, GOMO-05, GOMO-04, PROC-03, TEST-01, GTP-05, PORT-02, GTP-04, PROC-02, HARNESS-01..04, RESIGN-01, MSG-01, GTP-03, KATA-01, GOMO-03, CORE-01, PROTO-01, PARSE-01, PORT-01, GOMO-01, PROC-01, GOMO-02,
+GTP-01, GTP-02.
 
 ## Next step
 
-Backlog empty; ask the owner.
+STYLE-02 (parse, transport, process), then STYLE-03, STYLE-04. Run the two check scripts on the todo dirs; commit comments + wraps first, then `style: align columns` alone and run `git diff -w` on it before any bookkeeping commit.
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`);
 re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi`.
 
 
 ## Uncertain
+- check-doc-comments.sh is a heuristic: it checks types, aliases, free functions and public methods, not data members or enumerators (those are reviewed by hand). Overrides need their own `///` line each; STYLE-03 may decide to accept a group comment in the script instead. On `include/` today it lists 43 gaps outside core.
 - GtpEngine::stop() is a no-op by protocol: docs/audit/AUD-02 (KataGomo reads stdin on one thread; genmove cannot be interrupted). Limits persist in the engine between searches.
 - GTP and KataGomo `gom` shapes (GtpEngine, KataGomoEngine) are read from source only; no such engine was ever run. VCN rules and `kata-set-rule` not mapped.
 - Late `[Pondering]` lines and `coord_conversion_mode` != none are not covered by any Gomocup fixture.

@@ -6,7 +6,6 @@
 - [ ] **STYLE-04.** Code style for the remaining tests, and the style checks in ctest - size M - [detail](docs/todo/STYLE-04-remaining-tests-and-ctest-checks.md)
 
 ## Active
-- [~] **STYLE-01.** Code style for core, plus the line-length and doc-comment check scripts - size M - [detail](docs/todo/STYLE-01-core-style-and-checks.md)
 
 ## Done
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
@@ -39,4 +38,5 @@
 - [x] **PROC-03.** ProcessTransport: also end the process group when the child exits by itself - size M - [detail](docs/todo/PROC-03-kill-orphans-after-child-exit.md)
 - [x] **PROTO-01.** Transport port and StreamTransport - size M - [detail](docs/todo/PROTO-01-transport-port-stream-transport.md)
 - [x] **RESIGN-01.** ResignEvent in core and GtpEngine - size M - [detail](docs/todo/RESIGN-01-resign-event.md)
+- [x] **STYLE-01.** Code style for core, plus the line-length and doc-comment check scripts - size M - [detail](docs/todo/STYLE-01-core-style-and-checks.md)
 - [x] **TEST-01.** Check that ctest runs every doctest case - size M - [detail](docs/todo/TEST-01-ctest-covers-every-doctest-case.md)

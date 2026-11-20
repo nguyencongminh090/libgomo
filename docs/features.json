@@ -1052,7 +1052,7 @@
         "scripts/check-line-length.sh include/pygomo/core src/core tests/core && scripts/check-doc-comments.sh include/pygomo/core  # plus a manual negative case"
       ],
       "checked_by": "scripts/check-line-length.sh include/pygomo/core src/core tests/core && scripts/check-doc-comments.sh include/pygomo/core  # plus a manual negative case",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-01-lines",
@@ -1062,7 +1062,7 @@
         "scripts/check-line-length.sh include/pygomo/core src/core tests/core"
       ],
       "checked_by": "scripts/check-line-length.sh include/pygomo/core src/core tests/core",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-01-docs",
@@ -1072,7 +1072,7 @@
         "scripts/check-doc-comments.sh include/pygomo/core"
       ],
       "checked_by": "scripts/check-doc-comments.sh include/pygomo/core",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-01-align",
@@ -1082,7 +1082,7 @@
         "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing"
       ],
       "checked_by": "git diff -w HEAD~1 HEAD -- include src tests  # run on the align commit; must print nothing",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-01-green",
@@ -1092,7 +1092,7 @@
         "cmake --build --preset default && ctest --preset default && scripts/check-core-deps.sh"
       ],
       "checked_by": "cmake --build --preset default && ctest --preset default && scripts/check-core-deps.sh",
-      "passes": false
+      "passes": true
     },
     {
       "id": "STYLE-02-lines",
