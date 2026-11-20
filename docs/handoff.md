@@ -12,11 +12,11 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. Committed and passing: RESIGN-01 (ResignEvent), MSG-01 (MessageEvent), GTP-03 (setAnalyze streaming), KATA-01 (KataGomoEngine, fake transport, source-derived), GOMO-03 (lower-case INFO keys, live Rapfi verified), CORE-01, PROTO-01, PARSE-01, PORT-01, GOMO-01, PROC-01, GOMO-02,
+Nothing in progress. Committed and passing: HARNESS-01..04 (gate hardening), RESIGN-01 (ResignEvent), MSG-01 (MessageEvent), GTP-03 (setAnalyze streaming), KATA-01 (KataGomoEngine, fake transport, source-derived), GOMO-03 (lower-case INFO keys, live Rapfi verified), CORE-01, PROTO-01, PARSE-01, PORT-01, GOMO-01, PROC-01, GOMO-02,
 GTP-01 (GTP parsers), GTP-02 (GtpEngine, fake transport, source-derived).
 
 ## Next step
-Backlog: HARNESS-01..04 (promoted from the gate review note; features not yet proposed/approved). Item 2 changes the edit gate itself, so propose features with care.
+Backlog: none queued. Pick the next requirement from the owner.
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`);
 re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi`.
 
@@ -29,6 +29,8 @@ re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/
 - `GomocupEngine` drops lines outside a search; any `ERROR` ends the search.
 - `ProcessTransport` kills only its direct child; sets SIGPIPE ignored process-wide.
 - `MessageEvent` exists but the GTP parser/engine never emit it. Only GtpEngine emits `ResignEvent`.
+
+- Harness gate: case-fold branch of `canonicalRel` is only unit-tested (case-sensitive FS). `features/*/planning.md` now asks the owner (added beyond the todo text). `scripts/harness` is a manual copy of the skill scripts; re-sync after skill changes.
 
 ## Blockers
 None.
