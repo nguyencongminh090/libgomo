@@ -185,7 +185,7 @@
     {
       "id": "GOMO-01-sequence",
       "todo": "GOMO-01",
-      "description": "WHEN startSearch runs on a 15x15 position with 3 moves THEN the transport receives START 15, INFO RULE, the limit INFOs that are set, BOARD, the three stones with owner flags, DONE, in that order",
+      "description": "WHEN startSearch runs on a 15x15 position with 3 moves THEN the transport receives START 15, INFO rule, the limit INFOs that are set, BOARD, the three stones with owner flags, DONE, in that order",
       "steps": [
         "ctest --preset default -R gomo_sequence --output-on-failure"
       ],
@@ -195,7 +195,7 @@
     {
       "id": "GOMO-01-rules",
       "todo": "GOMO-01",
-      "description": "WHEN rules are {Renju, FreeOpen} THEN INFO RULE 4 is sent; WHEN rules are {Standard, Swap1} THEN setRules returns Unsupported and nothing is written",
+      "description": "WHEN rules are {Renju, FreeOpen} THEN INFO rule 4 is sent; WHEN rules are {Standard, Swap1} THEN setRules returns Unsupported and nothing is written",
       "steps": [
         "ctest --preset default -R gomo_rules --output-on-failure"
       ],
@@ -490,7 +490,7 @@
         "ctest --preset default -R gomo_ --output-on-failure"
       ],
       "checked_by": "ctest --preset default -R gomo_ --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "GOMO-03-live",
@@ -500,7 +500,7 @@
         "PYGOMO_RAPFI=/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi/build/pbrain-rapfi ctest --preset default -R gomo2_ --output-on-failure"
       ],
       "checked_by": "PYGOMO_RAPFI=/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi/build/pbrain-rapfi ctest --preset default -R gomo2_ --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "GOMO-03-deps",
@@ -510,7 +510,7 @@
         "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
-      "passes": false
+      "passes": true
     }
   ]
 }

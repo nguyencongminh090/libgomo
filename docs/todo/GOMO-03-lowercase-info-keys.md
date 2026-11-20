@@ -2,7 +2,7 @@
 id: GOMO-03-lowercase-info-keys
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-20
 supersedes: []
@@ -40,7 +40,7 @@ Acceptance lives in `docs/features.json` (`"todo": "GOMO-03"`); `harness-track G
 - Nothing else in any test or feature may change.
 
 ## Evidence
-(fill in before marking done)
+2026-11-20: `ctest --preset default` 39/39 pass (gomo2_* skipped without env); `PYGOMO_RAPFI=... ctest --preset default -R gomo2_` 5/5 pass against real Rapfi with lower-case keys; `ctest --preset tsan` pass; `check-core-deps.sh` OK; `harness-check` 0 findings. Changed: 6 INFO strings in `gomocup_engine.cpp`, 4 test lines, descriptions of GOMO-01-rules and GOMO-01-sequence only.
 
 ## Links
 - `docs/todo/GOMO-01-gomocup-adapter.md`, `docs/todo/GOMO-02-real-engine-rapfi.md`,

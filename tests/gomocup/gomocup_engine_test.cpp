@@ -69,7 +69,7 @@ TEST_CASE("gomo_sequence: START, INFO, BOARD with owner flags, DONE") {
     lim.maxDepth = 12;
     REQUIRE(r.e.startSearch(threeMoves(), lim, sink));
     // Three moves played, so White is to move: White's stone (8,7) is flag 1.
-    CHECK(r.t.lines() == Lines{"START 15", "INFO RULE 0", "INFO TIMEOUT_TURN 5000", "INFO MAX_DEPTH 12",
+    CHECK(r.t.lines() == Lines{"START 15", "INFO rule 0", "INFO timeout_turn 5000", "INFO max_depth 12",
                                "BOARD", "7,7,2", "8,7,1", "7,8,2", "DONE"});
 }
 
@@ -89,8 +89,8 @@ TEST_CASE("gomo_rules: mapping, unsupported combinations write nothing") {
     CHECK(r.e.setRules(Rules{BoardRule::Renju, OpeningRule::FreeOpen, 200}));
     REQUIRE(r.e.startSearch(threeMoves(), Limits{}, sink));
     auto l = r.t.lines();
-    CHECK(l[1] == "INFO RULE 4");
-    CHECK(l[2] == "INFO MAX_MOVES 200");
+    CHECK(l[1] == "INFO rule 4");
+    CHECK(l[2] == "INFO max_moves 200");
 
     Rig u;
     CHECK_FALSE(u.e.supports(Rules{BoardRule::Standard, OpeningRule::Swap1, std::nullopt}));
@@ -103,7 +103,7 @@ TEST_CASE("gomo_rules: mapping, unsupported combinations write nothing") {
     Collect sink2;
     CHECK(s.e.setRules(Rules{BoardRule::Freestyle, OpeningRule::Swap2, std::nullopt}));
     REQUIRE(s.e.startSearch(threeMoves(), Limits{}, sink2));
-    CHECK(s.t.lines()[1] == "INFO RULE 6");
+    CHECK(s.t.lines()[1] == "INFO rule 6");
 }
 
 TEST_CASE("gomo_events: info then best move; swap; illegal move") {

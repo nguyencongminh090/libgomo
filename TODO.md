@@ -1,11 +1,11 @@
 # TODO
 
 ## Backlog
-- [ ] **GOMO-03.** GomocupEngine: INFO upper case, keys lower case - size M - [detail](docs/todo/GOMO-03-lowercase-info-keys.md)
 
 ## Active
 
 ## Done
+- [x] **GOMO-03.** GomocupEngine: INFO upper case, keys lower case - size M - [detail](docs/todo/GOMO-03-lowercase-info-keys.md)
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
 - [x] **GOMO-01.** Gomocup adapter - size M - [detail](docs/todo/GOMO-01-gomocup-adapter.md)
 - [x] **GTP-01.** GTP response and vertex parser (source-derived) - size M - [detail](docs/todo/GTP-01-gtp-parser.md)
