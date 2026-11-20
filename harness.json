@@ -6,7 +6,8 @@
   "domains": [
     "CORE",
     "PROTO",
-    "PARSE"
+    "PARSE",
+    "HARNESS"
   ],
   "overrides": {}
 }

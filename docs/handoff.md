@@ -16,10 +16,10 @@ Nothing in progress. Committed and passing: RESIGN-01 (ResignEvent), MSG-01 (Mes
 GTP-01 (GTP parsers), GTP-02 (GtpEngine, fake transport, source-derived).
 
 ## Next step
-Nothing queued. New work needs a todo and owner-approved features first.
+Backlog: HARNESS-01..04 (promoted from the gate review note; features not yet proposed/approved). Item 2 changes the edit gate itself, so propose features with care.
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`);
 re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi`.
-Also promote `docs/notes/2026-11-19-harness-gate-review-findings.md`.
+
 
 ## Uncertain
 - GtpEngine::stop() is a no-op: genmove blocks KataGomo's read loop. Limits persist in the engine between searches.
