@@ -641,6 +641,36 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "RESIGN-01-gtp",
+      "todo": "RESIGN-01",
+      "description": "WHEN GtpEngine gets `= <id> resign` for genmove (also as the final `play resign` of kata-genmove_analyze) THEN the sink receives exactly one ResignEvent and no ErrorEvent; pass, error replies and bad moves behave as before",
+      "steps": [
+        "ctest --preset default -R gtp --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "RESIGN-01-core",
+      "todo": "RESIGN-01",
+      "description": "WHEN the port contract is read THEN ResignEvent is a SearchEvent alternative listed as terminal in engine_port.hpp, and blocking search treats it as terminal",
+      "steps": [
+        "ctest --preset default -R 'core|blocking' --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R 'core|blocking' --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "RESIGN-01-deps",
+      "todo": "RESIGN-01",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

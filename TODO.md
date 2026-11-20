@@ -1,11 +1,11 @@
 # TODO
 
 ## Backlog
-- [ ] **RESIGN-01.** ResignEvent in core and GtpEngine - size M - [detail](docs/todo/RESIGN-01-resign-event.md)
 
 ## Active
 
 ## Done
+- [x] **RESIGN-01.** ResignEvent in core and GtpEngine - size M - [detail](docs/todo/RESIGN-01-resign-event.md)
 - [x] **MSG-01.** MessageEvent in core and parsers - size M - [detail](docs/todo/MSG-01-message-event.md)
 - [x] **GTP-03.** GtpEngine kata-genmove_analyze streaming (source-derived) - size M - [detail](docs/todo/GTP-03-kata-genmove-analyze.md)
 - [x] **KATA-01.** KataGomoEngine for KataGomo gom mode (source-derived, fake-transport tested) - size M - [detail](docs/todo/KATA-01-katagomo-gom-adapter.md)

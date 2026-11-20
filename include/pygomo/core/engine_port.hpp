@@ -36,7 +36,7 @@ public:
     [[nodiscard]] virtual std::expected<void, EngineError> setRules(const Rules& rules) = 0;
 
     /// Starts a search and returns at once. Events go to `sink`, which must outlive the search.
-    /// The search ends with exactly one terminal event: best move, swap, pass or error.
+    /// The search ends with exactly one terminal event: best move, swap, pass, resign or error.
     [[nodiscard]] virtual std::expected<void, EngineError> startSearch(
         const Position& position, const Limits& limits, EventSink& sink) = 0;
 

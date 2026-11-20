@@ -54,6 +54,11 @@ struct ErrorEvent {
     bool operator==(const ErrorEvent&) const = default;
 };
 
+/// The engine resigned. Terminal; the game is lost for the engine's side, nothing more is implied.
+struct ResignEvent {
+    constexpr bool operator==(const ResignEvent&) const = default;
+};
+
 /// Free text the engine sent on purpose (e.g. Gomocup `MESSAGE <text>` that is not an info shape).
 /// Not terminal; the text is kept raw.
 struct MessageEvent {
@@ -70,7 +75,7 @@ struct UnparsedEvent {
 };
 
 using SearchEvent =
-    std::variant<InfoEvent, BestMoveEvent, SwapEvent, PassEvent, ErrorEvent, MessageEvent,
+    std::variant<InfoEvent, BestMoveEvent, SwapEvent, PassEvent, ResignEvent, ErrorEvent, MessageEvent,
                  UnparsedEvent>;
 
 }  // namespace pygomo

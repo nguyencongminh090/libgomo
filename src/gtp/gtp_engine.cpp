@@ -127,7 +127,7 @@ void GtpEngine::onReply(bool ok, std::optional<int> id, const std::string& text,
     auto vertex = parse::parseGtpVertex(move, position_->width(), position_->height());
     if (!vertex) return finish(ErrorEvent{"engine returned an unreadable move: " + text});
     if (std::holds_alternative<parse::GtpPass>(*vertex)) return finish(PassEvent{});
-    if (std::holds_alternative<parse::GtpResign>(*vertex)) return finish(ErrorEvent{"engine resigned"});
+    if (std::holds_alternative<parse::GtpResign>(*vertex)) return finish(ResignEvent{});
     const Coord c = std::get<Coord>(*vertex);
     if (position_->occupied(c)) return finish(ErrorEvent{"engine returned an illegal move: " + text});
     finish(BestMoveEvent{c});

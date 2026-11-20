@@ -104,7 +104,7 @@ TEST_CASE("gtp2_result: pass, resign, an error reply and an unreadable move end 
         REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));
         r.ackSetup(6);
         r.t.reply("=6 resign");
-        CHECK(r.sink.events == std::vector<SearchEvent>{ErrorEvent{"engine resigned"}});
+        CHECK(r.sink.events == std::vector<SearchEvent>{ResignEvent{}});
     }
     SUBCASE("an error reply to a setup command, later replies ignored") {
         Rig r;

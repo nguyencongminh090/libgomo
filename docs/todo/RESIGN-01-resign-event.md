@@ -2,7 +2,7 @@
 id: RESIGN-01-resign-event
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-20
 supersedes: []
@@ -22,7 +22,7 @@ planning: core-message-resign-events
 Acceptance in `docs/features.json` (`"todo": "RESIGN-01"`), proposed and owner-approved before code.
 
 ## Evidence
-(fill in before marking done)
+2026-11-20: `gtp2_result` resign case now expects `ResignEvent{}` (only change to tests besides the new alternative in the `search_event_test` visitor); default 46/46 (3 live skipped), tsan 46/46, `check-core-deps.sh` OK.
 
 ## Links
 `features/core-message-resign-events/planning.md`
