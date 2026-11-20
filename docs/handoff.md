@@ -25,7 +25,6 @@ re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/
 ## Uncertain
 - GtpEngine::stop() is a no-op: genmove blocks KataGomo's read loop. Limits persist in the engine between searches.
 - GTP and KataGomo `gom` shapes (GtpEngine, KataGomoEngine) are read from source only; no such engine was ever run. VCN rules and `kata-set-rule` not mapped.
-- No `docs/planning` file named `engine-protocol-port` exists although todos reference it.
 - Late `[Pondering]` lines and `coord_conversion_mode` != none are not covered by any Gomocup fixture.
 - `GomocupEngine` drops lines outside a search; any `ERROR` ends the search.
 - GtpEngine: text outside a reply during a search -> `MessageEvent`; unparsable analyze lines -> `UnparsedEvent` (kept, not lost). KataGomo (Gom2026 @ checked 2026-11-20) never prints `info string`, so nothing more is planned.
