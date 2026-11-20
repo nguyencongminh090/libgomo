@@ -16,8 +16,8 @@ Nothing in progress. Committed and passing: GTP-05 (header needs a space or end 
 GTP-01 (GTP parsers), GTP-02 (GtpEngine, fake transport, source-derived).
 
 ## Next step
-Backlog: empty.
-Possible todo: script that fails when a doctest case matches no registered ctest `-tc=` filter (see fix-log GTP-04-01).
+
+TEST-01 in backlog: script that fails when ctest runs no entry for a doctest case (fix-log GTP-04-01); needs owner-approved features.
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`);
 re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi`.
 

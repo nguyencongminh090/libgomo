@@ -1,12 +1,11 @@
 # TODO
 
 ## Backlog
+- [ ] **TEST-01.** Check that ctest runs every doctest case - size M - [detail](docs/todo/TEST-01-ctest-covers-every-doctest-case.md)
 
 ## Active
 
 ## Done
-- [x] **GTP-05.** GTP: free text starting with `=` or `?` is taken as a reply header - size M - [detail](docs/todo/GTP-05-free-text-mistaken-for-header.md)
-- [x] **PORT-02.** port_blocking test: worker uses the sink after search() returned - size M - [detail](docs/todo/PORT-02-blocking-test-sink-lifetime.md)
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
 - [x] **GOMO-01.** Gomocup adapter - size M - [detail](docs/todo/GOMO-01-gomocup-adapter.md)
 - [x] **GOMO-02.** GomocupEngine against the real Rapfi - size M - [detail](docs/todo/GOMO-02-real-engine-rapfi.md)
@@ -15,6 +14,7 @@
 - [x] **GTP-02.** GTP engine adapter (source-derived, fake-transport tested) - size M - [detail](docs/todo/GTP-02-gtp-adapter.md)
 - [x] **GTP-03.** GtpEngine: `kata-genmove_analyze` streaming (source-derived) - size M - [detail](docs/todo/GTP-03-kata-genmove-analyze.md)
 - [x] **GTP-04.** GtpEngine: text outside a reply becomes MessageEvent - size M - [detail](docs/todo/GTP-04-message-event-outside-reply.md)
+- [x] **GTP-05.** GTP: free text starting with `=` or `?` is taken as a reply header - size M - [detail](docs/todo/GTP-05-free-text-mistaken-for-header.md)
 - [x] **HARNESS-01.** Validate profile names before import() - size M - [detail](docs/todo/HARNESS-01-profile-name-validation.md)
 - [x] **HARNESS-02.** Edit gate asks for control config - size M - [detail](docs/todo/HARNESS-02-gate-control-config-ask.md)
 - [x] **HARNESS-03.** Canonical path for the features.json match - size M - [detail](docs/todo/HARNESS-03-canonical-features-path.md)
@@ -23,6 +23,7 @@
 - [x] **MSG-01.** MessageEvent in core and parsers - size M - [detail](docs/todo/MSG-01-message-event.md)
 - [x] **PARSE-01.** Gomocup line parser - size M - [detail](docs/todo/PARSE-01-gomocup-line-parser.md)
 - [x] **PORT-01.** EnginePort and EventSink - size M - [detail](docs/todo/PORT-01-engine-port-event-sink.md)
+- [x] **PORT-02.** port_blocking test: worker uses the sink after search() returned - size M - [detail](docs/todo/PORT-02-blocking-test-sink-lifetime.md)
 - [x] **PROC-01.** ProcessTransport (POSIX) - size M - [detail](docs/todo/PROC-01-process-transport.md)
 - [x] **PROC-02.** ProcessTransport: kill the process group, no process-wide SIGPIPE change - size M - [detail](docs/todo/PROC-02-process-group-sigpipe.md)
 - [x] **PROTO-01.** Transport port and StreamTransport - size M - [detail](docs/todo/PROTO-01-transport-port-stream-transport.md)
