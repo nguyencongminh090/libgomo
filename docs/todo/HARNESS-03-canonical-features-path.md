@@ -2,7 +2,7 @@
 id: HARNESS-03-canonical-features-path
 type: todo
 size: M
-status: backlog
+status: active
 owner: claude
 created: 2026-11-20
 supersedes: []

@@ -2,7 +2,7 @@
 id: HARNESS-04-passes-only-semantic-check
 type: todo
 size: M
-status: backlog
+status: active
 owner: claude
 created: 2026-11-20
 supersedes: []

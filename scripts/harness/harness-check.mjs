@@ -53,6 +53,9 @@ export async function loadProfileChecks(profiles, base = here) {
 
 // PreToolUse hook. features.json: an edit that changes more than `passes` asks the owner (JSON
 // permissionDecision "ask"). Code: exit 2 blocks while an active todo is L or its planning is unapproved.
+const ask = (reason) => console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'ask', permissionDecisionReason: reason } }));
+const CONTROL = /^(harness\.json$|\.claude\/|docs\/|features\/[^/]+\/planning\.md$)/;
+const EXEMPT = /^docs\/(handoff\.md$|fix-log\.md$|todo\/|notes\/)/;
 function gate(root) {
   let hook = {};
   try { hook = JSON.parse(fs.readFileSync(0, 'utf8')); } catch {}
@@ -62,11 +65,12 @@ function gate(root) {
     let current = '';
     try { current = fs.readFileSync(path.join(root, FEATURES_FILE), 'utf8'); } catch {}
     if (!onlyPassesChanged(hook.tool_name, hook.tool_input ?? {}, current)) {
-      console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'ask',
-        permissionDecisionReason: `${FEATURES_FILE}: agents may only flip "passes"; adding, editing or removing features is the owner's call.` } }));
+      ask(`${FEATURES_FILE}: agents may only flip "passes"; adding, editing or removing features is the owner's call.`);
     }
     return 0;
   }
+  // Control files: overrides, hooks, rules, planning status and decisions are the owner's call. Daily working docs are exempt.
+  if (CONTROL.test(rel) && !EXEMPT.test(rel)) { ask(`${rel}: harness control file; changing it is the owner's call.`); return 0; }
   if (/^(docs\/|features\/|\.claude\/|TODO\.md$|CLAUDE\.md$|harness\.json$)/.test(rel)) return 0;
   const { ctx } = buildCtx(root);
   ctx.items = ctx.items.filter((i) => i.data.status === 'active' || i.type === 'planning');

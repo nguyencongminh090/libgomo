@@ -86,3 +86,20 @@ test('HARNESS-01-root a profile directory symlinked outside its root is skipped'
   const good = withProfile('fine');
   assert.equal((await loadProfileChecks(['fine'], good)).length, 1);
 });
+
+const gateAsk = (root, file, tool = 'Edit', extra = {}) => {
+  const r = sk('harness-check.mjs', ['--gate', '--root', root], { input: JSON.stringify({ tool_name: tool, tool_input: { file_path: file.startsWith('/') ? file : path.join(root, file), ...extra } }) });
+  return r.stdout.includes('"permissionDecision":"ask"');
+};
+test('HARNESS-02-ask control files ask the owner', () => {
+  const r = tmpCopy('clean');
+  for (const f of ['harness.json', '.claude/settings.json', '.claude/rules/x.md', 'docs/adr/a.md', 'docs/audit/a.md', 'docs/design/a.md', 'features/s/planning.md']) {
+    assert.equal(gateAsk(r, f, 'Write', { content: 'x' }), true, f);
+  }
+});
+test('HARNESS-02-exempt daily docs do not ask', () => {
+  const r = tmpCopy('clean');
+  for (const f of ['docs/handoff.md', 'docs/todo/T-01.md', 'docs/fix-log.md', 'docs/notes/n.md', 'TODO.md', 'src/a.cpp']) {
+    assert.equal(gateAsk(r, f, 'Write', { content: 'x' }), false, f);
+  }
+});

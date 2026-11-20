@@ -700,7 +700,7 @@
         "node --test --test-name-pattern=\"HARNESS-02-ask\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs"
       ],
       "checked_by": "node --test --test-name-pattern=\"HARNESS-02-ask\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs",
-      "passes": false
+      "passes": true
     },
     {
       "id": "HARNESS-02-exempt",
@@ -710,7 +710,7 @@
         "node --test --test-name-pattern=\"HARNESS-02-exempt\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs"
       ],
       "checked_by": "node --test --test-name-pattern=\"HARNESS-02-exempt\" .claude/skills/project-harness/tests/*.test.mjs && node scripts/harness/harness-check.mjs",
-      "passes": false
+      "passes": true
     },
     {
       "id": "HARNESS-03-real",
