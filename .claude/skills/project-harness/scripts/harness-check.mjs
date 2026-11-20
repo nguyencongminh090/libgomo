@@ -54,7 +54,8 @@ export async function loadProfileChecks(profiles, base = here) {
 // PreToolUse hook. features.json: an edit that changes more than `passes` asks the owner (JSON
 // permissionDecision "ask"). Code: exit 2 blocks while an active todo is L or its planning is unapproved.
 // Real path of the target (symlinks and ".." resolved, also through a not-yet-existing tail), relative to the real root,
-// with "/" separators; case-folded on a case-insensitive filesystem so "Docs/Features.JSON" cannot dodge the match.
+// with "/" separators; always case-folded (fail closed): a volume under the root may be case-insensitive even when the root is not,
+// so "Docs/Features.JSON" must not dodge the match. On a case-sensitive FS this only means a harmless extra ask.
 const realOf = (p) => {
   let cur = path.resolve(p); const rest = [];
   for (;;) {
@@ -65,14 +66,8 @@ const realOf = (p) => {
     }
   }
 };
-export function caseInsensitiveFs(dir) {
-  const swapped = dir.replace(/[a-z]/i, (c) => (c === c.toLowerCase() ? c.toUpperCase() : c.toLowerCase()));
-  if (swapped === dir) return false;
-  try { return fs.realpathSync(swapped) === fs.realpathSync(dir); } catch { return false; }
-}
-export function canonicalRel(root, target, insensitive = caseInsensitiveFs(root)) {
-  const rel = path.relative(realOf(root), realOf(target)).split(path.sep).join('/');
-  return insensitive ? rel.toLowerCase() : rel;
+export function canonicalRel(root, target) {
+  return path.relative(realOf(root), realOf(target)).split(path.sep).join('/').toLowerCase();
 }
 const ask = (reason) => console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'ask', permissionDecisionReason: reason } }));
 const CONTROL = /^(harness\.json$|\.claude\/|docs\/|features\/[^/]+\/planning\.md$)/;

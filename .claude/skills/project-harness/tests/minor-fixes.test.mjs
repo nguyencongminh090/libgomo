@@ -113,8 +113,8 @@ test('HARNESS-03-real symlink, .. and case cannot dodge the features.json match'
     assert.equal(gateAsk(r, f, 'Write', { content: '{"features":[1]}' }), true, f);
   }
   assert.equal(gateAsk(r, 'alias/handoff.md', 'Write', { content: 'x' }), false);
-  assert.equal(canonicalRel(r, path.join(r, 'DOCS', 'Features.JSON'), true), 'docs/features.json');
-  assert.equal(canonicalRel(r, path.join(r, 'DOCS', 'Features.JSON'), false), 'DOCS/Features.JSON');
+  assert.equal(canonicalRel(r, path.join(r, 'DOCS', 'Features.JSON')), 'docs/features.json');
+  assert.equal(gateAsk(r, 'DOCS/Features.JSON', 'Write', { content: '{"features":[1]}' }), true, 'case variant asks even on a case-sensitive FS');
 });
 
 const FEAT = '{\n  "features": [\n    {"id": "a", "todo": "T-01", "description": "d", "steps": [], "passes": false}\n  ]\n}\n';

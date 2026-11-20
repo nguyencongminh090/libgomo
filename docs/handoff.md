@@ -30,7 +30,7 @@ re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/
 - `ProcessTransport` kills only its direct child; sets SIGPIPE ignored process-wide.
 - `MessageEvent` exists but the GTP parser/engine never emit it. Only GtpEngine emits `ResignEvent`.
 
-- Harness gate: case-fold branch of `canonicalRel` is only unit-tested (case-sensitive FS). `features/*/planning.md` now asks the owner (added beyond the todo text). `scripts/harness` is a manual copy of the skill scripts; re-sync after skill changes.
+- Harness gate: `canonicalRel` always lower-cases (fail closed), so case variants ask even on a case-sensitive FS. `features/*/planning.md` now asks the owner (added beyond the todo text). `scripts/harness` is a manual copy of the skill scripts; re-sync after skill changes.
 
 ## Blockers
 None.

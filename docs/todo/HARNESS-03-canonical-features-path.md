@@ -22,7 +22,7 @@ The `features.json` match uses `path.resolve`. Use `fs.realpathSync` and case-fo
 Acceptance in `docs/features.json` (`"todo": "HARNESS-03"`), proposed and owner-approved before code.
 
 ## Evidence
-Test `HARNESS-03-real` in `tests/minor-fixes.test.mjs`; suite 143/143. `canonicalRel` resolves symlinks/`..` via realpath (also for a not-yet-existing tail) and case-folds when the filesystem is case-insensitive. The case-fold branch is covered only by a unit call with insensitive=true (this machine is case-sensitive).
+Test `HARNESS-03-real` in `tests/minor-fixes.test.mjs`; suite 143/143. `canonicalRel` resolves symlinks/`..` via realpath (also for a not-yet-existing tail) and always case-folds (fail closed, after security review: volume sniffing could miss a case-insensitive mount under the root).
 
 ## Links
 Source: security review findings, formerly `docs/notes/2026-11-19-harness-gate-review-findings.md` (finding 03, deleted on promotion).
