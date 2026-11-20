@@ -59,10 +59,10 @@ struct Terminal final : EventSink {
         std::unique_lock lock(m);
         return cv.wait_for(lock, t, [&] { return done; });
     }
-    std::mutex m;
-    std::condition_variable cv;
+    std::mutex               m;
+    std::condition_variable  cv;
     std::vector<SearchEvent> events;
-    bool done = false;
+    bool                     done = false;
 };
 
 // Launch options for the engine named by PYGOMO_RAPFI.
