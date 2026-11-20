@@ -2,7 +2,7 @@
 id: TEST-01-ctest-covers-every-doctest-case
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-20
 supersedes: []
@@ -30,6 +30,8 @@ planning:
 Acceptance in `docs/features.json` (`"todo": "TEST-01"`), proposed and owner-approved before code.
 
 ## Evidence
+- Added `zz_unregistered: probe` to `tests/transport/stream_transport_test.cpp` (rebuilt): script exit 1 naming `[pygomo_transport_tests] zz_unregistered: probe`, `ctest_coverage` Failed. Reverted: exit 0, full `ctest --preset default` passes.
+- Core binary: the probe is covered by `core_tests` (no -tc=), as specified.
 
 ## Links
 Fix-log GTP-04-01 (`gtp4_message` built but never run by ctest), `tests/CMakeLists.txt`.

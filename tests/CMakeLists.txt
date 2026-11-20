@@ -121,3 +121,7 @@ foreach(group sequence stream errors)
 endforeach()
 add_test(NAME gtp4_message COMMAND pygomo_gtp_tests "-tc=gtp4_message*")
 add_test(NAME gtp5_text COMMAND pygomo_gtp_tests "-tc=gtp5_text*")
+
+# Fails when a doctest case above is run by no ctest entry (needs the built tree).
+add_test(NAME ctest_coverage
+         COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-ctest-coverage.sh ${PROJECT_BINARY_DIR})

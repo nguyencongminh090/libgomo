@@ -863,6 +863,36 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "TEST-01-detects",
+      "todo": "TEST-01",
+      "description": "WHEN a doctest case whose name matches no registered -tc= prefix is added to a test binary THEN scripts/check-ctest-coverage.sh build/default exits non-zero naming that case, and exits 0 again once it is removed",
+      "steps": [
+        "scripts/check-ctest-coverage.sh build/default"
+      ],
+      "checked_by": "scripts/check-ctest-coverage.sh build/default",
+      "passes": true
+    },
+    {
+      "id": "TEST-01-clean",
+      "todo": "TEST-01",
+      "description": "WHEN scripts/check-ctest-coverage.sh runs on the current build/default THEN it exits 0; skipped live cases and entries without -tc= (core_tests, smoke) count as covered",
+      "steps": [
+        "scripts/check-ctest-coverage.sh build/default"
+      ],
+      "checked_by": "scripts/check-ctest-coverage.sh build/default",
+      "passes": true
+    },
+    {
+      "id": "TEST-01-ctest",
+      "todo": "TEST-01",
+      "description": "WHEN ctest --preset default runs THEN an entry ctest_coverage runs the script and passes, and the existing entries are registered and grouped as before",
+      "steps": [
+        "ctest --preset default -R ctest_coverage --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R ctest_coverage --output-on-failure",
+      "passes": true
     }
   ]
 }
