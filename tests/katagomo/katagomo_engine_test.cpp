@@ -13,7 +13,10 @@ namespace {
 /// Records what the adapter writes; the test plays the engine by calling say().
 class FakeTransport final : public Transport {
 public:
-    std::expected<void, TransportError> start(TransportListener& l) override { listener = &l; return {}; }
+    std::expected<void, TransportError> start(TransportListener& l) override {
+        listener = &l;
+        return {};
+    }
     std::expected<void, TransportError> writeLine(std::string_view line) override {
         std::lock_guard lock(m);
         written.emplace_back(line);
@@ -92,8 +95,9 @@ TEST_CASE("kata_limits: turn time and nodes are sent; depth and match time are U
     lim.turnTime = std::chrono::milliseconds{5000};
     lim.maxNodes = 1000;
     REQUIRE(r.e.startSearch(threeMoves(), lim, sink));
-    CHECK(r.t.lines() == Lines{"START 15", "FREESTYLE", "INFO timeout_turn 5000",
-                               "kata-set-param maxVisits 1000", "BOARD", "7,7", "8,7", "7,8", "DONE"});
+    CHECK(r.t.lines() ==
+          Lines{"START 15", "FREESTYLE", "INFO timeout_turn 5000", "kata-set-param maxVisits 1000",
+                "BOARD", "7,7", "8,7", "7,8", "DONE"});
 
     Rig u;
     Limits depth;

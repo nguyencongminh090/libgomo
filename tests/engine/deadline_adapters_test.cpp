@@ -10,7 +10,8 @@
 #include "pygomo/gtp/gtp_engine.hpp"
 #include "pygomo/katagomo/katagomo_engine.hpp"
 
-// DeadlineEngine over the real adapters with a fake transport (shapes as in the adapters' own tests).
+// DeadlineEngine over the real adapters with a fake transport (shapes as in the adapters' own
+// tests).
 using namespace pygomo;
 using namespace std::chrono_literals;
 
@@ -18,7 +19,10 @@ namespace {
 
 class FakeTransport final : public Transport {
 public:
-    std::expected<void, TransportError> start(TransportListener& l) override { listener = &l; return {}; }
+    std::expected<void, TransportError> start(TransportListener& l) override {
+        listener = &l;
+        return {};
+    }
     std::expected<void, TransportError> writeLine(std::string_view line) override {
         std::lock_guard lock(m);
         written.emplace_back(line);
@@ -67,7 +71,9 @@ std::string errorOf(const SearchEvent& e) { return std::get<ErrorEvent>(e).messa
 
 }  // namespace
 
-TEST_CASE("dead2_gtp: a silent engine times out; the late genmove reply is dropped, the next search works") {
+TEST_CASE(
+    "dead2_gtp: a silent engine times out; the late genmove reply is dropped, "
+    "the next search works") {
     FakeTransport t;
     GtpEngine gtp{t};
     REQUIRE(gtp.open());
@@ -75,7 +81,8 @@ TEST_CASE("dead2_gtp: a silent engine times out; the late genmove reply is dropp
     gtp.stop();  // a no-op, but the decorator calls it too
 
     Collect a;
-    REQUIRE(eng.startSearch(twoMoves(), turn(20ms), a));  // turnTime adds a maxTime line: ids 1..7, genmove is 7
+    // turnTime adds a maxTime line: ids 1..7, genmove is 7
+    REQUIRE(eng.startSearch(twoMoves(), turn(20ms), a));
     REQUIRE(waitFor(a, 1));
     CHECK(errorOf(a.get()[0]) == "engine did not answer");
 
@@ -108,7 +115,9 @@ TEST_CASE("dead2_gtp: a reply in time is delivered and no deadline event follows
     CHECK(std::holds_alternative<BestMoveEvent>(a.get()[0]));
 }
 
-TEST_CASE("dead2_kata: a silent engine times out; the late move is dropped, the next search works") {
+TEST_CASE(
+    "dead2_kata: a silent engine times out; the late move is dropped, "
+    "the next search works") {
     FakeTransport t;
     KataGomoEngine kata{t};
     REQUIRE(kata.open());

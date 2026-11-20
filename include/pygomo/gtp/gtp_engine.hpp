@@ -15,35 +15,48 @@ namespace pygomo {
 /// The transport is not owned and must outlive the engine. Call open() once before use.
 ///
 /// The sink is called from the transport's reader thread, never while the engine holds a lock.
-/// While a search runs, a line outside any reply is sent raw as a MessageEvent; outside a search it is dropped.
+/// While a search runs, a line outside any reply is sent raw as a MessageEvent; outside a
+/// search it is dropped. The engine has no deadline of its own; see DeadlineEngine.
 ///
-/// stop() cannot interrupt a search: a GTP engine reads commands in one thread, so a line sent during
-/// `genmove` is only read after the move is chosen. Searches end by the limits given to startSearch.
+/// stop() cannot interrupt a search: a GTP engine reads commands in one thread, so a line sent
+/// during `genmove` is only read after the move is chosen. Searches end by the limits given to
+/// startSearch.
 class GtpEngine final : public EnginePort, private TransportListener {
 public:
+    /// Binds the engine to `transport`; nothing is read or sent until open().
     explicit GtpEngine(Transport& transport);
 
-    /// Starts reading from the transport.
+    /// Starts reading from the transport. Returns NotReady if the transport cannot start.
     [[nodiscard]] std::expected<void, EngineError> open();
 
-    /// Uses `kata-genmove_analyze` instead of `genmove` for later searches: the engine streams `info`
-    /// lines (sent as InfoEvents, about every `interval`) before the final `play X`. Off by default.
-    /// The interval is rounded to whole centiseconds, at least 1. Still synchronous: stop() stays a no-op.
+    /// Uses `kata-genmove_analyze` instead of `genmove` for later searches: the engine streams
+    /// `info` lines (sent as InfoEvents, about every `interval`) before the final `play X`.
+    /// Off by default. The interval is rounded down to whole centiseconds, at least 1. Still
+    /// synchronous: stop() stays a no-op. Safe to call from any thread; a running search keeps
+    /// the mode it started with.
     void setAnalyze(std::optional<std::chrono::milliseconds> interval);
 
+    /// True for valid rules with free opening; GTP has no swap opening.
     [[nodiscard]] bool supports(const Rules& rules) const override;
+    /// Stores the rules for later searches; sends nothing. Unsupported if supports() is false.
     [[nodiscard]] std::expected<void, EngineError> setRules(const Rules& rules) override;
+    /// Sends boardsize, clear_board, the rule and limit commands, every move as `play`, then
+    /// `genmove` (or `kata-genmove_analyze`), each with an id; then returns. Errors: Unsupported
+    /// for matchTime, maxDepth or a position that has no GTP vertex, Busy while a search runs,
+    /// NotReady after the connection closed, TransportFailed when a line cannot be written.
     [[nodiscard]] std::expected<void, EngineError> startSearch(
         const Position& position, const Limits& limits, EventSink& sink) override;
+    /// Does nothing: a running `genmove` cannot be interrupted (see the class comment).
     void stop() override;
+    /// Writes the line to the engine. Errors: TransportFailed.
     [[nodiscard]] std::expected<void, EngineError> sendRaw(std::string_view line) override;
 
 private:
     void onLine(std::string_view line) override;
     void onClosed(CloseReason reason) override;
 
-    /// Handles one complete reply of the running search. Caller holds the lock and passes the sink
-    /// out through `deliver` when an event must be reported.
+    /// Handles one complete reply of the running search. Caller holds the lock and passes the
+    /// sink out through `deliver` when an event must be reported.
     void onReply(bool ok, std::optional<int> id, const std::string& text, EventSink*& deliver,
                  std::optional<SearchEvent>& event);
 

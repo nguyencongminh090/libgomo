@@ -52,9 +52,14 @@ std::expected<void, EngineError> KataGomoEngine::startSearch(
         lines.push_back("START " + std::to_string(position.width()));
         lines.push_back(ruleCommand(rules_.board));
         if (rules_.maxMoves) lines.push_back("maxmoves " + std::to_string(*rules_.maxMoves));
-        if (limits.turnTime) lines.push_back("INFO timeout_turn " + std::to_string(limits.turnTime->count()));
-        if (limits.maxNodes) lines.push_back("kata-set-param maxVisits " + std::to_string(*limits.maxNodes));
-        // BOARD alternates colours from Black and ignores any third field; an empty list is the empty board.
+        if (limits.turnTime) {
+            lines.push_back("INFO timeout_turn " + std::to_string(limits.turnTime->count()));
+        }
+        if (limits.maxNodes) {
+            lines.push_back("kata-set-param maxVisits " + std::to_string(*limits.maxNodes));
+        }
+        // BOARD alternates colours from Black and ignores any third field; an empty list is the
+        // empty board.
         lines.push_back("BOARD");
         for (const Move& m : position.moves()) {
             lines.push_back(std::to_string(m.coord.x) + "," + std::to_string(m.coord.y));

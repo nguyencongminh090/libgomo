@@ -15,7 +15,8 @@ struct ScriptedEngine final : EnginePort {
 
     bool supports(const Rules&) const override { return true; }
     std::expected<void, EngineError> setRules(const Rules&) override { return {}; }
-    std::expected<void, EngineError> startSearch(const Position&, const Limits&, EventSink& s) override {
+    std::expected<void, EngineError> startSearch(
+        const Position&, const Limits&, EventSink& s) override {
         const bool late = !threaded;
         auto emit = [&s, late] {
             InfoEvent i;
@@ -38,8 +39,11 @@ struct ScriptedEngine final : EnginePort {
 
 struct RefusingEngine final : EnginePort {
     bool supports(const Rules&) const override { return false; }
-    std::expected<void, EngineError> setRules(const Rules&) override { return std::unexpected(EngineError::Unsupported); }
-    std::expected<void, EngineError> startSearch(const Position&, const Limits&, EventSink&) override {
+    std::expected<void, EngineError> setRules(const Rules&) override {
+        return std::unexpected(EngineError::Unsupported);
+    }
+    std::expected<void, EngineError> startSearch(
+        const Position&, const Limits&, EventSink&) override {
         return std::unexpected(EngineError::NotReady);
     }
     void stop() override {}

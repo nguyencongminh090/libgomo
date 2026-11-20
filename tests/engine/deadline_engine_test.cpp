@@ -18,7 +18,8 @@ class FakePort final : public EnginePort {
 public:
     bool supports(const Rules&) const override { return true; }
     std::expected<void, EngineError> setRules(const Rules&) override { return {}; }
-    std::expected<void, EngineError> startSearch(const Position&, const Limits&, EventSink& s) override {
+    std::expected<void, EngineError> startSearch(
+        const Position&, const Limits&, EventSink& s) override {
         std::lock_guard l(m);
         if (failNext) return std::unexpected(EngineError::TransportFailed);
         if (sink) return std::unexpected(EngineError::Busy);
@@ -79,7 +80,9 @@ const SearchEvent kMove = BestMoveEvent{{8, 8}};
 
 }  // namespace
 
-TEST_CASE("dead1_timeout: stop at turnTime+grace, ErrorEvent after another grace, Busy until the late answer") {
+TEST_CASE(
+    "dead1_timeout: stop at turnTime+grace, ErrorEvent after another grace, "
+    "Busy until the late answer") {
     FakePort port;
     DeadlineEngine eng{port, DeadlineEngine::Options{30ms}};
     Collect a;
@@ -123,7 +126,9 @@ TEST_CASE("dead1_intime: an answer before or after stop() ends the search normal
     CHECK(std::holds_alternative<BestMoveEvent>(b.get()[0]));
 }
 
-TEST_CASE("dead1_nodeadline: no deadline without turnTime or with 0; an error from the engine passes through") {
+TEST_CASE(
+    "dead1_nodeadline: no deadline without turnTime or with 0; "
+    "an error from the engine passes through") {
     FakePort port;
     DeadlineEngine eng{port, DeadlineEngine::Options{10ms}};
     Collect a;
@@ -150,7 +155,9 @@ TEST_CASE("dead1_nodeadline: no deadline without turnTime or with 0; an error fr
     CHECK(eng.startSearch(pos(), Limits{}, busy));
 }
 
-TEST_CASE("dead1_callback: the sink may call startSearch from the timeout callback and from a terminal event") {
+TEST_CASE(
+    "dead1_callback: the sink may call startSearch from the timeout callback "
+    "and from a terminal event") {
     FakePort port;
     DeadlineEngine eng{port, DeadlineEngine::Options{10ms}};
     struct Again final : EventSink {

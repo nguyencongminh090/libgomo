@@ -22,9 +22,13 @@ DeadlineEngine::~DeadlineEngine() {
 
 bool DeadlineEngine::supports(const Rules& rules) const { return inner_.supports(rules); }
 
-std::expected<void, EngineError> DeadlineEngine::setRules(const Rules& rules) { return inner_.setRules(rules); }
+std::expected<void, EngineError> DeadlineEngine::setRules(const Rules& rules) {
+    return inner_.setRules(rules);
+}
 
-std::expected<void, EngineError> DeadlineEngine::sendRaw(std::string_view line) { return inner_.sendRaw(line); }
+std::expected<void, EngineError> DeadlineEngine::sendRaw(std::string_view line) {
+    return inner_.sendRaw(line);
+}
 
 void DeadlineEngine::stop() { inner_.stop(); }
 
@@ -87,7 +91,9 @@ void DeadlineEngine::watchdog() {
         }
         const auto at = *deadline_;
         const auto id = searchId_;
-        if (cv_.wait_until(lock, at, [&] { return quit_ || searchId_ != id || deadline_ != at; })) continue;
+        const bool changed = cv_.wait_until(
+            lock, at, [&] { return quit_ || searchId_ != id || deadline_ != at; });
+        if (changed) continue;
 
         if (!stopSent_) {
             stopSent_ = true;

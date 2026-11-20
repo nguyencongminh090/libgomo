@@ -67,12 +67,15 @@ std::expected<void, EngineError> GtpEngine::startSearch(
             const auto ms = limits.turnTime->count();
             all.push_back(std::format("kata-set-param maxTime {}.{:03}", ms / 1000, ms % 1000));
         }
-        if (limits.maxNodes) all.push_back(std::format("kata-set-param maxVisits {}", *limits.maxNodes));
+        if (limits.maxNodes) {
+            all.push_back(std::format("kata-set-param maxVisits {}", *limits.maxNodes));
+        }
         for (auto& c : commands) all.push_back(std::move(c));
         analyzing_ = analyzeInterval_.has_value();
         if (analyzing_) {
             const auto cs = std::max<std::int64_t>(1, analyzeInterval_->count() / 10);
-            all.push_back(std::format("kata-genmove_analyze {} interval {}", color(position.sideToMove()), cs));
+            all.push_back(std::format("kata-genmove_analyze {} interval {}",
+                                      color(position.sideToMove()), cs));
         } else {
             all.push_back(std::format("genmove {}", color(position.sideToMove())));
         }
@@ -106,8 +109,8 @@ std::expected<void, EngineError> GtpEngine::sendRaw(std::string_view line) {
     return {};
 }
 
-void GtpEngine::onReply(bool ok, std::optional<int> id, const std::string& text, EventSink*& deliver,
-                        std::optional<SearchEvent>& event) {
+void GtpEngine::onReply(bool ok, std::optional<int> id, const std::string& text,
+                        EventSink*& deliver, std::optional<SearchEvent>& event) {
     if (!sink_) return;  // late reply of a search that already ended
     if (id && (*id < firstId_ || *id > lastId_)) return;  // stale reply of an earlier search
     auto finish = [&](SearchEvent e) {
@@ -121,7 +124,9 @@ void GtpEngine::onReply(bool ok, std::optional<int> id, const std::string& text,
 
     std::string_view move = text;
     if (analyzing_) {  // the reply body ends with `play <vertex>`
-        if (!move.starts_with("play ")) return finish(ErrorEvent{"engine reply has no final play: " + text});
+        if (!move.starts_with("play ")) {
+            return finish(ErrorEvent{"engine reply has no final play: " + text});
+        }
         move.remove_prefix(5);
     }
     auto vertex = parse::parseGtpVertex(move, position_->width(), position_->height());
@@ -129,7 +134,9 @@ void GtpEngine::onReply(bool ok, std::optional<int> id, const std::string& text,
     if (std::holds_alternative<parse::GtpPass>(*vertex)) return finish(PassEvent{});
     if (std::holds_alternative<parse::GtpResign>(*vertex)) return finish(ResignEvent{});
     const Coord c = std::get<Coord>(*vertex);
-    if (position_->occupied(c)) return finish(ErrorEvent{"engine returned an illegal move: " + text});
+    if (position_->occupied(c)) {
+        return finish(ErrorEvent{"engine returned an illegal move: " + text});
+    }
     finish(BestMoveEvent{c});
 }
 
@@ -147,11 +154,13 @@ void GtpEngine::onLine(std::string_view line) {
                 replyText_ = std::move(header->body);
                 return;
             }
-            // Text outside a reply: free text while a search runs, otherwise a banner or late output.
+            // Text outside a reply: free text while a search runs, otherwise a banner or late
+            // output.
             if (!sink_ || line.empty()) return;
             deliver = sink_;
             event = MessageEvent{std::string{line}};
-        } else if (analyzing_ && replyId_ && *replyId_ == lastId_ && sink_ && line.starts_with("info ")) {
+        } else if (analyzing_ && replyId_ && *replyId_ == lastId_ && sink_ &&
+                   line.starts_with("info ")) {
             deliver = sink_;  // streamed analysis line: report now, the reply is still open
             event = parse::parseGtpAnalyzeLine(line, position_->width(), position_->height());
         } else if (!line.empty()) {

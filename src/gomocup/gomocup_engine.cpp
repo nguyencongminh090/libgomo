@@ -53,8 +53,12 @@ std::expected<void, EngineError> GomocupEngine::startSearch(
         lines.push_back("START " + std::to_string(position.width()));
         lines.push_back("INFO rule " + std::to_string(*ruleId(rules_)));
         if (rules_.maxMoves) lines.push_back("INFO max_moves " + std::to_string(*rules_.maxMoves));
-        if (limits.turnTime) lines.push_back("INFO timeout_turn " + std::to_string(limits.turnTime->count()));
-        if (limits.matchTime) lines.push_back("INFO timeout_match " + std::to_string(limits.matchTime->count()));
+        if (limits.turnTime) {
+            lines.push_back("INFO timeout_turn " + std::to_string(limits.turnTime->count()));
+        }
+        if (limits.matchTime) {
+            lines.push_back("INFO timeout_match " + std::to_string(limits.matchTime->count()));
+        }
         if (limits.maxDepth) lines.push_back("INFO max_depth " + std::to_string(*limits.maxDepth));
         if (limits.maxNodes) lines.push_back("INFO max_node " + std::to_string(*limits.maxNodes));
         if (position.moves().empty()) {

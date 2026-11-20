@@ -14,7 +14,10 @@ namespace {
 /// Reply shapes mirror KataGomo Gom2026 cpp/command/gtp.cpp (source-derived, no real engine).
 class FakeTransport final : public Transport {
 public:
-    std::expected<void, TransportError> start(TransportListener& l) override { listener = &l; return {}; }
+    std::expected<void, TransportError> start(TransportListener& l) override {
+        listener = &l;
+        return {};
+    }
     std::expected<void, TransportError> writeLine(std::string_view line) override {
         std::lock_guard lock(m);
         written.emplace_back(line);
@@ -233,20 +236,25 @@ TEST_CASE("gtp2_lifecycle: a new search after an error ignores the old search's 
     CHECK(r.sink.events[1] == SearchEvent{BestMoveEvent{Coord{7, 6}}});
 }
 
-TEST_CASE("gtp3_sequence: analyze mode sends kata-genmove_analyze with an interval; default stays genmove") {
+TEST_CASE(
+    "gtp3_sequence: analyze mode sends kata-genmove_analyze with an interval; "
+    "default stays genmove") {
     Rig r;
     r.e.setAnalyze(std::chrono::milliseconds{500});
     Limits lim;
     lim.maxNodes = 4000;
     REQUIRE(r.e.startSearch(twoMoves(), lim, r.sink));
-    CHECK(r.t.lines().back() == "7 kata-genmove_analyze B interval 50");  // two moves played: Black to move
+    // Two moves played: Black to move.
+    CHECK(r.t.lines().back() == "7 kata-genmove_analyze B interval 50");
 
     Rig d;
     REQUIRE(d.e.startSearch(twoMoves(), Limits{}, d.sink));
     CHECK(d.t.lines().back() == "6 genmove B");
 }
 
-TEST_CASE("gtp3_stream: info lines become InfoEvents while the reply is open, then play X ends it") {
+TEST_CASE(
+    "gtp3_stream: info lines become InfoEvents while the reply is open, "
+    "then play X ends it") {
     Rig r;
     r.e.setAnalyze(std::chrono::milliseconds{500});
     REQUIRE(r.e.startSearch(twoMoves(), Limits{}, r.sink));
@@ -305,8 +313,8 @@ TEST_CASE("gtp4_message: text outside a reply during a search is a MessageEvent"
         r.t.say("");  // a blank line outside a reply carries nothing
         const int id = r.ackSetup(6);
         r.t.reply("=" + std::to_string(id) + " K10");
-        CHECK(r.sink.events ==
-              std::vector<SearchEvent>{MessageEvent{"Loaded model, 8 threads"}, BestMoveEvent{Coord{9, 5}}});
+        CHECK(r.sink.events == std::vector<SearchEvent>{MessageEvent{"Loaded model, 8 threads"},
+                                                       BestMoveEvent{Coord{9, 5}}});
         r.t.say("late text");  // the search ended: dropped
         CHECK(r.sink.events.size() == 2);
     }
@@ -335,6 +343,7 @@ TEST_CASE("gtp5_text: free text starting with = or ? is a MessageEvent, not a re
     r.t.say("");
     const int id = r.ackSetup(6);
     r.t.reply("=" + std::to_string(id) + " K10");
-    CHECK(r.sink.events == std::vector<SearchEvent>{MessageEvent{"=== Loaded ==="}, MessageEvent{"??x"},
-                                                   BestMoveEvent{Coord{9, 5}}});
+    CHECK(r.sink.events ==
+          std::vector<SearchEvent>{MessageEvent{"=== Loaded ==="}, MessageEvent{"??x"},
+                                   BestMoveEvent{Coord{9, 5}}});
 }

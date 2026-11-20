@@ -19,7 +19,10 @@ namespace {
 /// Records what the adapter writes; the test plays the engine by calling say()/closeNow().
 class FakeTransport final : public Transport {
 public:
-    std::expected<void, TransportError> start(TransportListener& l) override { listener = &l; return {}; }
+    std::expected<void, TransportError> start(TransportListener& l) override {
+        listener = &l;
+        return {};
+    }
     std::expected<void, TransportError> writeLine(std::string_view line) override {
         std::lock_guard lock(m);
         written.emplace_back(line);
@@ -65,7 +68,10 @@ struct DeadlineRig {
     FakeTransport t;
     GomocupEngine g{t};
     DeadlineEngine e;
-    explicit DeadlineRig(std::chrono::milliseconds grace) : e(g, DeadlineEngine::Options{grace}) { REQUIRE(g.open()); }
+    explicit DeadlineRig(std::chrono::milliseconds grace)
+        : e(g, DeadlineEngine::Options{grace}) {
+        REQUIRE(g.open());
+    }
 };
 
 using Lines = std::vector<std::string>;
@@ -80,8 +86,9 @@ TEST_CASE("gomo_sequence: START, INFO, BOARD with owner flags, DONE") {
     lim.maxDepth = 12;
     REQUIRE(r.e.startSearch(threeMoves(), lim, sink));
     // Three moves played, so White is to move: White's stone (8,7) is flag 1.
-    CHECK(r.t.lines() == Lines{"START 15", "INFO rule 0", "INFO timeout_turn 5000", "INFO max_depth 12",
-                               "BOARD", "7,7,2", "8,7,1", "7,8,2", "DONE"});
+    CHECK(r.t.lines() ==
+          Lines{"START 15", "INFO rule 0", "INFO timeout_turn 5000", "INFO max_depth 12", "BOARD",
+                "7,7,2", "8,7,1", "7,8,2", "DONE"});
 }
 
 TEST_CASE("gomo_sequence: an empty board uses BEGIN; second search while running is Busy") {
@@ -193,7 +200,8 @@ TEST_CASE("gomo_warning: an ERROR line during a search does not end it") {
     r.t.say("6,6");
     auto ev = sink.get();
     REQUIRE(ev.size() == 2);
-    CHECK(std::get<MessageEvent>(ev[0]).text == "ERROR Unknown rule id: 9. Rule is reset to freestyle...");
+    CHECK(std::get<MessageEvent>(ev[0]).text ==
+          "ERROR Unknown rule id: 9. Rule is reset to freestyle...");
     CHECK(std::get<BestMoveEvent>(ev[1]).coord == Coord{6, 6});
 
     // Still terminal: an illegal move, and a closed connection.
@@ -232,7 +240,9 @@ bool waitFor(Collect& s, std::size_t n) {
 
 }  // namespace
 
-TEST_CASE("gomo_deadline: no move after turnTime+grace -> YXSTOP, then ErrorEvent, engine reusable") {
+TEST_CASE(
+    "gomo_deadline: no move after turnTime+grace -> YXSTOP, "
+    "then ErrorEvent, engine reusable") {
     DeadlineRig r{30ms};
     Collect sink;
     REQUIRE(r.e.startSearch(threeMoves(), turn(20ms), sink));
@@ -244,7 +254,8 @@ TEST_CASE("gomo_deadline: no move after turnTime+grace -> YXSTOP, then ErrorEven
     CHECK(std::get<ErrorEvent>(ev[1]).message == "engine did not answer");
     CHECK(r.t.lines().back() == "YXSTOP");
 
-    Collect s2;  // the engine still owes its answer: no new search yet (GOMO-06, Busy since DEAD-03)
+    // The engine still owes its answer: no new search yet (GOMO-06, Busy since DEAD-03).
+    Collect s2;
     CHECK(r.e.startSearch(threeMoves(), Limits{}, s2).error() == EngineError::Busy);
     r.t.say("6,6");  // the late move is dropped, then the engine is usable again
     CHECK(sink.get().size() == 2);
@@ -252,7 +263,9 @@ TEST_CASE("gomo_deadline: no move after turnTime+grace -> YXSTOP, then ErrorEven
     CHECK(s2.get().empty());
 }
 
-TEST_CASE("gomo_deadline: an engine that owes an answer ignores ERROR lines, accepts a swap, refuses after close") {
+TEST_CASE(
+    "gomo_deadline: an engine that owes an answer ignores ERROR lines, "
+    "accepts a swap, refuses after close") {
     DeadlineRig r{20ms};
     Collect a;
     REQUIRE(r.e.startSearch(threeMoves(), turn(10ms), a));
@@ -285,7 +298,9 @@ TEST_CASE("gomo_deadline: a move in time or after YXSTOP ends the search normall
 
     Collect b;  // engine answers after YXSTOP, inside the second grace
     REQUIRE(r.e.startSearch(threeMoves(), turn(10ms), b));
-    for (int i = 0; i < 400 && r.t.lines().back() != "YXSTOP"; ++i) std::this_thread::sleep_for(2ms);
+    for (int i = 0; i < 400 && r.t.lines().back() != "YXSTOP"; ++i) {
+        std::this_thread::sleep_for(2ms);
+    }
     REQUIRE(r.t.lines().back() == "YXSTOP");
     r.t.say("6,6");
     std::this_thread::sleep_for(400ms);
@@ -293,7 +308,9 @@ TEST_CASE("gomo_deadline: a move in time or after YXSTOP ends the search normall
     CHECK(std::holds_alternative<BestMoveEvent>(b.get()[0]));
 }
 
-TEST_CASE("gomo_deadline: no deadline without turnTime or with turnTime 0, a closed engine gets no timeout event") {
+TEST_CASE(
+    "gomo_deadline: no deadline without turnTime or with turnTime 0, "
+    "a closed engine gets no timeout event") {
     DeadlineRig r{10ms};
     Collect a;
     REQUIRE(r.e.startSearch(threeMoves(), Limits{}, a));
@@ -315,7 +332,9 @@ TEST_CASE("gomo_deadline: no deadline without turnTime or with turnTime 0, a clo
     CHECK(z.get().size() == 1);
 }
 
-TEST_CASE("gomo_deadline: the sink may call startSearch from the timeout callback (refused while owed)") {
+TEST_CASE(
+    "gomo_deadline: the sink may call startSearch from the timeout callback "
+    "(refused while owed)") {
     DeadlineRig r{10ms};
     struct Again final : EventSink {
         DeadlineRig* rig{};
@@ -323,7 +342,8 @@ TEST_CASE("gomo_deadline: the sink may call startSearch from the timeout callbac
         std::atomic<bool> called{false};
         std::atomic<bool> refused{false};
         void onEvent(const SearchEvent&) override {
-            refused = rig->e.startSearch(threeMoves(), Limits{}, *next).error() == EngineError::Busy;
+            refused =
+                rig->e.startSearch(threeMoves(), Limits{}, *next).error() == EngineError::Busy;
             called = true;
         }
     } again;
