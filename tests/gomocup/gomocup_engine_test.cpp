@@ -348,7 +348,7 @@ TEST_CASE(
         }
     } again;
     Collect next;
-    again.rig = &r;
+    again.rig  = &r;
     again.next = &next;
     REQUIRE(r.e.startSearch(threeMoves(), turn(10ms), again));
     for (int i = 0; i < 400 && !again.called; ++i) std::this_thread::sleep_for(5ms);

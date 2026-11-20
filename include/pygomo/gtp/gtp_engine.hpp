@@ -60,11 +60,11 @@ private:
     void onReply(bool ok, std::optional<int> id, const std::string& text, EventSink*& deliver,
                  std::optional<SearchEvent>& event);
 
-    Transport& transport_;
-    std::mutex mutex_;
-    Rules rules_{};
-    bool closed_{false};
-    EventSink* sink_{nullptr};  // non-null while a search runs
+    Transport&              transport_;
+    std::mutex              mutex_;
+    Rules                   rules_{};
+    bool                    closed_{false};
+    EventSink*              sink_{nullptr};  // non-null while a search runs
     std::optional<Position> position_;
     int nextId_{1};
     int firstId_{0};  // ids of the running search: [firstId_, lastId_]; lastId_ is the genmove
@@ -73,10 +73,10 @@ private:
     bool analyzing_{false};                                       // the running search uses analyze
 
     // Reply framing: a header line, then body lines, ended by a blank line.
-    bool inReply_{false};
-    bool replyOk_{false};
+    bool               inReply_{false};
+    bool               replyOk_{false};
     std::optional<int> replyId_{};
-    std::string replyText_{};
+    std::string        replyText_{};
 };
 
 }  // namespace pygomo

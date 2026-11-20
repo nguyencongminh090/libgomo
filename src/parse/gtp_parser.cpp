@@ -92,7 +92,7 @@ std::optional<GtpVertex> parseGtpVertex(std::string_view text, int width, int he
 
     if (text.front() == '(') {
         if (text.back() != ')') return std::nullopt;
-        text = text.substr(1, text.size() - 2);
+        text       = text.substr(1, text.size() - 2);
         auto comma = text.find(',');
         if (comma == std::string_view::npos) return std::nullopt;
         auto x = toNumber<int>(text.substr(0, comma));
@@ -136,7 +136,7 @@ std::optional<std::string> formatGtpVertex(Coord coord, int width, int height) {
 
 SearchEvent parseGtpAnalyzeLine(std::string_view line, int width, int height) {
     auto unparsed = [&] { return SearchEvent{UnparsedEvent{std::string{line}}}; };
-    auto words = tokens(line);
+    auto words    = tokens(line);
     if (words.empty() || words.front() != "info") return unparsed();
 
     InfoEvent info;
@@ -148,7 +148,7 @@ SearchEvent parseGtpAnalyzeLine(std::string_view line, int width, int height) {
             auto v = toNumber<std::int64_t>(words[++i]);
             if (!v) return unparsed();
             info.nodes = *v;
-            sawField = true;
+            sawField   = true;
         } else if (w == "pv") {
             while (i + 1 < words.size() && words[i + 1] != "pvVisits" &&
                    words[i + 1] != "pvEdgeVisits" && words[i + 1] != "info") {

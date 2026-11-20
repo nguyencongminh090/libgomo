@@ -81,8 +81,8 @@ TEST_CASE("gomo2_parse: the UCI-like form and non-info messages are unchanged") 
 }
 
 TEST_CASE("gomo2_fixtures: real Rapfi transcripts lose no line and record their origin") {
-    const std::string dir = PYGOMO_FIXTURE_DIR;
-    int files = 0;
+    const std::string dir   = PYGOMO_FIXTURE_DIR;
+    int               files = 0;
     for (const char* name :
          {"rapfi-brief-default", "rapfi-normal-partial", "rapfi-ucilike-partial"}) {
         std::ifstream in(dir + "/" + name + ".txt");

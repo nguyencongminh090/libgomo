@@ -68,19 +68,19 @@ private:
     void terminateChild();
     CloseReason pump();
 
-    ProcessOptions options_;
+    ProcessOptions     options_;
     TransportListener* listener_{nullptr};
-    std::thread reader_;
-    std::atomic<bool> started_{false};
-    std::atomic<bool> requested_{false};
+    std::thread        reader_;
+    std::atomic<bool>  started_{false};
+    std::atomic<bool>  requested_{false};
 
-    std::mutex writeMutex_;
-    int stdinFd_{-1};   // guarded by writeMutex_
-    int stdoutFd_{-1};  // reader thread only after start
-    int wakeRead_{-1};
-    int wakeWrite_{-1};
-    int pid_{-1};
-    std::atomic<int> exit_{0};
+    std::mutex        writeMutex_;
+    int               stdinFd_{-1};   // guarded by writeMutex_
+    int               stdoutFd_{-1};  // reader thread only after start
+    int               wakeRead_{-1};
+    int               wakeWrite_{-1};
+    int               pid_{-1};
+    std::atomic<int>  exit_{0};
     std::atomic<bool> exited_{false};
 };
 

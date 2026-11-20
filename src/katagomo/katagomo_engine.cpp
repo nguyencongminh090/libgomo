@@ -65,7 +65,7 @@ std::expected<void, EngineError> KataGomoEngine::startSearch(
             lines.push_back(std::to_string(m.coord.x) + "," + std::to_string(m.coord.y));
         }
         lines.push_back("DONE");
-        sink_ = &sink;
+        sink_     = &sink;
         position_ = position;
     }
     for (const auto& l : lines) {
@@ -88,7 +88,7 @@ std::expected<void, EngineError> KataGomoEngine::sendRaw(std::string_view line) 
 void KataGomoEngine::onLine(std::string_view line) {
     if (line == "OK") return;  // reply to START, not an event
     SearchEvent event = parse::parseGomocupLine(line);
-    EventSink* sink = nullptr;
+    EventSink*  sink  = nullptr;
     {
         std::lock_guard lock(mutex_);
         sink = sink_;
@@ -111,8 +111,8 @@ void KataGomoEngine::onClosed(CloseReason) {
     {
         std::lock_guard lock(mutex_);
         closed_ = true;
-        sink = sink_;
-        sink_ = nullptr;
+        sink    = sink_;
+        sink_   = nullptr;
     }
     if (sink) sink->onEvent(ErrorEvent{"engine connection closed"});
 }

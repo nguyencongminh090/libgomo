@@ -68,16 +68,16 @@ private:
 
     using Clock = std::chrono::steady_clock;
 
-    EnginePort& inner_;
-    const Options options_;
-    Relay relay_{*this};
-    std::mutex mutex_;
+    EnginePort&             inner_;
+    const Options           options_;
+    Relay                   relay_{*this};
+    std::mutex              mutex_;
     std::condition_variable cv_;
-    std::thread watchdog_;
-    bool quit_{false};
-    EventSink* sink_{nullptr};  // the caller's sink while a search runs
-    bool detached_{false};      // a search timed out and the engine has not answered it yet
-    bool stopSent_{false};
+    std::thread             watchdog_;
+    bool          quit_{false};
+    EventSink*    sink_{nullptr};    // the caller's sink while a search runs
+    bool          detached_{false};  // a search timed out and the engine has not answered it yet
+    bool          stopSent_{false};
     std::uint64_t searchId_{0};
     std::optional<Clock::time_point> deadline_;
 };

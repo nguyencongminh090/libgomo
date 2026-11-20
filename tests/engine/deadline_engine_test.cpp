@@ -42,8 +42,8 @@ public:
     }
 
     std::mutex m;
-    EventSink* sink = nullptr;
-    bool failNext = false;
+    EventSink* sink     = nullptr;
+    bool       failNext = false;
     std::atomic<int> stops{0};
     int starts = 0;
 };
@@ -174,7 +174,7 @@ TEST_CASE(
         }
     } again;
     Collect next;
-    again.eng = &eng;
+    again.eng  = &eng;
     again.next = &next;
 
     REQUIRE(eng.startSearch(pos(), turn(10ms), again));

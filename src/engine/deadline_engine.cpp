@@ -104,7 +104,7 @@ void DeadlineEngine::watchdog() {
             continue;
         }
         EventSink* sink = sink_;
-        sink_ = nullptr;
+        sink_           = nullptr;
         deadline_.reset();
         detached_ = sink != nullptr;
         lock.unlock();

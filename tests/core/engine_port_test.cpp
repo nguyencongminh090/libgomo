@@ -24,7 +24,7 @@ struct FakeEngine final : EnginePort {
                                                  EventSink& s) override {
         if (running) return std::unexpected(EngineError::Busy);
         running = true;
-        sink = &s;
+        sink    = &s;
         return {};
     }
     void stop() override { stopped = true; }
@@ -61,7 +61,7 @@ TEST_CASE("port_sink: events arrive in order") {
 TEST_CASE("port_contract: a fake adapter is driven through the interface") {
     FakeEngine fake;
     EnginePort& engine = fake;
-    auto pos = Position::create(15, 15);
+    auto        pos    = Position::create(15, 15);
     REQUIRE(pos);
     RecordingSink sink;
 

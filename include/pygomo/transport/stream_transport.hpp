@@ -54,17 +54,17 @@ private:
     void deliverLine(std::string_view line);
     void finish(CloseReason reason);
 
-    std::istream& in_;
-    std::ostream& out_;
+    std::istream&          in_;
+    std::ostream&          out_;
     StreamTransportOptions options_;
 
     std::atomic<TransportListener*> listener_{nullptr};
-    std::atomic<bool> closed_{false};
-    bool closedNotified_{false};  // guarded by deliverMutex_
+    std::atomic<bool>               closed_{false};
+    bool                            closedNotified_{false};  // guarded by deliverMutex_
 
-    std::mutex writeMutex_;
+    std::mutex           writeMutex_;
     std::recursive_mutex deliverMutex_;  // recursive: a listener may call close()
-    std::thread reader_;
+    std::thread          reader_;
 };
 
 }  // namespace pygomo

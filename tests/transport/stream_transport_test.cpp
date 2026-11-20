@@ -126,7 +126,7 @@ TEST_CASE("transport_lines: input ending with a newline adds no extra empty line
 }
 
 TEST_CASE("transport_write: concurrent writers never interleave lines") {
-    constexpr int kThreads = 8;
+    constexpr int kThreads   = 8;
     constexpr int kPerThread = 100;
 
     PipeBuf pipe;

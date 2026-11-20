@@ -100,7 +100,7 @@ std::expected<void, TransportError> ProcessTransport::start(TransportListener& l
     argv.push_back(nullptr);
 
     pid_t pid = -1;
-    int rc = ::posix_spawnp(&pid, options_.program.c_str(), &fa, &attr, argv.data(), environ);
+    int   rc  = ::posix_spawnp(&pid, options_.program.c_str(), &fa, &attr, argv.data(), environ);
     posix_spawn_file_actions_destroy(&fa);
     posix_spawnattr_destroy(&attr);
     if (rc != 0) {
@@ -110,13 +110,13 @@ std::expected<void, TransportError> ProcessTransport::start(TransportListener& l
 
     closeFd(in[0]);
     closeFd(out[1]);
-    pid_ = pid;
-    stdinFd_ = in[1];
-    stdoutFd_ = out[0];
-    wakeRead_ = wake[0];
+    pid_       = pid;
+    stdinFd_   = in[1];
+    stdoutFd_  = out[0];
+    wakeRead_  = wake[0];
     wakeWrite_ = wake[1];
-    listener_ = &listener;
-    reader_ = std::thread([this] { readLoop(); });
+    listener_  = &listener;
+    reader_    = std::thread([this] { readLoop(); });
     return {};
 }
 
@@ -131,7 +131,7 @@ std::expected<void, TransportError> ProcessTransport::writeLine(std::string_view
     std::lock_guard lock(writeMutex_);
     if (requested_ || stdinFd_ < 0) return std::unexpected(TransportError::Closed);
     ScopedSigpipeBlock noSigpipe;
-    const char* p = data.data();
+    const char* p    = data.data();
     std::size_t left = data.size();
     while (left > 0) {
         ssize_t n = ::write(stdinFd_, p, left);
@@ -140,7 +140,7 @@ std::expected<void, TransportError> ProcessTransport::writeLine(std::string_view
             if (errno == EPIPE) noSigpipe.discardPending();
             return std::unexpected(TransportError::IoError);
         }
-        p += n;
+        p    += n;
         left -= static_cast<std::size_t>(n);
     }
     return {};
@@ -171,7 +171,7 @@ CloseReason ProcessTransport::pump() {
     while (true) {
         if (requested_) return CloseReason::Requested;
         pollfd fds[2] = {{stdoutFd_, POLLIN, 0}, {wakeRead_, POLLIN, 0}};
-        int pr = ::poll(fds, 2, -1);
+        int    pr     = ::poll(fds, 2, -1);
         if (pr < 0) {
             if (errno == EINTR) continue;
             return CloseReason::IoError;
@@ -247,7 +247,7 @@ void ProcessTransport::terminateChild() {
     pid_t r;
     while ((r = ::waitpid(pid_, &status, 0)) < 0 && errno == EINTR) {}
     if (r == pid_) {
-        exit_ = WIFEXITED(status) ? WEXITSTATUS(status) : -WTERMSIG(status);
+        exit_   = WIFEXITED(status) ? WEXITSTATUS(status) : -WTERMSIG(status);
         exited_ = true;
     }
     std::lock_guard lock(writeMutex_);

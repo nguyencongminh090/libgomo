@@ -82,10 +82,10 @@ std::expected<void, EngineError> GtpEngine::startSearch(
 
         firstId_ = nextId_;
         for (auto& c : all) lines.push_back(std::format("{} {}", nextId_++, c));
-        lastId_ = nextId_ - 1;
-        sink_ = &sink;
+        lastId_   = nextId_ - 1;
+        sink_     = &sink;
         position_ = position;
-        inReply_ = false;
+        inReply_  = false;
     }
     for (const auto& l : lines) {
         if (!transport_.writeLine(l)) {
@@ -115,8 +115,8 @@ void GtpEngine::onReply(bool ok, std::optional<int> id, const std::string& text,
     if (id && (*id < firstId_ || *id > lastId_)) return;  // stale reply of an earlier search
     auto finish = [&](SearchEvent e) {
         deliver = sink_;
-        event = std::move(e);
-        sink_ = nullptr;
+        event   = std::move(e);
+        sink_   = nullptr;
     };
     if (!ok) return finish(ErrorEvent{text});
     if (!id) return finish(ErrorEvent{"engine reply carries no id"});
@@ -148,9 +148,9 @@ void GtpEngine::onLine(std::string_view line) {
         if (!inReply_) {
             auto header = parse::parseGtpResponseHeader(line);
             if (header) {
-                inReply_ = true;
-                replyOk_ = header->ok;
-                replyId_ = header->id;
+                inReply_   = true;
+                replyOk_   = header->ok;
+                replyId_   = header->id;
                 replyText_ = std::move(header->body);
                 return;
             }
@@ -158,11 +158,11 @@ void GtpEngine::onLine(std::string_view line) {
             // output.
             if (!sink_ || line.empty()) return;
             deliver = sink_;
-            event = MessageEvent{std::string{line}};
+            event   = MessageEvent{std::string{line}};
         } else if (analyzing_ && replyId_ && *replyId_ == lastId_ && sink_ &&
                    line.starts_with("info ")) {
             deliver = sink_;  // streamed analysis line: report now, the reply is still open
-            event = parse::parseGtpAnalyzeLine(line, position_->width(), position_->height());
+            event   = parse::parseGtpAnalyzeLine(line, position_->width(), position_->height());
         } else if (!line.empty()) {
             if (!replyText_.empty()) replyText_ += '\n';
             replyText_ += line;
@@ -180,8 +180,8 @@ void GtpEngine::onClosed(CloseReason) {
     {
         std::lock_guard lock(mutex_);
         closed_ = true;
-        sink = sink_;
-        sink_ = nullptr;
+        sink    = sink_;
+        sink_   = nullptr;
     }
     if (sink) sink->onEvent(ErrorEvent{"engine connection closed"});
 }

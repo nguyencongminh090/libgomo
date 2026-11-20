@@ -72,7 +72,7 @@ std::expected<void, EngineError> GomocupEngine::startSearch(
             }
             lines.push_back("DONE");
         }
-        sink_ = &sink;
+        sink_     = &sink;
         position_ = position;
     }
     for (const auto& l : lines) {
@@ -100,7 +100,7 @@ std::expected<void, EngineError> GomocupEngine::sendRaw(std::string_view line) {
 
 void GomocupEngine::onLine(std::string_view line) {
     SearchEvent event = parse::parseGomocupLine(line);
-    EventSink* sink = nullptr;
+    EventSink*  sink  = nullptr;
     {
         std::lock_guard lock(mutex_);
         sink = sink_;
@@ -127,8 +127,8 @@ void GomocupEngine::onClosed(CloseReason) {
     {
         std::lock_guard lock(mutex_);
         closed_ = true;
-        sink = sink_;
-        sink_ = nullptr;
+        sink    = sink_;
+        sink_   = nullptr;
     }
     if (sink) sink->onEvent(ErrorEvent{"engine connection closed"});
 }

@@ -124,7 +124,7 @@ TEST_CASE("gtp_vertex: rectangular board") {
 }
 
 TEST_CASE("gtp_analyze: kata-analyze fixture, first entry only") {
-    auto e = parseGtpAnalyzeLine(fixtureLine("kata_analyze.txt"), 15, 15);
+    auto  e    = parseGtpAnalyzeLine(fixtureLine("kata_analyze.txt"), 15, 15);
     auto* info = std::get_if<InfoEvent>(&e);
     REQUIRE(info);
     CHECK(info->nodes == 120);
@@ -137,7 +137,7 @@ TEST_CASE("gtp_analyze: kata-analyze fixture, first entry only") {
 }
 
 TEST_CASE("gtp_analyze: lz-analyze fixture") {
-    auto e = parseGtpAnalyzeLine(fixtureLine("lz_analyze.txt"), 15, 15);
+    auto  e    = parseGtpAnalyzeLine(fixtureLine("lz_analyze.txt"), 15, 15);
     auto* info = std::get_if<InfoEvent>(&e);
     REQUIRE(info);
     CHECK(info->nodes == 33);
@@ -146,14 +146,14 @@ TEST_CASE("gtp_analyze: lz-analyze fixture") {
 }
 
 TEST_CASE("gtp_analyze: PV stops at pass; bad lines stay unparsed") {
-    auto e = parseGtpAnalyzeLine("info move H8 visits 5 pv H8 pass G7", 15, 15);
+    auto  e    = parseGtpAnalyzeLine("info move H8 visits 5 pv H8 pass G7", 15, 15);
     auto* info = std::get_if<InfoEvent>(&e);
     REQUIRE(info);
     CHECK(info->principalVariation.size() == 1);
 
     for (std::string_view bad : {"", "hello", "info", "info move H8 pv H8 Z99",
                                  "info visits many pv H8", "info move H8 pv I5"}) {
-        auto u = parseGtpAnalyzeLine(bad, 15, 15);
+        auto  u  = parseGtpAnalyzeLine(bad, 15, 15);
         auto* un = std::get_if<UnparsedEvent>(&u);
         REQUIRE(un);
         CHECK(un->line == bad);

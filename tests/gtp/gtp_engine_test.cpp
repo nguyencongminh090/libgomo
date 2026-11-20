@@ -155,14 +155,14 @@ TEST_CASE("gtp2_result: replies with body lines, banners and stale ids") {
 TEST_CASE("gtp2_rules: supported rules and limits become commands") {
     Rig r;
     Rules renju;
-    renju.board = BoardRule::Renju;
+    renju.board    = BoardRule::Renju;
     renju.maxMoves = 100;
     REQUIRE(r.e.supports(renju));
     REQUIRE(r.e.setRules(renju));
     Limits lim;
     lim.turnTime = std::chrono::milliseconds{2500};
     lim.maxNodes = 4000;
-    auto empty = Position::create(15, 15);
+    auto empty   = Position::create(15, 15);
     REQUIRE(empty);
     REQUIRE(r.e.startSearch(*empty, lim, r.sink));
     CHECK(r.t.lines() == Lines{"1 boardsize 15 15", "2 clear_board", "3 RENJU", "4 maxmoves 100",

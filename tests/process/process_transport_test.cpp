@@ -49,7 +49,7 @@ struct Recorder final : TransportListener {
 ProcessOptions sh(const std::string& script) {
     ProcessOptions o;
     o.program = "/bin/sh";
-    o.args = {"-c", script};
+    o.args    = {"-c", script};
     return o;
 }
 

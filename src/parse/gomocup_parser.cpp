@@ -160,12 +160,12 @@ std::optional<InfoEvent> parseNormalInfo(std::string_view text) {
         } else if (multi && f == 1 && tok[0].front() >= '0' && tok[0].front() <= '9') {
             if (auto d = toNonNegative(tok[0].substr(0, tok[0].find('-')))) {
                 info.depth = d;
-                any = true;
+                any        = true;
             }
         } else if (tok[0] == "Depth" && tok.size() >= 2) {
             if (auto d = toNonNegative(tok[1].substr(0, tok[1].find('-')))) {
                 info.depth = d;
-                any = true;
+                any        = true;
             }
         } else if (tok[0] == "Eval" && tok.size() >= 2) {
             if (auto sc = toScore(tok[1])) { info.score = sc; any = true; }
@@ -175,7 +175,7 @@ std::optional<InfoEvent> parseNormalInfo(std::string_view text) {
             if (auto t = toDuration(tok[1])) { info.elapsed = t; any = true; }
         } else if (auto pv = toPath(tok, 0); !pv.empty() && pv.size() == tok.size()) {
             info.principalVariation = std::move(pv);
-            any = true;
+            any                     = true;
         }
     }
     if (!any) return std::nullopt;
@@ -205,7 +205,7 @@ std::optional<InfoEvent> parseInfo(std::string_view text) {
         if (key == "depth") {
             if (auto d = toNonNegative(val.substr(0, val.find('-')))) {
                 info.depth = d;
-                any = true;
+                any        = true;
             }
         } else if (key == "ev") {
             if (auto e = toScore(val)) { info.score = *e; any = true; }
@@ -214,7 +214,7 @@ std::optional<InfoEvent> parseInfo(std::string_view text) {
         } else if (key == "tm") {
             if (auto t = toNonNegative(val)) {
                 info.elapsed = std::chrono::milliseconds{*t};
-                any = true;
+                any          = true;
             }
         }
     }

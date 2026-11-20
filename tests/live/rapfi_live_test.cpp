@@ -84,7 +84,7 @@ pid_t childPid() {
         const auto close = line.rfind(')');  // the name in parentheses may contain spaces
         if (close == std::string::npos) continue;
         char state = 0;
-        long ppid = 0;
+        long ppid  = 0;
         if (std::sscanf(line.c_str() + close + 1, " %c %ld", &state, &ppid) == 2 &&
             ppid == getpid()) {
             if (found != -1) return -1;  // more than one child: do not guess
@@ -103,8 +103,8 @@ TEST_CASE("gomo2_live: a real search returns a legal move and info") {
     REQUIRE(engine.open());
     Limits lim;
     lim.turnTime = 1000ms;
-    auto pos = threeMoves();
-    auto out = search(engine, pos, lim);
+    auto pos     = threeMoves();
+    auto out     = search(engine, pos, lim);
     REQUIRE(out);
     REQUIRE(std::holds_alternative<BestMoveEvent>(out->terminal));
     auto c = std::get<BestMoveEvent>(out->terminal).coord;

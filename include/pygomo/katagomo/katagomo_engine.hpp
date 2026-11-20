@@ -42,11 +42,11 @@ private:
     void onLine(std::string_view line) override;
     void onClosed(CloseReason reason) override;
 
-    Transport& transport_;
-    std::mutex mutex_;
-    Rules rules_{};
-    bool closed_{false};
-    EventSink* sink_{nullptr};  // non-null while a search runs
+    Transport&              transport_;
+    std::mutex              mutex_;
+    Rules                   rules_{};
+    bool                    closed_{false};
+    EventSink*              sink_{nullptr};  // non-null while a search runs
     std::optional<Position> position_;
 };
 

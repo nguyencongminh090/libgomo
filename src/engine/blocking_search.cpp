@@ -22,7 +22,7 @@ public:
                     outcome_.other.push_back(e);
                 } else {
                     outcome_.terminal = e;
-                    done_ = true;
+                    done_             = true;
                 }
             },
             event);

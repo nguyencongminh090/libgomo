@@ -63,7 +63,7 @@ TEST_CASE("InfoEvent carries what the engine reported") {
 
 TEST_CASE("Unparsed keeps the original line verbatim") {
     const std::string raw = "  weird   engine\toutput ";
-    SearchEvent e = UnparsedEvent{raw};
+    SearchEvent       e   = UnparsedEvent{raw};
     CHECK(std::get<UnparsedEvent>(e).line == raw);
 }
 

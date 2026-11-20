@@ -58,7 +58,7 @@ TEST_CASE("port_blocking: returns best move and collected info, sync and threade
     for (bool threaded : {false, true}) {
         ScriptedEngine engine;
         engine.threaded = threaded;
-        auto r = search(engine, *pos, Limits{});
+        auto r          = search(engine, *pos, Limits{});
         REQUIRE(r);
         REQUIRE(std::holds_alternative<BestMoveEvent>(r->terminal));
         CHECK(std::get<BestMoveEvent>(r->terminal).coord == Coord{7, 7});
