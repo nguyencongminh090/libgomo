@@ -1,6 +1,7 @@
 # TODO
 
 ## Backlog
+- [ ] **DOC-02.** Developer guide, pass 2: prose, structure inside sections, and fact re-check - size M - [detail](docs/todo/DOC-02-developer-guide-prose.md)
 
 ## Active
 

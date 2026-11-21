@@ -1253,6 +1253,56 @@
       ],
       "checked_by": "ctest --preset default && scripts/check-core-deps.sh && scripts/check-ctest-coverage.sh  # plus the per-section fact check recorded in Evidence",
       "passes": true
+    },
+    {
+      "id": "DOC-02-build",
+      "todo": "DOC-02",
+      "description": "WHEN latexmk builds docs/guide/developer-guide.tex THEN it succeeds with no undefined reference and no Overfull box",
+      "steps": [
+        "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined|Overfull\" /tmp/pygomo-guide/developer-guide.log"
+      ],
+      "checked_by": "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined|Overfull\" /tmp/pygomo-guide/developer-guide.log",
+      "passes": false
+    },
+    {
+      "id": "DOC-02-listings",
+      "todo": "DOC-02",
+      "description": "WHEN the diff of the guide is read ignoring whitespace THEN every changed listing line is justified in Evidence and the first listing still builds and runs against pbrain-rapfi",
+      "steps": [
+        "git diff -w HEAD -- docs/guide/developer-guide.tex  # check lstlisting blocks; rebuild the first listing as in Section Your first search"
+      ],
+      "checked_by": "git diff -w HEAD -- docs/guide/developer-guide.tex  # check lstlisting blocks; rebuild the first listing as in Section Your first search",
+      "passes": false
+    },
+    {
+      "id": "DOC-02-terms",
+      "todo": "DOC-02",
+      "description": "WHEN Evidence is read THEN it lists one chosen term per concept and a search of the guide finds no variant left",
+      "steps": [
+        "grep -n \"\" docs/guide/developer-guide.tex  # grep each rejected variant listed in Evidence; none remain"
+      ],
+      "checked_by": "grep -n \"\" docs/guide/developer-guide.tex  # grep each rejected variant listed in Evidence; none remain",
+      "passes": false
+    },
+    {
+      "id": "DOC-02-facts",
+      "todo": "DOC-02",
+      "description": "WHEN the capability matrix, parser examples and ctest map are compared with include/ src/ tests/ THEN every cell matches, and the suite is green",
+      "steps": [
+        "ctest --preset default && scripts/check-core-deps.sh && scripts/check-ctest-coverage.sh  # plus the per-cell check recorded in Evidence"
+      ],
+      "checked_by": "ctest --preset default && scripts/check-core-deps.sh && scripts/check-ctest-coverage.sh  # plus the per-cell check recorded in Evidence",
+      "passes": false
+    },
+    {
+      "id": "DOC-02-types",
+      "todo": "DOC-02",
+      "description": "WHEN each subsection is read against its Diataxis type THEN it serves one purpose and its first sentence says what it is for",
+      "steps": [
+        "manual: read each part against skill documentation Step 4; record any subsection moved or split in Evidence"
+      ],
+      "checked_by": "manual: read each part against skill documentation Step 4; record any subsection moved or split in Evidence",
+      "passes": false
     }
   ]
 }
