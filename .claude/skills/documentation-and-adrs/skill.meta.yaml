@@ -1,0 +1,12 @@
+name: documentation-and-adrs
+description: "Record architecture decisions as ADRs (following the repo's convention) and keep docs in sync with API and feature changes"
+domain: docs-research-writing
+tags: adr,architecture-decision-record,documentation,docs-drift,api-changes,decision-log
+apply_when: "documenting a design decision, changing a public API, or shipping a feature whose docs may be stale"
+scope: global
+project: ""
+language: en
+knowledge: evolve-adr,evolve-documentation-arc42
+conflicts: ""
+source: "https://github.com/addyosmani/agent-skills/tree/HEAD/skills/documentation-and-adrs"
+last_reviewed: 2026-11-20

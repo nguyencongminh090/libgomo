@@ -1,0 +1,12 @@
+name: latex-document-skill
+description: "Create, compile and convert LaTeX documents (reports, papers, theses, CVs, Beamer, posters) to PDF with previews"
+domain: docs-research-writing
+tags: latex,pdf,beamer,thesis,document
+apply_when: "producing or compiling any LaTeX document"
+scope: global
+project: ""
+language: en
+knowledge: fmt-choosing-format,fmt-typst,fmt-pandoc-conversion,fmt-pdf-accessibility-pdfa,learn-slides-for-teaching,learn-lecture-notes,learn-worked-examples-exercises,tex-document-classes-and-structure,tex-essential-packages,tex-bibliography-biblatex-bibtex,tex-build-latexmk-engines,tex-error-repair,tex-tables-and-figures,tex-beamer,tex-templates-and-thesis-classes,tex-vietnamese-and-unicode
+conflicts: "fmt-pdf-accessibility-pdfa: --pdfa defaults to PDF/A-2b and the trigger list groups PDF/A with accessibility; level b is archival only, prefer 2u or 2a (plus PDF/UA where required) and validate with veraPDF | tex-tables-and-figures: basic table example uses column rules and hline between every row, booktabs says never vertical or double rules | tex-tables-and-figures: use figure [H] to prevent floating, prefer [tbp] and reserve [H] (needs float) for figures that must stay between two paragraphs"
+source: "P/Python/Personal/MachineLearning/.claude/skills/latex-document-skill"
+last_reviewed: 2026-09-26

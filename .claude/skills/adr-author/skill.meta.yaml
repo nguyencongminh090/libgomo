@@ -1,0 +1,12 @@
+name: adr-author
+description: "Author Architecture Decision Records (MADR v4 or Y-statement): capture, planner handoff or adopt-template modes, supersession lineage, ASR trigger evaluation, template and sensitive-content checks"
+domain: docs-research-writing
+tags: adr,architecture-decision-record,madr,y-statement,decision-log,supersession,asr,architecture,documentation
+apply_when: "writing or superseding an ADR with a formal template (MADR v4 or Y-statement), deciding whether a decision is architecturally significant, or keeping ADR lineage consistent"
+scope: global
+project: ""
+language: en
+knowledge: evolve-adr,plan-rfc-design-doc,tech-docs-as-code
+conflicts: ""
+source: "https://github.com/microsoft/hve-core/tree/HEAD/.github/skills/project-planning/adr-author"
+last_reviewed: 2026-11-22

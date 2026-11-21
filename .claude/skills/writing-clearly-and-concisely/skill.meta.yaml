@@ -1,0 +1,12 @@
+name: writing-clearly-and-concisely
+description: "Apply Strunk's Elements of Style rules and a list of AI-writing patterns to any prose for humans: docs, commit messages, error messages, UI text, reports"
+domain: docs-research-writing
+tags: writing,editing,concise,strunk,elements-of-style,plain-language,ai-writing,commit-messages,error-messages
+apply_when: "writing or tightening prose for human readers: documentation, commit messages, error messages, UI text, reports; making text clearer and shorter"
+scope: global
+project: ""
+language: en
+knowledge: craft-plain-language,craft-reducing-ai-sounding-prose,craft-editing-and-revision
+conflicts: ""
+source: "https://github.com/softaworks/agent-toolkit/tree/HEAD/skills/writing-clearly-and-concisely"
+last_reviewed: 2026-11-22

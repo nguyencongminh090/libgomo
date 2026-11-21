@@ -17,7 +17,13 @@ GTP-01, GTP-02.
 
 ## Next step
 
-No todo is open. Style normalization (planning code-style-normalization) is finished; the owner may close the planning. A `.clang-format` stays a separate planning.
+Planned (owner, next session): revise `docs/guide/developer-guide.tex` in three passes:
+1. Content: restructure to proper technical-documentation structure (Diataxis types), fix stale facts.
+2. Prose and structure: clarity, concision, consistent terms, headings.
+3. Diagrams: the three TikZ figures (module dependencies, search data flow, DeadlineEngine timeline).
+Doc-writing skills were copied into `.claude/skills/` (documentation, writing-clearly-and-concisely, documentation-and-adrs, adr-author, latex-document-skill); read each README.WARNING.md/README.md before use. Knowledge notes to read in place: `SKILLS_TREE/knowledge/documents/items/` (craft-editing-and-revision, craft-structure-and-outlining, tech-diataxis-types, tex-tables-and-figures, tex-build-latexmk-engines). Size and todo for this revision are not yet decided.
+
+Otherwise no todo is open. Style normalization (planning code-style-normalization) is finished; the owner may close the planning. A `.clang-format` stays a separate planning.
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`);
 re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi`.
 

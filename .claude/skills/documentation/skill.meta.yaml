@@ -1,0 +1,12 @@
+name: documentation
+description: "Technical documentation with the Diataxis framework: tutorial, how-to, reference and explanation, each with its own structure and success test"
+domain: docs-research-writing
+tags: documentation,diataxis,technical-writing,tutorial,how-to,reference,explanation,docs-structure
+apply_when: "writing or reorganizing software docs, or deciding which Diataxis type a page should be"
+scope: global
+project: ""
+language: en
+knowledge: evolve-documentation-arc42,foundation-c4-model,evolve-adr,tech-diataxis-types,craft-headings-and-scannability,craft-figures-tables-captions,craft-consistency-and-style-guides,doc-map,fmt-docs-site-generators,learn-tutorial-for-teaching,learn-learning-objectives,learn-cheat-sheets
+conflicts: ""
+source: "https://github.com/mcollina/skills/tree/HEAD/skills/documentation"
+last_reviewed: 2026-11-20
