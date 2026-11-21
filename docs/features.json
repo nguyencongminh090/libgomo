@@ -1213,6 +1213,46 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh && scripts/check-ctest-coverage.sh",
       "passes": true
+    },
+    {
+      "id": "DOC-01-build",
+      "todo": "DOC-01",
+      "description": "WHEN latexmk builds docs/guide/developer-guide.tex THEN it succeeds and the log has no undefined reference or citation",
+      "steps": [
+        "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined\" /tmp/pygomo-guide/developer-guide.log"
+      ],
+      "checked_by": "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined\" /tmp/pygomo-guide/developer-guide.log",
+      "passes": true
+    },
+    {
+      "id": "DOC-01-structure",
+      "todo": "DOC-01",
+      "description": "WHEN the section titles are listed THEN they follow the five-part layout (getting started, explanation, how-to, reference, contributing)",
+      "steps": [
+        "grep -nE \"^\\\\\\\\(part|section)\\{\" docs/guide/developer-guide.tex  # read the order against the todo Scope"
+      ],
+      "checked_by": "grep -nE \"^\\\\\\\\(part|section)\\{\" docs/guide/developer-guide.tex  # read the order against the todo Scope",
+      "passes": true
+    },
+    {
+      "id": "DOC-01-limits-once",
+      "todo": "DOC-01",
+      "description": "WHEN the guide is searched for known limitations THEN they are stated in one section and other sections link to it",
+      "steps": [
+        "grep -n \"Known limitations\\|never run against a real engine\" docs/guide/developer-guide.tex  # one definition, rest are \\\\ref"
+      ],
+      "checked_by": "grep -n \"Known limitations\\|never run against a real engine\" docs/guide/developer-guide.tex  # one definition, rest are \\\\ref",
+      "passes": true
+    },
+    {
+      "id": "DOC-01-facts",
+      "todo": "DOC-01",
+      "description": "WHEN each fact in a moved section is checked against include/ src/ tests/ CMakePresets.json THEN it matches, and the suite is green",
+      "steps": [
+        "ctest --preset default && scripts/check-core-deps.sh && scripts/check-ctest-coverage.sh  # plus the per-section fact check recorded in Evidence"
+      ],
+      "checked_by": "ctest --preset default && scripts/check-core-deps.sh && scripts/check-ctest-coverage.sh  # plus the per-section fact check recorded in Evidence",
+      "passes": true
     }
   ]
 }

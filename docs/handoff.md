@@ -17,11 +17,11 @@ GTP-01, GTP-02.
 
 ## Next step
 
-Planned (owner, next session): revise `docs/guide/developer-guide.tex` in three passes:
-1. Content: restructure to proper technical-documentation structure (Diataxis types), fix stale facts.
-2. Prose and structure: clarity, concision, consistent terms, headings.
-3. Diagrams: the three TikZ figures (module dependencies, search data flow, DeadlineEngine timeline).
-Doc-writing skills were copied into `.claude/skills/` (documentation, writing-clearly-and-concisely, documentation-and-adrs, adr-author, latex-document-skill); read each README.WARNING.md/README.md before use. Knowledge notes to read in place: `SKILLS_TREE/knowledge/documents/items/` (craft-editing-and-revision, craft-structure-and-outlining, tech-diataxis-types, tex-tables-and-figures, tex-build-latexmk-engines). Size and todo for this revision are not yet decided.
+Revising `docs/guide/developer-guide.tex` in three passes (owner's plan):
+1. Content: DONE as DOC-01 (five parts by Diataxis type, Getting started, limitations once, PDF rebuilt).
+2. Prose and structure: next. Needs its own todo (DOC-02, size M). Use skill `writing-clearly-and-concisely` and note `craft-editing-and-revision`. Also re-check the capability matrix and parser shapes against the code (not checked in pass 1).
+3. Diagrams: the three TikZ figures (module dependencies, search data flow, DeadlineEngine timeline). Own todo (DOC-03).
+Doc-writing skills are in `.claude/skills/` (documentation, writing-clearly-and-concisely, documentation-and-adrs, adr-author, latex-document-skill); each still has a README.WARNING.md/README.md not yet read or adapted. Notes to read in place: `SKILLS_TREE/knowledge/documents/items/` (craft-editing-and-revision, tex-tables-and-figures, tex-build-latexmk-engines).
 
 Otherwise no todo is open. Style normalization (planning code-style-normalization) is finished; the owner may close the planning. A `.clang-format` stays a separate planning.
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`);

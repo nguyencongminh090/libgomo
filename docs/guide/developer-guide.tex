@@ -61,6 +61,11 @@ test and extend it, and how work is organised in the repository.
 \tableofcontents
 \newpage
 
+
+%######################################################################
+\part{Getting started}
+%######################################################################
+
 %======================================================================
 \section{Overview}
 %======================================================================
@@ -86,16 +91,35 @@ the raw escape hatch \code{EnginePort::sendRaw}.
 
 \subsection{Status}
 
-All tracked work items are done; the whole \code{ctest} suite passes. Supported today:
+Version 0.1.0. Supported today:
 
 \begin{itemize}
-  \item \textbf{Gomocup} adapter, verified against a real Rapfi engine (live tests).
-  \item \textbf{GTP} adapter and \textbf{KataGomo \code{gom}} adapter, written from reading the
-        KataGomo source (branch \code{Gom2026}, commit \code{9a0e65c}) and tested with fake
-        transports only. No real KataGomo binary has been run against them.
+  \item \textbf{Adapters:} Gomocup/Piskvork (with Yixin extensions), GTP (with KataGomo
+        extensions) and KataGomo \code{gom} mode. How far each was tested against a real engine
+        is stated in Section~\ref{sec:limits}.
   \item \textbf{Transports:} a POSIX child-process transport and a stream transport.
   \item \textbf{Helpers:} a blocking \code{search()} call and a \code{DeadlineEngine} decorator.
 \end{itemize}
+
+\subsection{How this guide is organised}
+
+The parts follow what a reader is trying to do:
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+\toprule
+\textbf{Part} & \textbf{Read it to\ldots} \\
+\midrule
+Getting started & build the project and run a first search. \\
+Explanation     & understand the architecture and why it is shaped this way. \\
+How-to guides   & do a task: use the library, add an adapter, a transport or an event, write a
+                  test. \\
+Reference       & look up a type, a contract, a protocol mapping or a test group. \\
+Contributing    & follow the coding style and the work process; see what is not done yet. \\
+\bottomrule
+\end{tabularx}
+\end{center}
 
 \subsection{Repository layout}
 
@@ -178,6 +202,43 @@ node scripts/harness/harness-track.mjs <CODE>
 \noindent Every target is compiled with \code{-Wall -Wextra -Wpedantic -Wconversion -Wshadow}
 (\code{/W4} on MSVC) through the CMake function \code{pygomo\_enable\_warnings}. Call it for every
 new target, including test executables.
+
+
+%======================================================================
+\section{Your first search}\label{sec:first}
+%======================================================================
+
+This tutorial builds a small program that asks a Gomocup engine for a move. You need a Gomocup
+engine executable; the steps below were run with Rapfi's \file{pbrain-rapfi}. Commands run in an
+empty directory next to a checkout of PyGomo.
+
+\begin{enumerate}
+  \item \textbf{Check the library.} From the PyGomo root run
+        \code{cmake --preset default \&\& cmake --build --preset default \&\& ctest --preset default
+        -R smoke}. Expect \code{100\% tests passed}.
+  \item \textbf{Create the project.} Write \file{CMakeLists.txt}:
+\begin{lstlisting}[style=sh]
+cmake_minimum_required(VERSION 3.25)
+project(first_search CXX)
+add_subdirectory(/path/to/PyGomo pygomo)
+add_executable(first_search main.cpp)
+target_link_libraries(first_search PRIVATE pygomo::gomocup pygomo::process pygomo::engine)
+\end{lstlisting}
+  \item \textbf{Write the program.} Copy the first listing of Section~\ref{sec:howto-search} into
+        \file{main.cpp}.
+  \item \textbf{Build and run.} \code{cmake -S . -B build -G Ninja \&\& cmake --build build}, then
+        \code{./build/first\_search /path/to/pbrain-rapfi}. Expect lines of the form
+        \code{depth 16} followed by \code{best move 8,5} (the numbers depend on the engine),
+        and exit status 0.
+\end{enumerate}
+
+\noindent You have used three of the library's pieces: a transport (\code{ProcessTransport}), an
+adapter (\code{GomocupEngine}) and a helper (\code{search()}). Section~\ref{sec:layers} explains
+how they fit together, and Section~\ref{sec:howto-search} explains the program line by line.
+
+%######################################################################
+\part{Explanation}
+%######################################################################
 
 %======================================================================
 \section{Architecture}\label{sec:layers}
@@ -307,6 +368,323 @@ pygomo\_process   & transport & \code{ProcessTransport}: spawns the engine (POSI
 each line to the adapter (\code{TransportListener::onLine}); the adapter parses it, checks it against
 the position, and forwards a \code{SearchEvent} to the caller's \code{EventSink}. The search ends with
 exactly one terminal event.
+
+
+\subsection{Why deadlines live in a decorator}\label{sec:why-deadline}
+
+An engine can stop answering. Something must then end the search, and it must also stop a late
+answer from being read as the reply to the next search. Gomocup has no request ids, and Rapfi
+ignores synchronising commands while it thinks, so after a timeout the only safe state is
+``this engine still owes an answer''.
+
+Two places could own that logic. Putting it in each adapter would repeat a timer, a thread and the
+owed-answer state three times, and would give the core's one-search-at-a-time rule a different
+timeout story per protocol. PyGomo instead wraps any \code{EnginePort} in \code{DeadlineEngine},
+so the adapters stay free of timers and threads and every protocol gets the same behaviour
+(\file{docs/audit/AUD-03}, which supersedes AUD-01). The price is one more object to create and a
+destruction order to respect (Section~\ref{sec:deadline}).
+
+%######################################################################
+\part{How-to guides}
+%######################################################################
+
+%======================================================================
+\section{Using the library}
+%======================================================================
+
+\subsection{Linking}
+
+PyGomo has no install step yet: add the checkout with \code{add\_subdirectory}, then link the
+alias targets you need. Include directories and C++23 come with them.
+
+\begin{lstlisting}[style=sh]
+add_subdirectory(/path/to/PyGomo pygomo)
+target_link_libraries(my_app PRIVATE pygomo::gomocup pygomo::process pygomo::engine)
+\end{lstlisting}
+
+\subsection{A blocking search with a deadline}\label{sec:howto-search}
+
+The listing below was compiled and run against a real Rapfi engine (it is the program of
+Section~\ref{sec:first}). It wires a child process, a Gomocup adapter and a deadline decorator
+together.
+
+\begin{lstlisting}
+#include <chrono>
+#include <cstdio>
+#include <variant>
+
+#include "pygomo/engine/blocking_search.hpp"
+#include "pygomo/engine/deadline_engine.hpp"
+#include "pygomo/gomocup/gomocup_engine.hpp"
+#include "pygomo/process/process_transport.hpp"
+
+using namespace pygomo;
+using namespace std::chrono_literals;
+
+// Plays one search on a 15x15 Renju board and prints the result.
+int playOne(EnginePort& engine) {
+    if (!engine.setRules(Rules{.board = BoardRule::Renju})) return 1;
+
+    auto position = Position::create(15, 15);
+    if (!position || !position->play({7, 7}) || !position->play({8, 7})) return 1;
+
+    auto outcome = search(engine, *position, Limits{.turnTime = 1000ms});
+    if (!outcome) {
+        std::fprintf(stderr, "search refused: %d\n", static_cast<int>(outcome.error()));
+        return 1;
+    }
+    for (const InfoEvent& info : outcome->info) {
+        if (info.depth) std::printf("depth %d\n", *info.depth);
+    }
+    if (auto* best = std::get_if<BestMoveEvent>(&outcome->terminal)) {
+        std::printf("best move %d,%d\n", best->coord.x, best->coord.y);
+        return 0;
+    }
+    if (auto* error = std::get_if<ErrorEvent>(&outcome->terminal)) {
+        std::fprintf(stderr, "engine error: %s\n", error->message.c_str());
+    }
+    return 1;
+}
+
+int main(int argc, char** argv) {
+    if (argc < 2) return 2;
+    ProcessTransport transport{ProcessOptions{.program = argv[1]}};
+    GomocupEngine    gomocup{transport};
+    DeadlineEngine   engine{gomocup};  // gives every search a turnTime + grace deadline
+
+    const int rc = gomocup.open() ? playOne(engine) : 1;
+    // Close before the locals are destroyed (in reverse order): DeadlineEngine must not
+    // outlive the stream of events from the reader thread.
+    transport.close();
+    return rc;
+}
+\end{lstlisting}
+
+\noindent Points to notice:
+\begin{itemize}
+  \item \code{playOne} takes an \code{EnginePort\&}: it would work unchanged with \code{GtpEngine}
+        or \code{KataGomoEngine}. That is the point of the port.
+  \item \code{open()} is called on the adapter, not on the decorator (it is not part of the port).
+  \item \textbf{Shutdown order matters.} Locals are destroyed in reverse order, so the decorator
+        goes first. \code{transport.close()} before the end of scope stops event delivery and reaps
+        the child, which makes the destruction order safe.
+\end{itemize}
+
+\subsection{An asynchronous search with a custom sink}
+
+For a GUI or an analysis view, implement \code{EventSink} and react to events as they arrive. This
+listing (also compiled and run, against a fake GTP engine) streams KataGomo analysis:
+
+\begin{lstlisting}
+// Prints progress as it arrives and wakes waitDone() on the terminal event.
+class PrintingSink final : public EventSink {
+public:
+    void onEvent(const SearchEvent& event) override {  // runs on the reader thread
+        std::visit(
+            [&](const auto& e) {
+                using T = std::decay_t<decltype(e)>;
+                if constexpr (std::is_same_v<T, InfoEvent>) {
+                    if (e.nodes) std::printf("nodes %lld\n", static_cast<long long>(*e.nodes));
+                } else if constexpr (std::is_same_v<T, MessageEvent>) {
+                    std::printf("engine says: %s\n", e.text.c_str());
+                } else if constexpr (std::is_same_v<T, UnparsedEvent>) {
+                    std::printf("unparsed: %s\n", e.line.c_str());
+                } else {
+                    if constexpr (std::is_same_v<T, BestMoveEvent>) {
+                        std::printf("best move %d,%d\n", e.coord.x, e.coord.y);
+                    }
+                    std::lock_guard lock(mutex_);
+                    done_ = true;
+                    cv_.notify_all();
+                }
+            },
+            event);
+    }
+
+    void waitDone() {
+        std::unique_lock lock(mutex_);
+        cv_.wait(lock, [&] { return done_; });
+    }
+
+private:
+    std::mutex              mutex_;
+    std::condition_variable cv_;
+    bool                    done_{false};
+};
+
+int main(int argc, char** argv) {
+    if (argc < 2) return 2;
+    ProcessTransport transport{ProcessOptions{.program = argv[1], .args = {"gtp"}}};
+    // A real KataGomo also needs its -model and -config arguments here.
+    GtpEngine        engine{transport};
+    PrintingSink     sink;  // declared after the engine, so it is destroyed first: close first
+
+    int rc = 1;
+    auto position = Position::create(15, 15);
+    if (engine.open() && position) {
+        engine.setAnalyze(200ms);  // stream kata-genmove_analyze info lines
+        if (engine.startSearch(*position, Limits{.maxNodes = 400}, sink)) {
+            sink.waitDone();
+            rc = 0;
+        }
+    }
+    transport.close();
+    return rc;
+}
+\end{lstlisting}
+
+{\raggedright\noindent (Includes: \file{<condition\_variable>}, \file{<cstdio>}, \file{<mutex>}, \file{<type\_traits>},
+\file{<variant>}, \file{pygomo/gtp/gtp\_engine.hpp}, \file{pygomo/process/process\_transport.hpp}.)\par}
+
+\subsection{Practical rules for applications}
+
+\begin{itemize}
+  \item Check \code{supports(rules)} or the result of \code{setRules} before a game; an
+        unsupported request sends nothing.
+  \item Treat \code{InfoEvent} fields as optional. Engines print different subsets.
+  \item Keep \code{UnparsedEvent} and \code{MessageEvent} visible in logs: they are how a new engine
+        output format shows up.
+  \item Always give a search a \code{turnTime} and wrap the engine in \code{DeadlineEngine} when you
+        cannot trust the engine to answer.
+  \item Do not block inside \code{onEvent}; hand the event to your own queue or thread.
+  \item Use \code{sendRaw} for engine-only commands (Rapfi database commands, KataGomo
+        \code{kata-set-param} keys, VCN rules). Nothing about the reply is promised.
+\end{itemize}
+
+%======================================================================
+\section{Extending PyGomo}
+%======================================================================
+
+\subsection{Adding a protocol adapter}
+
+A new protocol is a new module; the core and existing adapters do not change.
+
+\begin{enumerate}
+  \item \textbf{Size it.} A new protocol touches a protocol and a public interface: it is a size~L
+        change and starts with a planning in \file{features/<slug>/planning.md}
+        (Section~\ref{sec:process}).
+  \item \textbf{Collect evidence.} Capture real engine transcripts (or, if impossible, derive them
+        from the engine's source and label the fixture as source-derived) into
+        \file{tests/fixtures/<protocol>/}.
+  \item \textbf{Write the parser} in \file{src/parse/} with its header in
+        \file{include/pygomo/parse/}: pure, total, \code{std::string\_view} and
+        \code{std::from\_chars}, no \code{std::regex}. Unknown input becomes \code{UnparsedEvent}.
+        Reuse an existing parser if the output format matches (as \code{KataGomoEngine} reuses the
+        Gomocup parser).
+  \item \textbf{Write the adapter} in \file{include/pygomo/<protocol>/} and \file{src/<protocol>/},
+        following the shared pattern below.
+  \item \textbf{Add the CMake target} \code{pygomo\_<protocol>} with alias
+        \code{pygomo::<protocol>}, linking only \code{pygomo::core}, \code{pygomo::parse} and
+        \code{pygomo::transport}; call \code{pygomo\_enable\_warnings}.
+  \item \textbf{Test} with a fake transport (Section~\ref{sec:testing}), register every test group in
+        \file{tests/CMakeLists.txt}, and add a \code{DeadlineEngine} test over the new adapter.
+\end{enumerate}
+
+\noindent The adapter pattern every existing adapter follows:
+
+\begin{lstlisting}
+class MyEngine final : public EnginePort, private TransportListener {
+public:
+    explicit MyEngine(Transport& transport) : transport_(transport) {}
+    std::expected<void, EngineError> open() {
+        if (!transport_.start(*this)) return std::unexpected(EngineError::NotReady);
+        return {};
+    }
+    std::expected<void, EngineError> startSearch(const Position& position, const Limits& limits,
+                                                 EventSink& sink) override {
+        // 1. Reject what the protocol cannot express, before anything is sent.
+        // 2. Under the lock: NotReady if closed_, Busy if sink_; build every line;
+        //    set sink_ = &sink and remember the position.
+        // 3. Outside the lock: write the lines; on failure clear sink_, return TransportFailed.
+    }
+
+private:
+    void onLine(std::string_view line) override {
+        SearchEvent event = parse::parseMyLine(line);
+        EventSink*  sink  = nullptr;
+        {
+            std::lock_guard lock(mutex_);
+            sink = sink_;
+            if (!sink) return;              // nothing is running: drop the line
+            // Check a best move against position_ (on the board, not occupied).
+            if (isTerminal(event)) sink_ = nullptr;  // exactly one terminal event
+        }
+        sink->onEvent(event);               // never call the sink under the lock
+    }
+    void onClosed(CloseReason) override {
+        // Under the lock: closed_ = true, take and clear sink_.
+        // Outside it: sink->onEvent(ErrorEvent{"engine connection closed"}) if one was running.
+    }
+
+    Transport&              transport_;
+    std::mutex              mutex_;
+    Rules                   rules_{};
+    bool                    closed_{false};
+    EventSink*              sink_{nullptr};  // non-null while a search runs
+    std::optional<Position> position_;
+};
+\end{lstlisting}
+
+\noindent Do not put a timer or a thread in the adapter: deadlines belong to
+\code{DeadlineEngine}.
+
+\subsection{Adding a transport}
+
+Implement \code{Transport}: deliver lines on your own reader thread, serialise listener calls,
+call \code{onClosed} exactly once, reject lines containing a newline, bound the line length, and keep
+\code{close()} idempotent. Keep protocol and engine names out of
+\file{include/pygomo/transport/} (checked by \file{scripts/check-core-deps.sh}). A Windows process
+transport would be a new module next to \code{pygomo\_process}.
+
+\subsection{Adding an event or a core field}
+
+Changing \code{SearchEvent}, \code{EnginePort} or any core type changes a public interface used by
+every adapter and application: it is size~L. Precedent: \code{MessageEvent} and \code{ResignEvent}
+were added under the planning \file{features/core-message-resign-events/planning.md}. Keep the
+variant protocol-neutral, and update every adapter, both parsers and \code{search()} in the same
+planning.
+
+%======================================================================
+\section{Writing and registering tests}\label{sec:testing}
+%======================================================================
+
+\subsection{Naming and registering test cases}
+
+A test case name starts with \code{<group>\_<behaviour>:} followed by the behaviour in words, e.g.\
+\code{TEST\_CASE("gomo\_stop: YXSTOP is sent and the following move is delivered")}. Each ctest entry
+selects cases by that prefix:
+
+\begin{lstlisting}[style=sh]
+foreach(group sequence rules events warning stop closed rect deadline)
+  add_test(NAME gomo_${group} COMMAND pygomo_gomocup_tests "-tc=gomo_${group}*")
+endforeach()
+\end{lstlisting}
+
+\noindent \textbf{A new prefix needs its own \code{add\_test}}, or the case is built and silently never
+run. This happened once (fix-log entry \code{GTP-04-01}); since then
+\file{scripts/check-ctest-coverage.sh} (ctest entry \code{ctest\_coverage}) fails when any doctest
+case is matched by no ctest filter.
+
+\subsection{Fakes, fixtures and live tests}
+
+\begin{itemize}
+  \item \textbf{Fake transport.} Adapter tests use a \code{FakeTransport} that records written lines
+        and lets the test ``play the engine'' by calling \code{listener->onLine(...)} and
+        \code{onClosed(...)} directly. This tests the protocol exactly without a process.
+  \item \textbf{Fixtures.} \file{tests/fixtures/gomocup/} holds Rapfi output in its brief, normal and
+        UCI-like formats; \file{tests/fixtures/gtp/} holds analysis lines. A fixture derived from
+        source rather than captured says so in its header comment.
+  \item \textbf{Live tests} need a real engine: set \code{PYGOMO\_RAPFI} to the
+        \code{pbrain-rapfi} executable. Without it every live test prints \code{SKIPPED} and
+        ctest reports it as skipped, not passed.
+  \item \textbf{ThreadSanitizer.} Adapters, transports and \code{DeadlineEngine} are concurrent; run
+        the \code{tsan} preset after touching any of them.
+\end{itemize}
+
+
+%######################################################################
+\part{Reference}
+%######################################################################
 
 %======================================================================
 \section{The core model}
@@ -684,7 +1062,7 @@ terminal event: it never returns for an engine that never answers (wrap that eng
 \code{DeadlineEngine}), and it must not be called from the thread that delivers the engine's events
 (for example from inside a sink).
 
-\subsection{DeadlineEngine (\file{engine/deadline\_engine.hpp})}
+\subsection{DeadlineEngine (\file{engine/deadline\_engine.hpp})}\label{sec:deadline}
 
 A decorator that gives any \code{EnginePort} a search deadline. It is the single place where
 timeouts live; adapters have no timers (\file{docs/audit/AUD-03}).
@@ -720,263 +1098,8 @@ timeouts live; adapters have no timers (\file{docs/audit/AUD-03}).
 \end{itemize}
 
 %======================================================================
-\section{Using the library}
+\section{Test map}\label{sec:testmap}
 %======================================================================
-
-\subsection{Linking}
-
-From CMake, link the alias targets you need; include directories and C++23 come with them.
-
-\begin{lstlisting}[style=sh]
-target_link_libraries(my_app PRIVATE pygomo::gomocup pygomo::process pygomo::engine)
-\end{lstlisting}
-
-\subsection{A blocking search with a deadline}
-
-The listing below is compiled and run as part of writing this guide (against a fake Gomocup engine
-script). It wires a child process, a Gomocup adapter and a deadline decorator together.
-
-\begin{lstlisting}
-#include <chrono>
-#include <cstdio>
-#include <variant>
-
-#include "pygomo/engine/blocking_search.hpp"
-#include "pygomo/engine/deadline_engine.hpp"
-#include "pygomo/gomocup/gomocup_engine.hpp"
-#include "pygomo/process/process_transport.hpp"
-
-using namespace pygomo;
-using namespace std::chrono_literals;
-
-// Plays one search on a 15x15 Renju board and prints the result.
-int playOne(EnginePort& engine) {
-    if (!engine.setRules(Rules{.board = BoardRule::Renju})) return 1;
-
-    auto position = Position::create(15, 15);
-    if (!position || !position->play({7, 7}) || !position->play({8, 7})) return 1;
-
-    auto outcome = search(engine, *position, Limits{.turnTime = 1000ms});
-    if (!outcome) {
-        std::fprintf(stderr, "search refused: %d\n", static_cast<int>(outcome.error()));
-        return 1;
-    }
-    for (const InfoEvent& info : outcome->info) {
-        if (info.depth) std::printf("depth %d\n", *info.depth);
-    }
-    if (auto* best = std::get_if<BestMoveEvent>(&outcome->terminal)) {
-        std::printf("best move %d,%d\n", best->coord.x, best->coord.y);
-        return 0;
-    }
-    if (auto* error = std::get_if<ErrorEvent>(&outcome->terminal)) {
-        std::fprintf(stderr, "engine error: %s\n", error->message.c_str());
-    }
-    return 1;
-}
-
-int main(int argc, char** argv) {
-    if (argc < 2) return 2;
-    ProcessTransport transport{ProcessOptions{.program = argv[1]}};
-    GomocupEngine    gomocup{transport};
-    DeadlineEngine   engine{gomocup};  // gives every search a turnTime + grace deadline
-
-    const int rc = gomocup.open() ? playOne(engine) : 1;
-    // Close before the locals are destroyed (in reverse order): DeadlineEngine must not
-    // outlive the stream of events from the reader thread.
-    transport.close();
-    return rc;
-}
-\end{lstlisting}
-
-\noindent Points to notice:
-\begin{itemize}
-  \item \code{playOne} takes an \code{EnginePort\&}: it would work unchanged with \code{GtpEngine}
-        or \code{KataGomoEngine}. That is the point of the port.
-  \item \code{open()} is called on the adapter, not on the decorator (it is not part of the port).
-  \item \textbf{Shutdown order matters.} Locals are destroyed in reverse order, so the decorator
-        goes first. \code{transport.close()} before the end of scope stops event delivery and reaps
-        the child, which makes the destruction order safe.
-\end{itemize}
-
-\subsection{An asynchronous search with a custom sink}
-
-For a GUI or an analysis view, implement \code{EventSink} and react to events as they arrive. This
-listing (also compiled and run, against a fake GTP engine) streams KataGomo analysis:
-
-\begin{lstlisting}
-// Prints progress as it arrives and wakes waitDone() on the terminal event.
-class PrintingSink final : public EventSink {
-public:
-    void onEvent(const SearchEvent& event) override {  // runs on the reader thread
-        std::visit(
-            [&](const auto& e) {
-                using T = std::decay_t<decltype(e)>;
-                if constexpr (std::is_same_v<T, InfoEvent>) {
-                    if (e.nodes) std::printf("nodes %lld\n", static_cast<long long>(*e.nodes));
-                } else if constexpr (std::is_same_v<T, MessageEvent>) {
-                    std::printf("engine says: %s\n", e.text.c_str());
-                } else if constexpr (std::is_same_v<T, UnparsedEvent>) {
-                    std::printf("unparsed: %s\n", e.line.c_str());
-                } else {
-                    if constexpr (std::is_same_v<T, BestMoveEvent>) {
-                        std::printf("best move %d,%d\n", e.coord.x, e.coord.y);
-                    }
-                    std::lock_guard lock(mutex_);
-                    done_ = true;
-                    cv_.notify_all();
-                }
-            },
-            event);
-    }
-
-    void waitDone() {
-        std::unique_lock lock(mutex_);
-        cv_.wait(lock, [&] { return done_; });
-    }
-
-private:
-    std::mutex              mutex_;
-    std::condition_variable cv_;
-    bool                    done_{false};
-};
-
-int main(int argc, char** argv) {
-    if (argc < 2) return 2;
-    ProcessTransport transport{ProcessOptions{.program = argv[1], .args = {"gtp"}}};
-    // A real KataGomo also needs its -model and -config arguments here.
-    GtpEngine        engine{transport};
-    PrintingSink     sink;  // declared after the engine, so it is destroyed first: close first
-
-    int rc = 1;
-    auto position = Position::create(15, 15);
-    if (engine.open() && position) {
-        engine.setAnalyze(200ms);  // stream kata-genmove_analyze info lines
-        if (engine.startSearch(*position, Limits{.maxNodes = 400}, sink)) {
-            sink.waitDone();
-            rc = 0;
-        }
-    }
-    transport.close();
-    return rc;
-}
-\end{lstlisting}
-
-{\raggedright\noindent (Includes: \file{<condition\_variable>}, \file{<cstdio>}, \file{<mutex>}, \file{<type\_traits>},
-\file{<variant>}, \file{pygomo/gtp/gtp\_engine.hpp}, \file{pygomo/process/process\_transport.hpp}.)\par}
-
-\subsection{Practical rules for applications}
-
-\begin{itemize}
-  \item Check \code{supports(rules)} or the result of \code{setRules} before a game; an
-        unsupported request sends nothing.
-  \item Treat \code{InfoEvent} fields as optional. Engines print different subsets.
-  \item Keep \code{UnparsedEvent} and \code{MessageEvent} visible in logs: they are how a new engine
-        output format shows up.
-  \item Always give a search a \code{turnTime} and wrap the engine in \code{DeadlineEngine} when you
-        cannot trust the engine to answer.
-  \item Do not block inside \code{onEvent}; hand the event to your own queue or thread.
-  \item Use \code{sendRaw} for engine-only commands (Rapfi database commands, KataGomo
-        \code{kata-set-param} keys, VCN rules). Nothing about the reply is promised.
-\end{itemize}
-
-%======================================================================
-\section{Extending PyGomo}
-%======================================================================
-
-\subsection{Adding a protocol adapter}
-
-A new protocol is a new module; the core and existing adapters do not change.
-
-\begin{enumerate}
-  \item \textbf{Size it.} A new protocol touches a protocol and a public interface: it is a size~L
-        change and starts with a planning in \file{features/<slug>/planning.md}
-        (Section~\ref{sec:process}).
-  \item \textbf{Collect evidence.} Capture real engine transcripts (or, if impossible, derive them
-        from the engine's source and label the fixture as source-derived) into
-        \file{tests/fixtures/<protocol>/}.
-  \item \textbf{Write the parser} in \file{src/parse/} with its header in
-        \file{include/pygomo/parse/}: pure, total, \code{std::string\_view} and
-        \code{std::from\_chars}, no \code{std::regex}. Unknown input becomes \code{UnparsedEvent}.
-        Reuse an existing parser if the output format matches (as \code{KataGomoEngine} reuses the
-        Gomocup parser).
-  \item \textbf{Write the adapter} in \file{include/pygomo/<protocol>/} and \file{src/<protocol>/},
-        following the shared pattern below.
-  \item \textbf{Add the CMake target} \code{pygomo\_<protocol>} with alias
-        \code{pygomo::<protocol>}, linking only \code{pygomo::core}, \code{pygomo::parse} and
-        \code{pygomo::transport}; call \code{pygomo\_enable\_warnings}.
-  \item \textbf{Test} with a fake transport (Section~\ref{sec:testing}), register every test group in
-        \file{tests/CMakeLists.txt}, and add a \code{DeadlineEngine} test over the new adapter.
-\end{enumerate}
-
-\noindent The adapter pattern every existing adapter follows:
-
-\begin{lstlisting}
-class MyEngine final : public EnginePort, private TransportListener {
-public:
-    explicit MyEngine(Transport& transport) : transport_(transport) {}
-    std::expected<void, EngineError> open() {
-        if (!transport_.start(*this)) return std::unexpected(EngineError::NotReady);
-        return {};
-    }
-    std::expected<void, EngineError> startSearch(const Position& position, const Limits& limits,
-                                                 EventSink& sink) override {
-        // 1. Reject what the protocol cannot express, before anything is sent.
-        // 2. Under the lock: NotReady if closed_, Busy if sink_; build every line;
-        //    set sink_ = &sink and remember the position.
-        // 3. Outside the lock: write the lines; on failure clear sink_, return TransportFailed.
-    }
-
-private:
-    void onLine(std::string_view line) override {
-        SearchEvent event = parse::parseMyLine(line);
-        EventSink*  sink  = nullptr;
-        {
-            std::lock_guard lock(mutex_);
-            sink = sink_;
-            if (!sink) return;              // nothing is running: drop the line
-            // Check a best move against position_ (on the board, not occupied).
-            if (isTerminal(event)) sink_ = nullptr;  // exactly one terminal event
-        }
-        sink->onEvent(event);               // never call the sink under the lock
-    }
-    void onClosed(CloseReason) override {
-        // Under the lock: closed_ = true, take and clear sink_.
-        // Outside it: sink->onEvent(ErrorEvent{"engine connection closed"}) if one was running.
-    }
-
-    Transport&              transport_;
-    std::mutex              mutex_;
-    Rules                   rules_{};
-    bool                    closed_{false};
-    EventSink*              sink_{nullptr};  // non-null while a search runs
-    std::optional<Position> position_;
-};
-\end{lstlisting}
-
-\noindent Do not put a timer or a thread in the adapter: deadlines belong to
-\code{DeadlineEngine}.
-
-\subsection{Adding a transport}
-
-Implement \code{Transport}: deliver lines on your own reader thread, serialise listener calls,
-call \code{onClosed} exactly once, reject lines containing a newline, bound the line length, and keep
-\code{close()} idempotent. Keep protocol and engine names out of
-\file{include/pygomo/transport/} (checked by \file{scripts/check-core-deps.sh}). A Windows process
-transport would be a new module next to \code{pygomo\_process}.
-
-\subsection{Adding an event or a core field}
-
-Changing \code{SearchEvent}, \code{EnginePort} or any core type changes a public interface used by
-every adapter and application: it is size~L. Precedent: \code{MessageEvent} and \code{ResignEvent}
-were added under the planning \file{features/core-message-resign-events/planning.md}. Keep the
-variant protocol-neutral, and update every adapter, both parsers and \code{search()} in the same
-planning.
-
-%======================================================================
-\section{Testing}\label{sec:testing}
-%======================================================================
-
-\subsection{Organisation}
 
 One doctest executable per module, all sharing \file{tests/main.cpp} (names below omit the
 \code{pygomo\_} prefix):
@@ -1006,38 +1129,10 @@ smoke           & core links, one short game & smoke \\
 \noindent Plus three script checks registered as ctest entries: \code{ctest\_coverage},
 \code{style\_line\_length} and \code{style\_doc\_comments}.
 
-\subsection{Naming and registering test cases}
 
-A test case name starts with \code{<group>\_<behaviour>:} followed by the behaviour in words, e.g.\
-\code{TEST\_CASE("gomo\_stop: YXSTOP is sent and the following move is delivered")}. Each ctest entry
-selects cases by that prefix:
-
-\begin{lstlisting}[style=sh]
-foreach(group sequence rules events warning stop closed rect deadline)
-  add_test(NAME gomo_${group} COMMAND pygomo_gomocup_tests "-tc=gomo_${group}*")
-endforeach()
-\end{lstlisting}
-
-\noindent \textbf{A new prefix needs its own \code{add\_test}}, or the case is built and silently never
-run. This happened once (fix-log entry \code{GTP-04-01}); since then
-\file{scripts/check-ctest-coverage.sh} (ctest entry \code{ctest\_coverage}) fails when any doctest
-case is matched by no ctest filter.
-
-\subsection{Fakes, fixtures and live tests}
-
-\begin{itemize}
-  \item \textbf{Fake transport.} Adapter tests use a \code{FakeTransport} that records written lines
-        and lets the test ``play the engine'' by calling \code{listener->onLine(...)} and
-        \code{onClosed(...)} directly. This tests the protocol exactly without a process.
-  \item \textbf{Fixtures.} \file{tests/fixtures/gomocup/} holds Rapfi output in its brief, normal and
-        UCI-like formats; \file{tests/fixtures/gtp/} holds analysis lines. A fixture derived from
-        source rather than captured says so in its header comment.
-  \item \textbf{Live tests} need a real engine: set \code{PYGOMO\_RAPFI} to the
-        \code{pbrain-rapfi} executable. Without it every live test prints \code{SKIPPED} and
-        ctest reports it as skipped, not passed.
-  \item \textbf{ThreadSanitizer.} Adapters, transports and \code{DeadlineEngine} are concurrent; run
-        the \code{tsan} preset after touching any of them.
-\end{itemize}
+%######################################################################
+\part{Contributing}
+%######################################################################
 
 %======================================================================
 \section{Coding style}
@@ -1128,13 +1223,15 @@ running \code{checked\_by}; never weaken a check or edit a test to make somethin
 \end{enumerate}
 
 %======================================================================
-\section{Known limitations}
+\section{Known limitations}\label{sec:limits}
 %======================================================================
 
 \begin{itemize}
-  \item \textbf{GTP and KataGomo adapters were never run against a real engine.} Their wire format
-        comes from reading KataGomo \code{Gom2026} at commit \code{9a0e65c}. VCN rules and
-        \code{kata-set-rule} are not mapped.
+  \item \textbf{Real-engine coverage differs by adapter.} The Gomocup adapter is verified against
+        a real Rapfi (live tests, skipped without \code{PYGOMO\_RAPFI}). The GTP and KataGomo
+        adapters were never run against a real engine: their wire format comes from reading
+        KataGomo \code{Gom2026} at commit \code{9a0e65c}, and they are tested with fake transports
+        only. VCN rules and \code{kata-set-rule} are not mapped.
   \item \textbf{No interruption for GTP or KataGomo}: \code{stop()} is a no-op (AUD-02). Bound the
         search with \code{turnTime} or \code{maxNodes}.
   \item \textbf{An engine that never answers} after a timeout keeps \code{DeadlineEngine} in
