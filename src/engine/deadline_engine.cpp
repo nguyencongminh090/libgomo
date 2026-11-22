@@ -40,8 +40,8 @@ std::expected<void, EngineError> DeadlineEngine::startSearch(
         std::lock_guard lock(mutex_);
         if (detached_ || terminalPending_ || sink_) return std::unexpected(EngineError::Busy);
         // Installed before the call: the engine may deliver events before it returns.
-        sink_ = &sink;
-        id = ++searchId_;
+        sink_     = &sink;
+        id        = ++searchId_;
         stopSent_ = false;
         if (limits.turnTime && limits.turnTime->count() > 0) {
             deadline_ = Clock::now() + *limits.turnTime + options_.grace;

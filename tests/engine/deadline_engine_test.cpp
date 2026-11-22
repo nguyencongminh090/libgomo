@@ -294,9 +294,9 @@ public:
     void stop() override {}
     std::expected<void, EngineError> sendRaw(std::string_view) override { return {}; }
 
-    int refuseAfter = 0;
-    int calls = 0;
-    EventSink* sink = nullptr;
+    int        refuseAfter = 0;
+    int        calls       = 0;
+    EventSink* sink        = nullptr;
 };
 
 /// Starts the next search from the terminal callback of the first one.
@@ -305,8 +305,9 @@ struct Restart final : EventSink {
     void onEvent(const SearchEvent&) override { restarted = eng.startSearch(pos(), limits, next); }
 
     DeadlineEngine& eng;
-    Limits limits;
-    Collect& next;
+    Limits          limits;
+    Collect&        next;
+
     std::expected<void, EngineError> restarted = std::unexpected(EngineError::Unsupported);
 };
 
@@ -314,9 +315,9 @@ struct Restart final : EventSink {
 
 TEST_CASE("core4_failed_start: a refused start keeps the search its terminal callback started") {
     EndsThenRefuses port;
-    DeadlineEngine eng{port, DeadlineEngine::Options{10ms}};
-    Collect next;
-    Restart first{eng, Limits{}, next};
+    DeadlineEngine  eng{port, DeadlineEngine::Options{10ms}};
+    Collect         next;
+    Restart         first{eng, Limits{}, next};
 
     CHECK(eng.startSearch(pos(), Limits{}, first).error() == EngineError::TransportFailed);
     REQUIRE(first.restarted);
@@ -328,9 +329,9 @@ TEST_CASE("core4_failed_start: a refused start keeps the search its terminal cal
 
 TEST_CASE("core4_failed_start: a refused start keeps the deadline of the newer search") {
     EndsThenRefuses port;
-    DeadlineEngine eng{port, DeadlineEngine::Options{10ms}};
-    Collect next;
-    Restart first{eng, turn(10ms), next};
+    DeadlineEngine  eng{port, DeadlineEngine::Options{10ms}};
+    Collect         next;
+    Restart         first{eng, turn(10ms), next};
 
     CHECK(eng.startSearch(pos(), Limits{}, first).error() == EngineError::TransportFailed);
     REQUIRE(first.restarted);
@@ -342,8 +343,8 @@ TEST_CASE("core4_failed_start: a nested start that is refused too leaves no stat
     EndsThenRefuses port;
     port.refuseAfter = 1;
     DeadlineEngine eng{port, DeadlineEngine::Options{10ms}};
-    Collect next;
-    Restart first{eng, turn(10ms), next};
+    Collect        next;
+    Restart        first{eng, turn(10ms), next};
 
     CHECK(eng.startSearch(pos(), Limits{}, first).error() == EngineError::TransportFailed);
     CHECK(first.restarted.error() == EngineError::NotReady);
