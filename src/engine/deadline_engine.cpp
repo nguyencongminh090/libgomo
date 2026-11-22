@@ -112,7 +112,7 @@ void DeadlineEngine::watchdog() {
             cv_.wait(lock, [this] { return quit_ || deadline_.has_value(); });
             continue;
         }
-        const auto at = *deadline_;
+        const auto at  = *deadline_;
         const auto id = searchId_;
         const bool changed = cv_.wait_until(
             lock, at, [&] { return quit_ || searchId_ != id || deadline_ != at; });

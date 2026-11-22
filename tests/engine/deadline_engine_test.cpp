@@ -204,9 +204,9 @@ TEST_CASE("dead1_serialization: the timeout waits for an active info callback to
         }
 
         std::promise<void> infoStarted;
-        std::latch releaseInfo{1};
+        std::latch         releaseInfo{1};
         std::promise<void> timeoutDelivered;
-        Collect events;
+        Collect            events;
     } first;
     Collect next;
     FakePort port;
@@ -224,7 +224,7 @@ TEST_CASE("dead1_serialization: the timeout waits for an active info callback to
     const bool infoEntered = infoStarted.wait_for(2s) == std::future_status::ready;
     const bool timedOutWhileBlocked = timeout.wait_for(250ms) == std::future_status::ready;
     const bool stopRequested = port.stops == 1;
-    bool busyWhilePending = false;
+    bool busyWhilePending   = false;
     bool lateAnswerReturned = false;
     std::jthread lateAnswer;
     if (answerWhileBlocked) {
