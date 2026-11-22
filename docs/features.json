@@ -1406,6 +1406,36 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "CORE-03-edges",
+      "todo": "CORE-03",
+      "description": "WHEN the Draw.io source and the Mermaid diagrams are read THEN they show the parse -> core link of CMakeLists.txt, and the Mermaid dependency graph matches every target_link_libraries line (no missing or extra edge)",
+      "steps": [
+        "grep -q \"links pygomo::core\" docs/design/architecture.drawio && grep -q \"parse --> core\" docs/design/architecture.md"
+      ],
+      "checked_by": "grep -q \"links pygomo::core\" docs/design/architecture.drawio && grep -q \"parse --> core\" docs/design/architecture.md",
+      "passes": true
+    },
+    {
+      "id": "CORE-03-lifecycle",
+      "todo": "CORE-03",
+      "description": "WHEN the Draw.io/PNG and Mermaid session lifecycles are read THEN both show compose, open(), startSearch through the relay, close() from the control thread, onClosed after the child is reaped, the ErrorEvent that onClosed sends through the relay to the sink when a search is active, and destruction DeadlineEngine -> adapter -> transport; the PNG matches its Draw.io source",
+      "steps": [
+        "manual: open docs/design/architecture.drawio and architecture.drawio.png, and read the Mermaid sequenceDiagram in docs/design/architecture.md; check each step against gomocup_engine.cpp (open, onClosed), process_transport.cpp (start, close, readLoop) and deadline_engine.hpp"
+      ],
+      "checked_by": "manual: open docs/design/architecture.drawio and architecture.drawio.png, and read the Mermaid sequenceDiagram in docs/design/architecture.md; check each step against gomocup_engine.cpp (open, onClosed), process_transport.cpp (start, close, readLoop) and deadline_engine.hpp",
+      "passes": true
+    },
+    {
+      "id": "CORE-03-frontmatter",
+      "todo": "CORE-03",
+      "description": "WHEN the harness check runs THEN it reports no FM-MISSING for docs/design/architecture.md",
+      "steps": [
+        "node scripts/harness/harness-check.mjs  # no FM-MISSING for docs/design/architecture.md"
+      ],
+      "checked_by": "node scripts/harness/harness-check.mjs  # no FM-MISSING for docs/design/architecture.md",
+      "passes": true
     }
   ]
 }

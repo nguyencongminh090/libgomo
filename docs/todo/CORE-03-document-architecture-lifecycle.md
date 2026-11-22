@@ -2,9 +2,9 @@
 id: CORE-03-document-architecture-lifecycle
 type: todo
 size: M
-status: active
+status: done
 owner: codex
-created: 2026-11-25
+created: 2026-11-22
 supersedes: []
 links: []
 planning:
@@ -22,7 +22,7 @@ planning:
 
 ## Done-when
 
-Tiêu chí đề xuất cho `docs/features.json`, chờ chủ repo duyệt.
+Acceptance in `docs/features.json` (`"todo": "CORE-03"`), đã được chủ repo duyệt.
 
 - Khi mở bản Draw.io và PNG, cạnh `parse → core` và các bước mở, tìm kiếm, đóng phiên
   đều đọc được. Đối chiếu với CMake, header của adapter và hợp đồng của `DeadlineEngine`.
