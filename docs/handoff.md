@@ -12,7 +12,7 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. DOC-03 done: the three TikZ figures of the developer guide are captioned floats (fig:modules, fig:search-flow, fig:deadline) with one shared `\tikzset` style; each was checked against the code (engine -> Threads arrow added, writeLine per line, deadline tick turnTime + 2 grace). Before it: GTP-06, DOC-02, DOC-01 (see TODO.md).
+Nothing in progress. Last: `/align` pass on `docs/guide/developer-guide.tex` (one block, `rc`/`position` in the PrintingSink listing), committed alone as `dd7ec2b style: align columns`; ctest passed, 4 `gomo2_*` live tests skipped (no `PYGOMO_RAPFI`); the LaTeX was not recompiled (whitespace only). DOC-03 done: the three TikZ figures of the developer guide are captioned floats (fig:modules, fig:search-flow, fig:deadline) with one shared `\tikzset` style; each was checked against the code (engine -> Threads arrow added, writeLine per line, deadline tick turnTime + 2 grace). Before it: GTP-06, DOC-02, DOC-01 (see TODO.md).
 
 ## Next step
 
