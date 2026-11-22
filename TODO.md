@@ -1,9 +1,10 @@
 # TODO
 
 ## Backlog
-- [ ] **DOC-02.** Developer guide, pass 2: prose, structure inside sections, and fact re-check - size M - [detail](docs/todo/DOC-02-developer-guide-prose.md)
+- [ ] **GTP-06.** GtpEngine: the id-less reply to a raw command ends a search - size M - [detail](docs/todo/GTP-06-raw-reply-ends-search.md)
 
 ## Active
+- [~] **DOC-02.** Developer guide, pass 2: prose, structure inside sections, and fact re-check - size M - [detail](docs/todo/DOC-02-developer-guide-prose.md)
 
 ## Done
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)

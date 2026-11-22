@@ -807,8 +807,9 @@ adapter suites check them.
   \item \textbf{\code{stop()} is a request.} It may be called from any thread and is harmless when
         no search runs. If the protocol cannot interrupt a search, the search runs to its own end;
         the terminal event still arrives.
-  \item \textbf{\code{sendRaw} promises nothing.} Replies arrive as \code{MessageEvent} or
-        \code{UnparsedEvent} while a search runs; outside a search they are dropped.
+  \item \textbf{\code{sendRaw} promises nothing.} Replies arrive as ordinary events (usually
+        \code{MessageEvent} or \code{UnparsedEvent}) while a search runs; outside a search they
+        are dropped.
 \end{enumerate}
 
 \subsection{Errors}
@@ -910,7 +911,7 @@ All three adapters share one shape: they implement \code{EnginePort}, privately 
 \midrule
 Reference engine     & Rapfi (run live) & KataGomo \code{gtp} (source only) &
                        KataGomo \code{gom} (source only) \\
-Board                & square only & any rectangle with a GTP vertex & square only \\
+Board                & square only & any rectangle up to 625 columns & square only \\
 Board rules          & all three & all three & all three \\
 Swap1 / Swap2        & freestyle only & no & no \\
 \code{maxMoves}      & yes & yes & yes \\
@@ -975,8 +976,9 @@ Speaks GTP with KataGomo's Gomoku extensions. Every command carries a numeric id
         blank line. Replies with an id outside the running search are ignored (stale replies of
         an earlier search). A \code{?} reply ends the search with \code{ErrorEvent}.
   \item \textbf{Result.} The \code{genmove} reply becomes \code{BestMoveEvent}, \code{PassEvent}
-        (\code{pass}) or \code{ResignEvent} (\code{resign}); an occupied point is an
-        \code{ErrorEvent}.
+        (\code{pass}) or \code{ResignEvent} (\code{resign}). An occupied point, an unreadable
+        move, an analysis reply without a final \code{play}, and a reply without an id each end
+        the search with \code{ErrorEvent}.
   \item \textbf{Analysis.} \code{setAnalyze(interval)} switches later searches to
         \code{kata-genmove\_analyze}: the engine streams \code{info} lines (reported as
         \code{InfoEvent}, \code{visits} as nodes, \code{pv} as the principal variation) before the
@@ -989,7 +991,9 @@ Speaks GTP with KataGomo's Gomoku extensions. Every command carries a numeric id
 \end{itemize}
 
 \noindent Vertices: columns \code{A..Z} skipping \code{I}, two letters from column 25; rows count
-from the bottom; boards wider than 625 columns use the machine form \code{(x,y)}. See
+from the bottom. Letters cover at most 625 columns, so on a wider board \code{startSearch} returns
+\code{Unsupported} for any position with moves. The parser also reads the machine form
+\code{(x,y)} (0-based, origin top-left); the adapter never sends it. See
 \code{parse::parseGtpVertex} and \code{formatGtpVertex}.
 
 \subsection{KataGomoEngine (\code{gom} mode)}
@@ -1029,9 +1033,10 @@ Parsers live in namespace \code{pygomo::parse}, are pure and total, and never th
             optional \code{[Pondering]} prefix, MCTS \code{Visit}, multi-PV \code{(1) 34 | 5-6 | E5 B2},
             and \code{Bestline H7 J9 I9}.
     \end{itemize}
-    Counts accept \code{K/M/G/T} suffixes; scores accept \code{+M<n>}/\code{-M<n>} (mate);
-    durations accept \code{ms}, \code{s}, \code{min}, \code{h}. Labels like \code{H8} in a PV mean
-    column letter and 1-based row, with \code{A1} = \code{(0,0)}.
+    Counts accept \code{K/M/G/T} suffixes; scores accept \code{+M<n>}/\code{-M<n>} (mate). In
+    the Rapfi shapes \code{Time} accepts \code{ms}, \code{s}, \code{min} and \code{h}; in the
+    UCI-like shape \code{tm} is plain milliseconds. Labels like \code{H8} in a PV mean column
+    letter and 1-based row counted from the top, with \code{A1} = \code{(0,0)}.
   \item[\code{parseGtpResponseHeader(line)}] \code{=}/\code{?}, optional id (at most 9 digits), body.
   \item[\code{parseGtpVertex(text, w, h)} / \code{formatGtpVertex(coord, w, h)}] vertex conversion.
   \item[\code{parseGtpAnalyzeLine(line, w, h)}] the first entry of a \code{kata-analyze} /
@@ -1039,7 +1044,8 @@ Parsers live in namespace \code{pygomo::parse}, are pure and total, and never th
     Gom2026 the score fields hold the draw rate).
 \end{description}
 
-\noindent Coordinates are checked against the board by the adapter, not by the parser.
+\noindent \code{parseGomocupLine} does not know the board size; the adapter checks each returned
+move. The GTP vertex functions take the board size and reject points outside it.
 
 %======================================================================
 \section{Engine helpers}
@@ -1101,8 +1107,9 @@ timeouts live; adapters have no timers (\file{docs/audit/AUD-03}).
 \section{Test map}\label{sec:testmap}
 %======================================================================
 
-One doctest executable per module, all sharing \file{tests/main.cpp} (names below omit the
-\code{pygomo\_} prefix):
+Each module has one doctest executable; two more cover \code{DeadlineEngine} over the GTP and
+KataGomo adapters, and the live Rapfi tests. All of them share \file{tests/main.cpp}. The smoke
+test is a plain program without doctest. Names below omit the \code{pygomo\_} prefix.
 
 \begin{center}
 \footnotesize
@@ -1237,6 +1244,10 @@ running \code{checked\_by}; never weaken a check or edit a test to make somethin
   \item \textbf{An engine that never answers} after a timeout keeps \code{DeadlineEngine} in
         \code{Busy}; the caller must close it (AUD-03). The timeout path was run against a frozen
         Rapfi; for GTP and KataGomo only against fake transports.
+  \item \textbf{GTP: a raw command can end a search.} \code{sendRaw} sends the line without an
+        id. If its reply is read while a search runs (including one started right after the raw
+        command), the adapter takes the id-less reply as a failure and ends the search with
+        \code{ErrorEvent}. Open as todo GTP-06.
   \item \textbf{Lines outside a search are dropped} by every adapter (there is no sink to receive
         them).
   \item \textbf{Not covered by fixtures:} late \code{[Pondering]} lines and Rapfi's
