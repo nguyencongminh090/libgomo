@@ -181,6 +181,10 @@ sequenceDiagram
 
     App->>Transport: close() from the control thread
     Transport->>Adapter: onClosed(reason) after the child is reaped
+    opt Search still active
+        Adapter->>Deadline: onEvent(ErrorEvent{"engine connection closed"}) via relay
+        Deadline->>Sink: onEvent(ErrorEvent{"engine connection closed"})
+    end
     Transport-->>App: returns after the reader joins
     Note over App,Deadline: Destroy DeadlineEngine (joins watchdog), then GomocupEngine, then ProcessTransport.
 ```
@@ -189,8 +193,12 @@ sequenceDiagram
 
 The application coordinates shutdown because it owns the session objects. It calls
 `close()` from the control thread while the adapter, decorator and any active sink are
-still alive. A close can deliver a final `ErrorEvent` for an active search. The sink can
-be released once its terminal callback returns, including a timeout callback from the
-watchdog. [ProcessTransport](../../include/pygomo/process/process_transport.hpp) ·
+still alive. `GomocupEngine::onClosed()` only emits `ErrorEvent{"engine connection closed"}`
+while a search is active. If the watchdog has already timed out that search, the relay
+consumes the terminal event. [GomocupEngine source](../../src/gomocup/gomocup_engine.cpp#L133) ·
+[DeadlineEngine source](../../src/engine/deadline_engine.cpp#L62-L76)
+
+The sink can be released once its terminal callback returns, including a timeout callback
+from the watchdog. [ProcessTransport](../../include/pygomo/process/process_transport.hpp) ·
 [GomocupEngine](../../include/pygomo/gomocup/gomocup_engine.hpp) ·
 [DeadlineEngine](../../include/pygomo/engine/deadline_engine.hpp)

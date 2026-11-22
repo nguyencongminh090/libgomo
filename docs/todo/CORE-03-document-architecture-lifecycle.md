@@ -49,6 +49,11 @@ Tiêu chí đề xuất cho `docs/features.json`, chờ chủ repo duyệt.
   khi đóng phiên đang tìm kiếm. Trong cả hai trường hợp, `close()` đợi tiến trình kết thúc.
 - Mermaid CLI kết xuất thành công cả ba sơ đồ. Bản kết xuất có cạnh `parse → core`,
   `open()` trên ba adapter và đúng thứ tự vòng đời. `harness-check.mjs` hết lỗi `FM-MISSING`.
+- Kiểm tra nhánh đóng phiên khi search còn chạy trong Draw.io, PNG 1604 × 3059 và
+  Mermaid. XML nhúng trong PNG khớp với nguồn. Với tiến trình con giả lập Gomocup,
+  sink nhận đúng một `ErrorEvent{"engine connection closed"}` khi đóng giữa search và
+  không nhận lỗi khi đóng sau nước đi cuối. Các test `smoke`, `gomo_closed`,
+  `proc_close` và `dead1_serialization` đều đạt.
 
 ## Links
 
