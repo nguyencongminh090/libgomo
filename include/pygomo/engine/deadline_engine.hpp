@@ -83,8 +83,10 @@ private:
     bool          quit_{false};
     EventSink*    sink_{nullptr};    // the caller's sink while a search runs
     bool          detached_{false};  // a search timed out and the engine has not answered it yet
-    bool terminalPending_{false};  // a terminal event is claimed, waiting for progress callbacks
-    std::size_t progressCallbacks_{0};  // progress callbacks running outside the mutex
+    // A terminal event is claimed, waiting for progress callbacks.
+    bool          terminalPending_{false};
+    // Progress callbacks running outside the mutex.
+    std::size_t   progressCallbacks_{0};
     bool          stopSent_{false};
     std::uint64_t searchId_{0};
     std::optional<Clock::time_point> deadline_;
