@@ -12,12 +12,12 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. This session (2026-11-22) closed PORT-03: reproduced in all three adapters
-with fake transports; the owner chose fixing the adapters. A failed write in startSearch now
-returns success when the search already ended (fix-log PORT-03-01, ctest `port3_*`). 70/70 on
-default and tsan; `gomo2_*` passed against the real Rapfi. The two PORT-03 features were added by
-script (the owner hook did not ask): the owner should confirm their text in docs/features.json.
-Previous session: CORE-04. The next CORE todo is CORE-06 (CORE-05 is a design id).
+Nothing in progress. PORT-03 is done (fix-log PORT-03-01, ctest `port3_*`). On 2026-11-22 the
+owner asked to verify its two features; their `checked_by` were re-run on a fresh build and pass:
+`port3_*` 3/3 (7 doctest cases: GTP 3, KataGomo 2, Gomocup 2), default 70/70, tsan 70/70,
+check-core-deps OK. `gomo2_*` were Skipped in that run (no live Rapfi); they passed against the
+real Rapfi when PORT-03 closed. Previous todo: CORE-04. The next CORE todo is CORE-06 (CORE-05 is
+a design id).
 
 ## Next step
 1. Planning `detailed-search-analysis` (draft, size L): GTP drops later candidates and Gomocup
