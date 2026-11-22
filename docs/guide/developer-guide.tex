@@ -328,6 +328,9 @@ pygomo\_process   & transport & \code{ProcessTransport}: spawns the engine (POSI
 
 \subsection{Rules that are enforced}
 
+\file{scripts/check-core-deps.sh} checks the first two rules; review and the sizing rules
+(Section~\ref{sec:process}) hold the other two.
+
 \begin{enumerate}
   \item \textbf{The core is protocol- and I/O-free.} \file{include/pygomo/core/} and
         \file{src/core/} include no stream, thread, process, signal or filesystem header, and no
@@ -559,7 +562,7 @@ Follow these rules in any application built on the port:
   \item Return from \code{onEvent} quickly; hand the event to your own queue or thread.
   \item Use \code{sendRaw} for engine-only commands (Rapfi database commands, KataGomo
         \code{kata-set-param} keys, VCN rules). Nothing about the reply is promised, and on GTP a
-        raw command can end a running search (Section~\ref{sec:limits}).
+        raw command can end the running or the next search (Section~\ref{sec:limits}).
 \end{itemize}
 
 %======================================================================
@@ -678,7 +681,7 @@ case is matched by no ctest filter.
 
 \subsection{Fakes, fixtures and live tests}
 
-Pick the test input by what the change touches:
+The project provides four kinds of test support:
 
 \begin{itemize}
   \item \textbf{Fake transport.} Adapter tests use a \code{FakeTransport} that records written lines
@@ -819,7 +822,7 @@ adapter suites check them.
         \code{Busy}.
   \item \textbf{The sink is called on the adapter's thread} (the transport's reader thread), in
         arrival order, never concurrently with itself, and \emph{never while the adapter holds a
-        lock}. The sink may therefore call back into the engine, for example to start the next
+        lock}. The sink may therefore call back into the port, for example to start the next
         search from inside the terminal event.
   \item \textbf{The sink must outlive the search} and must not block for long: it holds up reading
         the engine's output.
@@ -844,7 +847,7 @@ A refused call returns one of these \code{EngineError} values:
 Unsupported     & The rules, position or limits cannot be expressed in the protocol. Nothing sent. \\
 Busy            & A search is already running (or, under \code{DeadlineEngine}, a timed-out search
                   still owes its answer). \\
-NotReady        & The engine is not started (\code{open()} failed) or its connection closed. \\
+NotReady        & The adapter is not open (\code{open()} failed) or its connection closed. \\
 TransportFailed & Writing a line to the engine failed. \\
 \bottomrule
 \end{tabularx}
@@ -1114,7 +1117,7 @@ search that times out:
   \node[above, align=center] at (7.5,0.2) {sink gets\\\code{ErrorEvent}};
   \draw[thick, black!50, {Bar}-{Bar}] (7.6,-0.9) -- (12,-0.9)
     node[midway, below, align=center] {owed answer: \code{startSearch} returns \code{Busy};\\
-    the late terminal event is dropped, then the engine is usable again};
+    the late terminal event is dropped, then the decorator is usable again};
 \end{tikzpicture}
 \end{center}
 
@@ -1279,8 +1282,8 @@ What version 0.1.0 does not do, or has not verified against a real engine:
   \item \textbf{No interruption for GTP or KataGomo}: \code{stop()} is a no-op (AUD-02). Bound the
         search with \code{turnTime} or \code{maxNodes}.
   \item \textbf{An engine that never answers} after a timeout keeps \code{DeadlineEngine} in
-        \code{Busy}; the caller must close it (AUD-03). The timeout path was run against a frozen
-        Rapfi; for GTP and KataGomo only against fake transports.
+        \code{Busy}; the caller must close the transport (AUD-03). The timeout path was run
+        against a frozen Rapfi; for GTP and KataGomo only against fake transports.
   \item \textbf{GTP: a raw command can end a search.} \code{sendRaw} sends the line without an
         id. If its reply is read while a search runs (including one started right after the raw
         command), the adapter takes the id-less reply as a failure and ends the search with

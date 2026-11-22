@@ -18,7 +18,8 @@ Nothing in progress. Committed and passing: DOC-02 (guide pass 2: 33df804 stale 
 
 1. DOC-03 (not yet a todo; owner creates it): redraw the three TikZ figures in `docs/guide/developer-guide.tex` (module dependencies, search data flow, DeadlineEngine timeline). Note `tex-tables-and-figures` in SKILLS_TREE.
 2. GTP-06 (backlog, found in DOC-02): an id-less reply to `GtpEngine::sendRaw` ends a running or the next search. Needs features from the owner, then a fake-transport reproduction first. The guide states it in Known limitations; update that bullet when fixed.
-Doc skills in `.claude/skills/` still carry README.WARNING.md/README.md (read, not adapted; no project paths needed changing).
+Doc skills in `.claude/skills/`: README files of `documentation` and `writing-clearly-and-concisely` were read in DOC-02 (nothing to adapt); the other copied skills still carry unread README.WARNING.md/README.md.
+Style normalization (planning code-style-normalization) is finished; the owner may close the planning. A `.clang-format` stays a separate planning.
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`); re-clone into the scratchpad when needed. Rapfi: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi` (binary `build/pbrain-rapfi`).
 
 ## Uncertain

@@ -47,7 +47,10 @@ Two commits: 33df804 (stale facts only), then the prose pass (so `git diff -w` o
   0 hits each):
   - engine = the external program; adapter = GomocupEngine / GtpEngine / KataGomoEngine;
     port = EnginePort; decorator = DeadlineEngine. Rejected: "wrapped engine", "wrap the engine",
-    "wrap that engine", "wrap it in" (they named the adapter or port "engine").
+    "wrap that engine", "wrap it in", "call back into the engine", "The engine is not started",
+    "the caller must close it" (they named the adapter, port or transport "engine"). Every
+    remaining "engine" hit in the prose was read: each means the external program, or is a
+    name (`EnginePort`, section "The engine port", target `pygomo::engine`).
   - Gomocup (first mention: "Gomocup, also called Piskvork"). Rejected: "Gomocup/Piskvork".
   - `gom` mode. Rejected: "front end".
   - UK spelling (organised, behaviour, serialise, colours). Rejected: organiz, behavior, serializ.
@@ -81,7 +84,8 @@ Two commits: 33df804 (stale facts only), then the prose pass (so `git diff -w` o
 - types (skill documentation, Step 4): no subsection moved or split. First sentences added where
   a subsection opened with a table, listing or list (Repository layout, Presets, Data flow,
   Practical rules, Fakes, Position, Search events, Errors, ProcessTransport, Capability matrix,
-  Blocking search, DeadlineEngine, Decisions and bugs, A session, Known limitations). Reference
+  Blocking search, DeadlineEngine, Decisions and bugs, A session, Known limitations, Rules that
+  are enforced: it now says the script checks rules 1-2 and review/sizing hold 3-4). Reference
   DeadlineEngine no longer repeats the rationale; it links to Section Why deadlines. How-to
   "Points to notice" rewritten as instructions.
 - DOC-01 checks re-run: five parts and section order unchanged, every `\label` kept, "Known
