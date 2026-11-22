@@ -52,10 +52,10 @@
 \begin{abstract}
 \noindent PyGomo is a C++23 framework that connects applications to Gomoku engines. An application
 talks to one protocol-neutral interface, \code{EnginePort}; adapters translate it to the wire
-protocol an engine speaks (Gomocup/Piskvork with Yixin extensions, GTP with KataGomo extensions,
-and KataGomo's \code{gom} mode) and parse the engine's text output into typed events. This guide
-explains the architecture and its rules, shows how to use the library, and describes how to build,
-test and extend it, and how work is organised in the repository.
+protocol an engine speaks (Gomocup, also called Piskvork, with Yixin extensions; GTP with KataGomo
+extensions; and KataGomo's \code{gom} mode) and parse the engine's text output into typed events.
+This guide starts with a first search, explains the architecture, gives step-by-step guides for
+using and extending the library, collects the reference facts, and describes how to contribute.
 \end{abstract}
 
 \tableofcontents
@@ -81,8 +81,8 @@ a Gomoku engine running as a separate process. Its priorities, in order:
   \item \textbf{Multiple protocols.} One interface over several wire protocols.
   \item \textbf{Open for extension.} A new protocol is a new adapter; the core and existing
         adapters do not change (open--closed and dependency-inversion principles).
-  \item \textbf{Robust parsing.} Engine output varies from terse to detailed. Parsers are pure and
-        total: a line they do not understand is kept as an \code{UnparsedEvent}, never dropped.
+  \item \textbf{Tolerant parsing.} Engine output varies from terse to detailed. Parsers are pure
+        and total: a line they do not understand is kept as an \code{UnparsedEvent}, never dropped.
 \end{enumerate}
 
 \noindent Out of scope: a GUI, a game loop or referee, a tournament manager, and any engine
@@ -91,10 +91,10 @@ the raw escape hatch \code{EnginePort::sendRaw}.
 
 \subsection{Status}
 
-Version 0.1.0. Supported today:
+Version 0.1.0 contains:
 
 \begin{itemize}
-  \item \textbf{Adapters:} Gomocup/Piskvork (with Yixin extensions), GTP (with KataGomo
+  \item \textbf{Adapters:} Gomocup (with Yixin extensions), GTP (with KataGomo
         extensions) and KataGomo \code{gom} mode. How far each was tested against a real engine
         is stated in Section~\ref{sec:limits}.
   \item \textbf{Transports:} a POSIX child-process transport and a stream transport.
@@ -122,6 +122,8 @@ Contributing    & follow the coding style and the work process; see what is not 
 \end{center}
 
 \subsection{Repository layout}
+
+The top-level folders and what each holds:
 
 \begin{center}
 \small
@@ -187,6 +189,8 @@ node scripts/harness/harness-track.mjs <CODE>
 
 \subsection{Presets}
 
+\file{CMakePresets.json} defines two configurations:
+
 \begin{center}
 \small
 \begin{tabular}{@{}lll@{}}
@@ -246,11 +250,11 @@ how they fit together, and Section~\ref{sec:howto-search} explains the program l
 
 \subsection{Style: ports and adapters}
 
-PyGomo follows the hexagonal (ports and adapters) style. The decision and the alternatives that were
-rejected are recorded in \file{features/engine-protocol-port/planning.md}. That planning holds the
-rationale; for the wire format the code is the truth, and some of its mapping rows are stale (GTP
-now sends bare rule commands and the full move list, Gomocup sends lower-case \code{INFO} keys).
-In short:
+PyGomo follows the hexagonal (ports and adapters) style. The decision and the rejected
+alternatives are recorded in \file{features/engine-protocol-port/planning.md}. Read that planning
+for the rationale only: some of its protocol mapping rows are stale (GTP now sends bare rule
+commands and the full move list, Gomocup sends lower-case \code{INFO} keys), and the code decides
+the wire format. In short:
 
 \begin{itemize}
   \item The \textbf{core} owns a neutral model: a \code{Position} (board size plus ordered moves),
@@ -314,7 +318,7 @@ pygomo\_transport & Threads & \code{Transport} port and \code{StreamTransport}. 
 pygomo\_parse     & core & Pure text-to-event parsers (Gomocup, GTP). \\
 pygomo\_engine    & core, Threads & Blocking \code{search()} and \code{DeadlineEngine}; works
                           with any adapter. \\
-pygomo\_gomocup   & core, parse, transport & Gomocup/Piskvork adapter. \\
+pygomo\_gomocup   & core, parse, transport & Gomocup adapter. \\
 pygomo\_gtp       & core, parse, transport & GTP adapter (KataGomo extensions). \\
 pygomo\_katagomo  & core, parse, transport & KataGomo \code{gom} mode adapter. \\
 pygomo\_process   & transport & \code{ProcessTransport}: spawns the engine (POSIX only). \\
@@ -339,6 +343,8 @@ pygomo\_process   & transport & \code{ProcessTransport}: spawns the engine (POSI
 \end{enumerate}
 
 \subsection{Data flow of one search}
+
+The diagram follows one Gomocup search from the call to the move, with time running down.
 
 \begin{center}
 \begin{tikzpicture}[
@@ -404,9 +410,9 @@ target_link_libraries(my_app PRIVATE pygomo::gomocup pygomo::process pygomo::eng
 
 \subsection{A blocking search with a deadline}\label{sec:howto-search}
 
-The listing below was compiled and run against a real Rapfi engine (it is the program of
-Section~\ref{sec:first}). It wires a child process, a Gomocup adapter and a deadline decorator
-together.
+This program runs one search with a deadline. It starts the engine as a child process, speaks
+Gomocup to it, and wraps the adapter in \code{DeadlineEngine}. It is the program of
+Section~\ref{sec:first} and was compiled and run against a real Rapfi.
 
 \begin{lstlisting}
 #include <chrono>
@@ -462,18 +468,20 @@ int main(int argc, char** argv) {
 
 \noindent Points to notice:
 \begin{itemize}
-  \item \code{playOne} takes an \code{EnginePort\&}: it would work unchanged with \code{GtpEngine}
-        or \code{KataGomoEngine}. That is the point of the port.
-  \item \code{open()} is called on the adapter, not on the decorator (it is not part of the port).
-  \item \textbf{Shutdown order matters.} Locals are destroyed in reverse order, so the decorator
-        goes first. \code{transport.close()} before the end of scope stops event delivery and reaps
-        the child, which makes the destruction order safe.
+  \item \code{playOne} takes an \code{EnginePort\&}, so it works unchanged with \code{GtpEngine}
+        or \code{KataGomoEngine}.
+  \item Call \code{open()} on the adapter, not on the decorator: \code{open()} is not part of the
+        port.
+  \item \textbf{Close the transport before the end of scope.} Locals are destroyed in reverse
+        order, so the decorator goes first. \code{transport.close()} stops event delivery and
+        reaps the child, so no event reaches the destroyed decorator.
 \end{itemize}
 
 \subsection{An asynchronous search with a custom sink}
 
-For a GUI or an analysis view, implement \code{EventSink} and react to events as they arrive. This
-listing (also compiled and run, against a fake GTP engine) streams KataGomo analysis:
+For a GUI or an analysis view, implement \code{EventSink} and react to events as they arrive.
+This program streams KataGomo analysis through \code{GtpEngine}. It was compiled and run against a
+fake GTP engine.
 
 \begin{lstlisting}
 // Prints progress as it arrives and wakes waitDone() on the terminal event.
@@ -538,17 +546,20 @@ int main(int argc, char** argv) {
 
 \subsection{Practical rules for applications}
 
+Follow these rules in any application built on the port:
+
 \begin{itemize}
   \item Check \code{supports(rules)} or the result of \code{setRules} before a game; an
         unsupported request sends nothing.
   \item Treat \code{InfoEvent} fields as optional. Engines print different subsets.
   \item Keep \code{UnparsedEvent} and \code{MessageEvent} visible in logs: they are how a new engine
         output format shows up.
-  \item Always give a search a \code{turnTime} and wrap the engine in \code{DeadlineEngine} when you
-        cannot trust the engine to answer.
-  \item Do not block inside \code{onEvent}; hand the event to your own queue or thread.
+  \item Give every search a \code{turnTime}, and wrap the adapter in \code{DeadlineEngine} unless
+        you trust the engine to answer.
+  \item Return from \code{onEvent} quickly; hand the event to your own queue or thread.
   \item Use \code{sendRaw} for engine-only commands (Rapfi database commands, KataGomo
-        \code{kata-set-param} keys, VCN rules). Nothing about the reply is promised.
+        \code{kata-set-param} keys, VCN rules). Nothing about the reply is promised, and on GTP a
+        raw command can end a running search (Section~\ref{sec:limits}).
 \end{itemize}
 
 %======================================================================
@@ -625,8 +636,8 @@ private:
 };
 \end{lstlisting}
 
-\noindent Do not put a timer or a thread in the adapter: deadlines belong to
-\code{DeadlineEngine}.
+\noindent Keep timers and threads out of the adapter; \code{DeadlineEngine} owns deadlines
+(Section~\ref{sec:why-deadline}).
 
 \subsection{Adding a transport}
 
@@ -667,10 +678,13 @@ case is matched by no ctest filter.
 
 \subsection{Fakes, fixtures and live tests}
 
+Pick the test input by what the change touches:
+
 \begin{itemize}
   \item \textbf{Fake transport.} Adapter tests use a \code{FakeTransport} that records written lines
         and lets the test ``play the engine'' by calling \code{listener->onLine(...)} and
-        \code{onClosed(...)} directly. This tests the protocol exactly without a process.
+        \code{onClosed(...)} directly, so the test checks the exact protocol text without a
+        process.
   \item \textbf{Fixtures.} \file{tests/fixtures/gomocup/} holds Rapfi output in its brief, normal and
         UCI-like formats; \file{tests/fixtures/gtp/} holds analysis lines. A fixture derived from
         source rather than captured says so in its header comment.
@@ -703,6 +717,8 @@ and \code{opposite(side)} returns the other one.
 
 \subsection{Position (\file{position.hpp})}
 
+\code{Position} holds a board size and the moves played, in order:
+
 \begin{lstlisting}
 auto position = Position::create(15, 15);   // expected<Position, PositionError>
 if (!position) { /* InvalidBoardSize: outside 1..Position::kMaxSide (1024) */ }
@@ -719,8 +735,9 @@ and rejects only off-board or occupied points.
 
 \code{Rules\{board, opening, maxMoves\}}. \code{BoardRule} is \code{Freestyle} (five or more wins),
 \code{Standard} (exactly five) or \code{Renju}. \code{OpeningRule} is \code{FreeOpen},
-\code{Swap1} or \code{Swap2}. The two are separate on purpose: some engines merge them into one rule
-number, which is the adapter's concern. \code{validate(rules)} checks self-consistency
+\code{Swap1} or \code{Swap2}. Board and opening rules are separate fields; an adapter whose
+protocol needs one combined rule number (Gomocup) builds it. \code{validate(rules)} checks
+self-consistency
 (\code{maxMoves} must be positive); \code{EnginePort::supports(rules)} says whether an engine can play
 them.
 
@@ -731,6 +748,8 @@ means ``no limit from the caller'' and the engine applies its own default. An ad
 express a set field returns \code{Unsupported} and sends nothing.
 
 \subsection{Search events (\file{search\_event.hpp})}
+
+Everything an adapter reports during a search is one \code{SearchEvent}:
 
 \begin{lstlisting}
 using SearchEvent = std::variant<InfoEvent, BestMoveEvent, SwapEvent, PassEvent, ResignEvent,
@@ -814,6 +833,8 @@ adapter suites check them.
 
 \subsection{Errors}
 
+A refused call returns one of these \code{EngineError} values:
+
 \begin{center}
 \small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l X@{}}
@@ -857,7 +878,8 @@ cannot exhaust memory.
 
 \subsection{ProcessTransport (POSIX)}
 
-Spawns the engine and uses its stdin/stdout as the channel.
+\code{ProcessTransport} spawns the engine and uses its stdin and stdout as the channel. Its
+options and their defaults:
 
 \begin{lstlisting}
 ProcessOptions options;
@@ -886,8 +908,9 @@ ProcessTransport transport{options};
 
 \subsection{StreamTransport}
 
-Wraps an already-connected \code{std::istream}/\code{std::ostream} pair (not owned). Useful for
-sockets and tests. A read blocked inside the input stream cannot be interrupted: \code{close()}
+\code{StreamTransport} wraps an already connected \code{std::istream}/\code{std::ostream} pair,
+which it does not own. It suits sockets and tests. A read blocked inside the input stream cannot
+be interrupted: \code{close()}
 silences the listener and stops writing at once, but the reader thread ends only when the stream
 reaches end of input or fails, and the destructor waits for that. Whoever owns the pipe or socket
 must close it.
@@ -897,11 +920,13 @@ must close it.
 %======================================================================
 
 All three adapters share one shape: they implement \code{EnginePort}, privately implement
-\code{TransportListener}, do not own the transport (it must outlive them), and must be
-\code{open()}ed once before use. \code{setRules} only stores the rules; everything is sent by
-\code{startSearch}, which re-sends the full position each time.
+\code{TransportListener}, do not own the transport (it must outlive them), and need one call to
+\code{open()} before use. \code{setRules} only stores the rules; \code{startSearch} sends
+everything, including the full position, each time.
 
 \subsection{Capability matrix}
+
+What each adapter can express and how it reports results:
 
 \begin{center}
 \small
@@ -931,7 +956,8 @@ Swap / pass / resign & \code{SwapEvent} & \code{PassEvent}, \code{ResignEvent} &
 
 \subsection{GomocupEngine}
 
-Speaks Gomocup/Piskvork with Yixin extensions. \code{startSearch} sends:
+\code{GomocupEngine} speaks Gomocup with Yixin extensions. For each search, \code{startSearch}
+sends:
 
 \begin{lstlisting}[style=sh]
 START 15
@@ -952,12 +978,13 @@ DONE
 is \emph{not} the end: Rapfi prints non-fatal errors and still answers, so it becomes a
 \code{MessageEvent} and the search waits for a move. A returned move that is off the board or on an
 occupied point becomes \code{ErrorEvent\{"engine returned an illegal move: ..."\}}. Lines outside a
-search (banners, late replies) are dropped. The adapter has no timer: an engine that never answers
-leaves the search open until \code{close()}, so wrap it in \code{DeadlineEngine}.
+search (banners, late replies) are dropped. The adapter has no timer: if the engine never answers,
+the search stays open until the transport closes, unless \code{DeadlineEngine} wraps the adapter.
 
 \subsection{GtpEngine}
 
-Speaks GTP with KataGomo's Gomoku extensions. Every command carries a numeric id:
+\code{GtpEngine} speaks GTP with KataGomo's Gomoku extensions. For each search it sends these
+commands, each with a numeric id:
 
 \begin{lstlisting}[style=sh]
 1 boardsize 15 15
@@ -998,7 +1025,8 @@ from the bottom. Letters cover at most 625 columns, so on a wider board \code{st
 
 \subsection{KataGomoEngine (\code{gom} mode)}
 
-KataGomo's \code{gom} front end mixes GTP-style rule commands with Gomocup position commands:
+\code{KataGomoEngine} drives KataGomo's \code{gom} mode, which mixes GTP-style rule commands with
+Gomocup position commands. For each search it sends:
 
 \begin{lstlisting}[style=sh]
 START 15                      # resets the board, so the settings follow it
@@ -1053,6 +1081,8 @@ move. The GTP vertex functions take the board size and reject points outside it.
 
 \subsection{Blocking search (\file{engine/blocking\_search.hpp})}
 
+\code{search()} runs one search and collects its events:
+
 \begin{lstlisting}
 struct SearchOutcome {
     std::vector<InfoEvent>   info;      // progress reports, in arrival order
@@ -1063,15 +1093,16 @@ std::expected<SearchOutcome, EngineError> search(
     EnginePort& engine, const Position& position, const Limits& limits);
 \end{lstlisting}
 
-\noindent Built only on \code{startSearch}, so it works with every adapter. It blocks until the
-terminal event: it never returns for an engine that never answers (wrap that engine in
-\code{DeadlineEngine}), and it must not be called from the thread that delivers the engine's events
-(for example from inside a sink).
+\noindent \code{search()} uses only \code{startSearch}, so it works with every adapter. It blocks
+until the terminal event: if the engine never answers, it never returns, unless
+\code{DeadlineEngine} wraps the adapter. Do not call it from the thread that delivers events (for
+example from inside a sink).
 
 \subsection{DeadlineEngine (\file{engine/deadline\_engine.hpp})}\label{sec:deadline}
 
-A decorator that gives any \code{EnginePort} a search deadline. It is the single place where
-timeouts live; adapters have no timers (\file{docs/audit/AUD-03}).
+\code{DeadlineEngine} is a decorator that gives any \code{EnginePort} a search deadline. It is the
+only place with timeouts; adapters have no timers (\file{docs/audit/AUD-03}). The timeline of a
+search that times out:
 
 \begin{center}
 \begin{tikzpicture}[x=1.0cm, font=\small]
@@ -1090,17 +1121,17 @@ timeouts live; adapters have no timers (\file{docs/audit/AUD-03}).
 \begin{itemize}
   \item Only a search with \code{Limits::turnTime} $> 0$ gets a deadline; \code{grace} defaults to
         2000\,ms (\code{DeadlineEngine::Options}).
-  \item At \code{turnTime + grace} the wrapped engine's \code{stop()} is called. After one more
-        \code{grace} the sink receives \code{ErrorEvent\{"engine did not answer"\}} from a watchdog
-        thread (never under a lock).
+  \item At \code{turnTime + grace} the decorator calls \code{stop()} on the wrapped port. After one
+        more \code{grace} the sink receives \code{ErrorEvent\{"engine did not answer"\}} from a
+        watchdog thread (never under a lock).
   \item The engine still owes its answer: until its late terminal event arrives (and is dropped),
-        \code{startSearch} returns \code{Busy} without calling the engine, so a late move can never
-        be taken as the answer to a later search. Gomocup has no request ids, and Rapfi ignores
-        synchronising commands while it thinks, so this is the only safe option (AUD-01, AUD-03).
-  \item An engine that never answers stays \code{Busy}; close it.
-  \item \textbf{Lifetime.} The wrapped engine is not owned and must outlive the decorator. Destroy
-        the decorator only after the engine has stopped delivering events: close the transport
-        first.
+        \code{startSearch} returns \code{Busy} without calling the wrapped port, so a late move
+        can never be taken as the answer to a later search. Why this is the only safe state:
+        Section~\ref{sec:why-deadline}.
+  \item If the engine never answers, the decorator stays \code{Busy}; close the transport.
+  \item \textbf{Lifetime.} The wrapped port is not owned and must outlive the decorator. Destroy
+        the decorator only after the wrapped port has stopped delivering events: close the
+        transport first.
 \end{itemize}
 
 %======================================================================
@@ -1171,8 +1202,8 @@ The full rule is \file{.claude/rules/coding-style.md}. The essentials:
 \section{How work is organised}\label{sec:process}
 %======================================================================
 
-The repository uses a lightweight ``harness'' so that work, decisions and evidence are recorded
-next to the code. \file{docs/README.md} maps the folders.
+The repository records work, decisions and evidence next to the code, in a set of documents and
+scripts called the harness. \file{docs/README.md} maps the folders.
 
 \subsection{Sizing}
 
@@ -1206,6 +1237,8 @@ running \code{checked\_by}; never weaken a check or edit a test to make somethin
 
 \subsection{Decisions and bugs}
 
+Decisions, bugs and experiments each leave their own record:
+
 \begin{itemize}
   \item \textbf{Audits} (\file{docs/audit/}) record non-bug decisions; \textbf{ADRs}
         (\file{docs/adr/}) record hard-to-reverse architecture decisions. Both are immutable:
@@ -1218,6 +1251,8 @@ running \code{checked\_by}; never weaken a check or edit a test to make somethin
 \end{itemize}
 
 \subsection{A session}
+
+A work session follows these steps:
 
 \begin{enumerate}\raggedright
   \item Read \file{docs/handoff.md}, \code{git log --oneline -10}, the active todo
@@ -1232,6 +1267,8 @@ running \code{checked\_by}; never weaken a check or edit a test to make somethin
 %======================================================================
 \section{Known limitations}\label{sec:limits}
 %======================================================================
+
+What version 0.1.0 does not do, or has not verified against a real engine:
 
 \begin{itemize}
   \item \textbf{Real-engine coverage differs by adapter.} The Gomocup adapter is verified against

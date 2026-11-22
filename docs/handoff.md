@@ -12,23 +12,17 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. Committed and passing: STYLE-04 (live, smoke, main; style checks are ctest entries style_line_length and style_doc_comments), STYLE-03 (8009ad6 + align commit: engine, gomocup, gtp, katagomo), STYLE-02 (08cf296) and STYLE-01 (planning code-style-normalization): scripts/check-line-length.sh and scripts/check-doc-comments.sh; core headers documented and aligned (86d6fd9 comments + wrap, 6fa582c `style: align columns`). Before it: DEAD-04, DEAD-01..03, GOMO-06, GOMO-05, GOMO-04, PROC-03, TEST-01, GTP-05, PORT-02, GTP-04, PROC-02, HARNESS-01..04, RESIGN-01, MSG-01, GTP-03, KATA-01, GOMO-03, CORE-01, PROTO-01, PARSE-01, PORT-01, GOMO-01, PROC-01, GOMO-02,
-GTP-01, GTP-02.
+Nothing in progress. Committed and passing: DOC-02 (guide pass 2: 33df804 stale facts, then the prose pass; PDF rebuilt), DOC-01 (pass 1, 8890484). Before them: STYLE-01..04, DEAD-01..04, GOMO-01..06, GTP-01..05, PROC-01..03 and the rest (see TODO.md).
 
 ## Next step
 
-Revising `docs/guide/developer-guide.tex` in three passes (owner's plan):
-1. Content: DONE as DOC-01 (five parts by Diataxis type, Getting started, limitations once, PDF rebuilt).
-2. Prose and structure: next. Needs its own todo (DOC-02, size M). Use skill `writing-clearly-and-concisely` and note `craft-editing-and-revision`. Also re-check the capability matrix and parser shapes against the code (not checked in pass 1).
-3. Diagrams: the three TikZ figures (module dependencies, search data flow, DeadlineEngine timeline). Own todo (DOC-03).
-Doc-writing skills are in `.claude/skills/` (documentation, writing-clearly-and-concisely, documentation-and-adrs, adr-author, latex-document-skill); each still has a README.WARNING.md/README.md not yet read or adapted. Notes to read in place: `SKILLS_TREE/knowledge/documents/items/` (craft-editing-and-revision, tex-tables-and-figures, tex-build-latexmk-engines).
-
-Otherwise no todo is open. Style normalization (planning code-style-normalization) is finished; the owner may close the planning. A `.clang-format` stays a separate planning.
-KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`);
-re-clone into the scratchpad when needed. Rapfi source: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi`.
-
+1. DOC-03 (not yet a todo; owner creates it): redraw the three TikZ figures in `docs/guide/developer-guide.tex` (module dependencies, search data flow, DeadlineEngine timeline). Note `tex-tables-and-figures` in SKILLS_TREE.
+2. GTP-06 (backlog, found in DOC-02): an id-less reply to `GtpEngine::sendRaw` ends a running or the next search. Needs features from the owner, then a fake-transport reproduction first. The guide states it in Known limitations; update that bullet when fixed.
+Doc skills in `.claude/skills/` still carry README.WARNING.md/README.md (read, not adapted; no project paths needed changing).
+KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`); re-clone into the scratchpad when needed. Rapfi: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi` (binary `build/pbrain-rapfi`).
 
 ## Uncertain
+- Guide pre-existing source lines over 100 columns (about 18) were left alone (no restyle outside changed text).
 - check-doc-comments.sh is a heuristic: it checks types, aliases, free functions and public methods, not data members or enumerators (those are reviewed by hand). Overrides need their own `///` line each; accepting one group comment for them in the script would loosen the rule, so it needs an owner decision.
 - GtpEngine::stop() is a no-op by protocol: docs/audit/AUD-02 (KataGomo reads stdin on one thread; genmove cannot be interrupted). Limits persist in the engine between searches.
 - GTP and KataGomo `gom` shapes (GtpEngine, KataGomoEngine) are read from source only; no such engine was ever run. VCN rules and `kata-set-rule` not mapped.

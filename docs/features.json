@@ -1262,7 +1262,7 @@
         "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined|Overfull\" /tmp/pygomo-guide/developer-guide.log"
       ],
       "checked_by": "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined|Overfull\" /tmp/pygomo-guide/developer-guide.log",
-      "passes": false
+      "passes": true
     },
     {
       "id": "DOC-02-listings",
@@ -1272,7 +1272,7 @@
         "git diff -w HEAD -- docs/guide/developer-guide.tex  # check lstlisting blocks; rebuild the first listing as in Section Your first search"
       ],
       "checked_by": "git diff -w HEAD -- docs/guide/developer-guide.tex  # check lstlisting blocks; rebuild the first listing as in Section Your first search",
-      "passes": false
+      "passes": true
     },
     {
       "id": "DOC-02-terms",
@@ -1282,7 +1282,7 @@
         "grep -n \"\" docs/guide/developer-guide.tex  # grep each rejected variant listed in Evidence; none remain"
       ],
       "checked_by": "grep -n \"\" docs/guide/developer-guide.tex  # grep each rejected variant listed in Evidence; none remain",
-      "passes": false
+      "passes": true
     },
     {
       "id": "DOC-02-facts",
@@ -1292,7 +1292,7 @@
         "ctest --preset default && scripts/check-core-deps.sh && scripts/check-ctest-coverage.sh  # plus the per-cell check recorded in Evidence"
       ],
       "checked_by": "ctest --preset default && scripts/check-core-deps.sh && scripts/check-ctest-coverage.sh  # plus the per-cell check recorded in Evidence",
-      "passes": false
+      "passes": true
     },
     {
       "id": "DOC-02-types",
@@ -1302,7 +1302,7 @@
         "manual: read each part against skill documentation Step 4; record any subsection moved or split in Evidence"
       ],
       "checked_by": "manual: read each part against skill documentation Step 4; record any subsection moved or split in Evidence",
-      "passes": false
+      "passes": true
     }
   ]
 }
