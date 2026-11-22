@@ -196,7 +196,7 @@ The application coordinates shutdown because it owns the session objects. It cal
 still alive. `GomocupEngine::onClosed()` only emits `ErrorEvent{"engine connection closed"}`
 while a search is active. If the watchdog has already timed out that search, the relay
 consumes the terminal event. [GomocupEngine source](../../src/gomocup/gomocup_engine.cpp#L133) ·
-[DeadlineEngine source](../../src/engine/deadline_engine.cpp#L62-L76)
+[DeadlineEngine source](../../src/engine/deadline_engine.cpp#L67-L81)
 
 The sink can be released once its terminal callback returns, including a timeout callback
 from the watchdog. [ProcessTransport](../../include/pygomo/process/process_transport.hpp) ·

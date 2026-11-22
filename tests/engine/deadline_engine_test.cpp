@@ -268,3 +268,91 @@ TEST_CASE("dead1_serialization: the timeout waits for an active info callback to
     REQUIRE(events.size() == 1);
     CHECK(std::holds_alternative<BestMoveEvent>(events[0]));
 }
+
+namespace {
+
+/// Breaks the EnginePort contract on purpose: its first startSearch ends the search through the
+/// sink and then refuses, as an adapter whose transport closes between installing the sink and
+/// writing the request. The next `refuseAfter` calls refuse plainly; later calls start normally.
+class EndsThenRefuses final : public EnginePort {
+public:
+    bool supports(const Rules&) const override { return true; }
+    std::expected<void, EngineError> setRules(const Rules&) override { return {}; }
+    std::expected<void, EngineError> startSearch(
+        const Position&, const Limits&, EventSink& s) override {
+        if (calls++ == 0) {
+            s.onEvent(ErrorEvent{"engine connection closed"});
+            return std::unexpected(EngineError::TransportFailed);
+        }
+        if (refuseAfter > 0) {
+            --refuseAfter;
+            return std::unexpected(EngineError::NotReady);
+        }
+        sink = &s;
+        return {};
+    }
+    void stop() override {}
+    std::expected<void, EngineError> sendRaw(std::string_view) override { return {}; }
+
+    int refuseAfter = 0;
+    int calls = 0;
+    EventSink* sink = nullptr;
+};
+
+/// Starts the next search from the terminal callback of the first one.
+struct Restart final : EventSink {
+    Restart(DeadlineEngine& e, Limits l, Collect& n) : eng(e), limits(l), next(n) {}
+    void onEvent(const SearchEvent&) override { restarted = eng.startSearch(pos(), limits, next); }
+
+    DeadlineEngine& eng;
+    Limits limits;
+    Collect& next;
+    std::expected<void, EngineError> restarted = std::unexpected(EngineError::Unsupported);
+};
+
+}  // namespace
+
+TEST_CASE("core4_failed_start: a refused start keeps the search its terminal callback started") {
+    EndsThenRefuses port;
+    DeadlineEngine eng{port, DeadlineEngine::Options{10ms}};
+    Collect next;
+    Restart first{eng, Limits{}, next};
+
+    CHECK(eng.startSearch(pos(), Limits{}, first).error() == EngineError::TransportFailed);
+    REQUIRE(first.restarted);
+    REQUIRE(port.sink != nullptr);
+    port.sink->onEvent(kMove);
+    REQUIRE(next.get().size() == 1);
+    CHECK(std::holds_alternative<BestMoveEvent>(next.get()[0]));
+}
+
+TEST_CASE("core4_failed_start: a refused start keeps the deadline of the newer search") {
+    EndsThenRefuses port;
+    DeadlineEngine eng{port, DeadlineEngine::Options{10ms}};
+    Collect next;
+    Restart first{eng, turn(10ms), next};
+
+    CHECK(eng.startSearch(pos(), Limits{}, first).error() == EngineError::TransportFailed);
+    REQUIRE(first.restarted);
+    REQUIRE(waitFor(next, 1));  // the engine never answers: the newer deadline must still fire
+    CHECK(std::get<ErrorEvent>(next.get()[0]).message == "engine did not answer");
+}
+
+TEST_CASE("core4_failed_start: a nested start that is refused too leaves no state behind") {
+    EndsThenRefuses port;
+    port.refuseAfter = 1;
+    DeadlineEngine eng{port, DeadlineEngine::Options{10ms}};
+    Collect next;
+    Restart first{eng, turn(10ms), next};
+
+    CHECK(eng.startSearch(pos(), Limits{}, first).error() == EngineError::TransportFailed);
+    CHECK(first.restarted.error() == EngineError::NotReady);
+    std::this_thread::sleep_for(100ms);  // past the nested deadline: no stray timeout
+    CHECK(next.get().empty());
+
+    Collect last;
+    REQUIRE(eng.startSearch(pos(), Limits{}, last));
+    port.sink->onEvent(kMove);
+    REQUIRE(last.get().size() == 1);
+    CHECK(std::holds_alternative<BestMoveEvent>(last.get()[0]));
+}

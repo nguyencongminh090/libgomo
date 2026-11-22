@@ -2,7 +2,7 @@
 id: CORE-04-failed-start-clears-newer-search
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-22
 supersedes: []
@@ -46,7 +46,17 @@ có kết quả tái hiện.
 
 ## Evidence
 
-Phát hiện khi review CORE-02 (2026-11-22), chưa tái hiện.
+Phát hiện khi review CORE-02 (2026-11-22).
+
+- Tái hiện (2026-11-22) chỉ với `EnginePort` giả vi phạm hợp đồng: kết thúc lượt qua relay rồi
+  trả `TransportFailed`. Chưa sửa thì hai ca `core4_failed_start` đầu FAIL (lượt mới không nhận
+  BestMove, không có lỗi timeout).
+- Adapter thật: cả ba adapter có thể giao "engine connection closed" rồi trả `TransportFailed`
+  khi transport đóng giữa lúc startSearch chạy, nhưng lượt mới không khởi động được (NotReady
+  hoặc ghi thất bại), nên không mất sự kiện. Ghi thành PORT-03.
+- Chủ repo chọn giữ lớp phòng thủ. Sửa: so `searchId_` trong nhánh thất bại
+  (`src/engine/deadline_engine.cpp`), fix-log CORE-04-01.
+- `ctest --preset default` và `ctest --preset tsan`: 67/67; `check-core-deps.sh` OK.
 
 ## Links
 

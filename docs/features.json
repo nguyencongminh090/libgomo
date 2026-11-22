@@ -1436,6 +1436,26 @@
       ],
       "checked_by": "node scripts/harness/harness-check.mjs  # no FM-MISSING for docs/design/architecture.md",
       "passes": true
+    },
+    {
+      "id": "CORE-04-keep-newer",
+      "todo": "CORE-04",
+      "description": "WHEN the wrapped engine ends a search through the relay and then refuses startSearch, and the sink started a newer search from that terminal callback THEN the newer search keeps its sink and deadline (its BestMoveEvent or timeout ErrorEvent arrives), and a nested start that is refused too leaves DeadlineEngine idle",
+      "steps": [
+        "ctest --preset default -R \"^core4_failed_start$\" --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R \"^core4_failed_start$\" --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "CORE-04-deps",
+      "todo": "CORE-04",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

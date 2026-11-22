@@ -112,3 +112,32 @@ callback. The decorator returns `Busy` while delivery is pending or a late answe
 `ctest --preset default -R '^dead1_serialization$'` holds an info callback open through expiry.
 It checks callback order, exactly one terminal event, and late answers on both sides of
 timeout delivery.
+
+## CORE-04-01-failed-start-clears-newer-search (2026-11-22, owner claude)
+
+### Symptom
+
+`DeadlineEngine::startSearch` cleared `sink_` and `deadline_` whenever the wrapped engine
+refused, without checking which search they belonged to. If the engine had already ended the
+search through the relay and the sink had started a newer search from that terminal callback,
+the newer search lost every event, its terminal event included, and had no deadline.
+
+### Real source
+
+The failure branch assumed the state it clears still belongs to its own call. Reproduced only
+with a wrapped engine that ends the search and then refuses (the `EnginePort` contract says a
+refused call never starts a search). The real adapters do this when the transport closes
+between installing the sink and a failed write, but then a newer search cannot start (the
+adapter stays NotReady or the write fails), judging by the adapter code (not run).
+
+### Corrected fix
+
+`startSearch` keeps the `searchId_` it took under the mutex and clears the state only while
+that id is still current. A nested start that fails clears its own search, the outer call
+leaves it alone.
+
+### Regression check
+
+`ctest --preset default -R '^core4_failed_start$'`: a contract-breaking `EnginePort` fake ends
+the first search and refuses; the newer search still gets its BestMoveEvent or its timeout
+ErrorEvent, and a nested start that is refused too leaves the decorator idle.

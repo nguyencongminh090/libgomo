@@ -35,12 +35,13 @@ void DeadlineEngine::stop() { inner_.stop(); }
 
 std::expected<void, EngineError> DeadlineEngine::startSearch(
     const Position& position, const Limits& limits, EventSink& sink) {
+    std::uint64_t id = 0;
     {
         std::lock_guard lock(mutex_);
         if (detached_ || terminalPending_ || sink_) return std::unexpected(EngineError::Busy);
         // Installed before the call: the engine may deliver events before it returns.
         sink_ = &sink;
-        ++searchId_;
+        id = ++searchId_;
         stopSent_ = false;
         if (limits.turnTime && limits.turnTime->count() > 0) {
             deadline_ = Clock::now() + *limits.turnTime + options_.grace;
@@ -52,9 +53,13 @@ std::expected<void, EngineError> DeadlineEngine::startSearch(
     auto started = inner_.startSearch(position, limits, relay_);
     if (!started) {
         std::lock_guard lock(mutex_);
-        // The engine may already have ended the search through the relay; then sink_ is null.
-        sink_ = nullptr;
-        deadline_.reset();
+        // The engine may already have ended the search through the relay (an adapter whose
+        // transport closes mid-start does), and the sink may have started a newer search from
+        // that callback or another thread. Clear only this call's search (CORE-04).
+        if (searchId_ == id) {
+            sink_ = nullptr;
+            deadline_.reset();
+        }
     }
     return started;
 }

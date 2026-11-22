@@ -58,6 +58,7 @@ add_test(NAME port_blocking COMMAND pygomo_engine_tests "-tc=port_blocking*")
 foreach(group timeout intime nodeadline callback serialization)
   add_test(NAME dead1_${group} COMMAND pygomo_engine_tests "-tc=dead1_${group}*")
 endforeach()
+add_test(NAME core4_failed_start COMMAND pygomo_engine_tests "-tc=core4_failed_start*")
 
 add_executable(pygomo_gomocup_tests
   main.cpp
