@@ -1555,7 +1555,7 @@
         "node scripts/harness/harness-check.mjs"
       ],
       "checked_by": "node scripts/harness/harness-check.mjs  # plus reading the ADR against the planning Decision",
-      "passes": false
+      "passes": true
     },
     {
       "id": "DOC-04-guide",
@@ -1565,7 +1565,7 @@
         "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined|Overfull\" /tmp/pygomo-guide/developer-guide.log"
       ],
       "checked_by": "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined|Overfull\" /tmp/pygomo-guide/developer-guide.log",
-      "passes": false
+      "passes": true
     }
   ]
 }

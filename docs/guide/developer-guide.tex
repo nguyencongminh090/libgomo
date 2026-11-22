@@ -529,7 +529,12 @@ public:
             [&](const auto& e) {
                 using T = std::decay_t<decltype(e)>;
                 if constexpr (std::is_same_v<T, InfoEvent>) {
-                    if (e.nodes) std::printf("nodes %lld\n", static_cast<long long>(*e.nodes));
+                    for (const Candidate& c : e.candidates) {  // one GTP line = one snapshot
+                        if (c.move && c.visits) {
+                            std::printf("%d,%d visits %lld\n", c.move->x, c.move->y,
+                                        static_cast<long long>(*c.visits));
+                        }
+                    }
                 } else if constexpr (std::is_same_v<T, MessageEvent>) {
                     std::printf("engine says: %s\n", e.text.c_str());
                 } else if constexpr (std::is_same_v<T, UnparsedEvent>) {
@@ -588,7 +593,11 @@ Follow these rules in any application built on the port:
 \begin{itemize}
   \item Check \code{supports(rules)} or the result of \code{setRules} before a game; an
         unsupported request sends nothing.
-  \item Treat \code{InfoEvent} fields as optional. Engines print different subsets.
+  \item Treat \code{InfoEvent} and \code{Candidate} fields as optional. Engines print different
+        subsets.
+  \item Read the summary for ``how is the search going'' and \code{candidates} for per-move
+        analysis. Do not take \code{nodes} as one move's visits, or a candidate's
+        \code{visits} as the search total (Section~\ref{sec:candidates}).
   \item Keep \code{UnparsedEvent} and \code{MessageEvent} visible in logs: they are how a new engine
         output format shows up.
   \item Give every search a \code{turnTime}, and wrap the adapter in \code{DeadlineEngine} unless
@@ -690,7 +699,11 @@ transport would be a new module next to \code{pygomo\_process}.
 
 Changing \code{SearchEvent}, \code{EnginePort} or any core type changes a public interface used by
 every adapter and application: it is size~L. Precedent: \code{MessageEvent} and \code{ResignEvent}
-were added under the planning \file{features/core-message-resign-events/planning.md}. Keep the
+were added under the planning \file{features/core-message-resign-events/planning.md};
+\code{InfoEvent::candidates} under \file{features/detailed-search-analysis/planning.md}, recorded
+in ADR-01. A new \code{SearchEvent} type ends searches: \code{search()}, \code{DeadlineEngine}
+and \code{KataGomoEngine} treat every type other than Info, Message and Unparsed as terminal, so
+extend an existing event when the data is progress. Keep the
 variant protocol-neutral, and update every adapter, both parsers and \code{search()} in the same
 planning.
 
@@ -801,8 +814,9 @@ using SearchEvent = std::variant<InfoEvent, BestMoveEvent, SwapEvent, PassEvent,
 \toprule
 \normalfont\textbf{Event} & \textbf{Terminal} & \textbf{Meaning} \\
 \midrule
-InfoEvent     & no  & Progress: optional \code{depth}, \code{nodes}, \code{score}, \code{elapsed},
-                      \code{principalVariation}. Engines differ in what they print. \\
+InfoEvent     & no  & Progress: an optional summary (\code{depth}, \code{nodes}, \code{score},
+                      \code{elapsed}, \code{principalVariation}) and a list of \code{candidates}.
+                      Engines differ in what they print. \\
 BestMoveEvent & yes & The engine's chosen move (already checked to be on the board and free). \\
 SwapEvent     & yes & The engine swaps sides in a swap opening. \\
 PassEvent     & yes & The engine passed. Gomoku has no pass; callers may treat it as an error. \\
@@ -817,6 +831,51 @@ UnparsedEvent & no  & A line no parser understood, kept whole. \\
 
 \noindent \code{Score} has a \code{kind} (\code{Eval}, \code{MateIn}, \code{MatedIn}) and a
 \code{value}, always from the side to move's point of view.
+
+\paragraph{Summary and candidates.}\label{sec:candidates} An \code{InfoEvent} carries two views
+of a report (ADR-01, \file{docs/adr/ADR-01-info-event-candidates.md}):
+
+\begin{itemize}
+  \item \textbf{The summary} describes the search as a whole. \code{depth} and \code{elapsed} are
+        of the whole search. \code{nodes} is only the search total, never the visits of one move.
+        \code{score} and \code{principalVariation} come only from an unranked line or the
+        rank-1 candidate; a report about the second-best move leaves them empty.
+  \item \textbf{\code{candidates}} is a \code{std::vector<Candidate>}, one entry per move the
+        report describes, in printed order. Every field of a \code{Candidate} is optional:
+        \code{rank} (1 = best, only when the engine prints one), \code{move}, \code{score},
+        \code{visits} (spent on this move only), \code{winrate} and \code{drawrate} (both
+        $0..1$), and the \code{principalVariation} starting with this move.
+\end{itemize}
+
+\noindent How the two protocols fill it:
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}l X X@{}}
+\toprule
+ & \textbf{Gomocup (Rapfi)} & \textbf{GTP analysis (KataGomo)} \\
+\midrule
+One report    & One line per candidate: a ranked line gives one \code{Candidate}; unranked
+                lines (\code{depth ... pv}, \code{Speed ...}, \code{Bestline}) give none.
+              & One line holds every candidate: each \code{info} entry is one
+                \code{Candidate}, so a line is a whole snapshot. \\
+\code{rank}   & \code{(N)} or \code{multipv N}. & \code{order k} gives $k+1$; empty without
+                \code{order}. \\
+\code{visits} & \code{V} / \code{v}. & \code{visits}. \\
+Win / draw    & \code{W}/\code{D} or \code{w}/\code{d} percentages, divided by 100.
+              & \code{winrate} only: $0..1$ when the entry has \code{utility}
+                (\code{kata-analyze}), else divided by 10000 (\code{lz-analyze}). No draw rate. \\
+Summary       & \code{nodes} from \code{n}, \code{Node} or the \code{Speed} line's
+                \code{Visit}; \code{score} and PV from unranked or rank-1 lines.
+              & \code{nodes} and \code{score} empty; PV from rank 1, or from the first entry
+                when no entry has \code{order}. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent A rate outside $0..1$ is left empty. The framework never groups Gomocup lines into
+snapshots: it cannot know where one search iteration ends, so the application groups ranked
+lines itself (for example, a new \code{rank == 1} starts a new set).
 
 %======================================================================
 \section{The engine port}\label{sec:port}
@@ -1049,9 +1108,10 @@ commands, each with a numeric id:
         move, an analysis reply without a final \code{play}, and a reply without an id each end
         the search with \code{ErrorEvent}.
   \item \textbf{Analysis.} \code{setAnalyze(interval)} switches later searches to
-        \code{kata-genmove\_analyze}: the engine streams \code{info} lines (reported as
-        \code{InfoEvent}, \code{visits} as nodes, \code{pv} as the principal variation) before the
-        final \code{play X}. The interval is rounded down to centiseconds, minimum 1.
+        \code{kata-genmove\_analyze}: the engine streams \code{info} lines before the final
+        \code{play X}. Each line is one \code{InfoEvent} whose \code{candidates} hold every entry
+        of the line (Section~\ref{sec:candidates}). The interval is rounded down to
+        centiseconds, minimum 1.
   \item \textbf{Free text} outside a reply during a search becomes a \code{MessageEvent}; outside a
         search it is dropped.
   \item \textbf{stop() is a no-op.} KataGomo reads stdin on one thread, so a line sent during
@@ -1103,15 +1163,19 @@ Parsers live in namespace \code{pygomo::parse}, are pure and total, and never th
             optional \code{[Pondering]} prefix, MCTS \code{Visit}, multi-PV \code{(1) 34 | 5-6 | E5 B2},
             and \code{Bestline H7 J9 I9}.
     \end{itemize}
+    A ranked line (\code{(N) ...} or \code{multipv N ...}) gives one \code{Candidate}; only
+    rank~1 fills the summary \code{score} and PV (Section~\ref{sec:candidates}).
     Counts accept \code{K/M/G/T} suffixes; scores accept \code{+M<n>}/\code{-M<n>} (mate). In
     the Rapfi shapes \code{Time} accepts \code{ms}, \code{s}, \code{min} and \code{h}; in the
     UCI-like shape \code{tm} is plain milliseconds. Labels like \code{H8} in a PV mean column
     letter and 1-based row counted from the top, with \code{A1} = \code{(0,0)}.
   \item[\code{parseGtpResponseHeader(line)}] \code{=}/\code{?}, optional id (at most 9 digits), body.
   \item[\code{parseGtpVertex(text, w, h)} / \code{formatGtpVertex(coord, w, h)}] vertex conversion.
-  \item[\code{parseGtpAnalyzeLine(line, w, h)}] the first entry of a \code{kata-analyze} /
-    \code{lz-analyze} \code{info} line; winrate and similar fields are left out (in KataGomo
-    Gom2026 the score fields hold the draw rate).
+  \item[\code{parseGtpAnalyzeLine(line, w, h)}] a \code{kata-analyze} / \code{lz-analyze}
+    \code{info} line; every entry becomes a \code{Candidate}. A broken first entry gives
+    \code{UnparsedEvent}; a broken later entry keeps the candidates before it. Score fields are
+    not read (in KataGomo Gom2026 they hold the draw rate), nor are \code{prior}, \code{lcb} and
+    \code{utility}.
 \end{description}
 
 \noindent \code{parseGomocupLine} does not know the board size; the adapter checks each returned
@@ -1347,6 +1411,11 @@ What version 0.1.0 does not do, or has not verified against a real engine:
         \code{coord\_conversion\_mode} other than \code{none}.
   \item \textbf{KataGomo \code{MESSAGE Visits ... Winrate ...} lines} are not an info shape the
         Gomocup parser knows; they arrive as \code{MessageEvent}, with no structured fields.
+  \item \textbf{Candidate data has limits.} GTP \code{winrate} is from whatever perspective the
+        engine reports: KataGomo follows its \code{reportAnalysisWinratesAs} setting (default:
+        side to move), which the framework cannot see. GTP has no draw rate, and Gomocup ranked
+        lines are not grouped into snapshots. \code{prior}, \code{lcb}, \code{utility},
+        \code{seldepth} and \code{stdev} are not kept.
   \item \textbf{ProcessTransport is POSIX-only}; a process that calls \code{setsid} escapes the
         process-group kill.
   \item \textbf{\code{check-doc-comments.sh} is a heuristic}: data members and enumerators are
@@ -1360,6 +1429,9 @@ What version 0.1.0 does not do, or has not verified against a real engine:
         the code is the truth for the wire format).
   \item \file{features/engine-search-deadline/planning.md}, \file{docs/audit/AUD-01..03} ---
         deadlines and the owed answer.
+  \item \file{docs/adr/ADR-01-info-event-candidates.md} --- why per-move analysis lives in
+        \code{InfoEvent::candidates} (planning:
+        \file{features/detailed-search-analysis/planning.md}).
   \item \file{docs/knowledge/} --- background notes (hexagonal style, adapter, strategy, SOLID,
         coupling and cohesion, testability).
   \item \file{docs/fix-log.md} --- root causes of past bugs and the checks that now catch them.

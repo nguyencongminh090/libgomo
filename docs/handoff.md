@@ -12,17 +12,14 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. PORT-03 is done (fix-log PORT-03-01, ctest `port3_*`). On 2026-11-22 the
-owner asked to verify its two features; their `checked_by` were re-run on a fresh build and pass:
-`port3_*` 3/3 (7 doctest cases: GTP 3, KataGomo 2, Gomocup 2), default 70/70, tsan 70/70,
-check-core-deps OK. `gomo2_*` were Skipped in that run (no live Rapfi); they passed against the
-real Rapfi when PORT-03 closed. Previous todo: CORE-04. The next CORE todo is CORE-06 (CORE-05 is
-a design id).
+Nothing in progress. DOC-04 done (2026-11-22): ADR-01 (`docs/adr/ADR-01-info-event-candidates.md`,
+the first ADR) records `InfoEvent::candidates`; the developer guide explains candidates (§8.5),
+the summary-field meaning and the known limits; PDF rebuilt. All four todos of planning
+`detailed-search-analysis` (CORE-06, GOMO-07, GTP-07, DOC-04) are done.
 
 ## Next step
-1. Planning `detailed-search-analysis` approved 2026-11-22 (including moving 5 test assertions
-   to `candidates`). CORE-06, GOMO-07 and GTP-07 done (ctest `cand1_*`, `gomo7_*`, `gtp7_*`).
-   Next: DOC-04 (ADR + guide), the last todo of the planning.
+1. The owner may close planning `detailed-search-analysis` (all its todos done) and the
+   style-normalization planning. No other todo is queued in this handoff; pick from `TODO.md`.
    `agy -p` in `--mode accept-edits` edits files but cannot run shell commands headless;
    `--dangerously-skip-permissions` is blocked here, so the orchestrator builds and tests.
 
