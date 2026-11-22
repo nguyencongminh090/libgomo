@@ -2,7 +2,7 @@
 id: CORE-06-info-event-candidates
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-22
 supersedes: []
@@ -41,6 +41,17 @@ planning: detailed-search-analysis
 Features `CORE-06-*` trong `docs/features.json`.
 
 ## Evidence
+
+Implemented by agy (Gemini 4 Neon High, accept-edits mode; it could not run shell commands).
+Reviewed by Claude: one 104-column line in `architecture.md` rewrapped, InfoEvent doc comment
+made precise. Checks run by Claude on 2026-11-22:
+
+- `ctest --preset default -R "^cand1_" --output-on-failure`: 3/3 (`cand1_defaults`,
+  `cand1_equality`, `cand1_compat`; 4 doctest cases).
+- `ctest --preset default`: 73/73 (gomo2 live tests Skipped, no `PYGOMO_RAPFI`), including
+  `ctest_coverage`, `style_line_length`, `style_doc_comments`.
+- `ctest --preset tsan`: 73/73. `scripts/check-core-deps.sh`: OK.
+- Existing parser tests unchanged (`git diff` touches no file under `tests/parse` or `src/`).
 
 ## Links
 

@@ -1,7 +1,6 @@
 # TODO
 
 ## Backlog
-- [ ] **CORE-06.** Core: kiểu `Candidate` và `InfoEvent::candidates` - size M - [detail](docs/todo/CORE-06-info-event-candidates.md)
 - [ ] **DOC-04.** ADR cho hình dạng `InfoEvent` và cập nhật guide - size M - [detail](docs/todo/DOC-04-candidates-adr-guide.md)
 - [ ] **GOMO-07.** Gomocup: giữ hạng MultiPV và dữ liệu ứng viên - size M - [detail](docs/todo/GOMO-07-multipv-candidates.md)
 - [ ] **GTP-07.** GTP: đọc mọi ứng viên trong một dòng analyze - size M - [detail](docs/todo/GTP-07-analyze-all-candidates.md)
@@ -13,6 +12,7 @@
 - [x] **CORE-02.** Tuần tự hóa callback của DeadlineEngine khi hết hạn - size M - [detail](docs/todo/CORE-02-serialize-deadline-callbacks.md)
 - [x] **CORE-03.** Bổ sung phụ thuộc và vòng đời phiên vào sơ đồ kiến trúc - size M - [detail](docs/todo/CORE-03-document-architecture-lifecycle.md)
 - [x] **CORE-04.** DeadlineEngine: startSearch thất bại không được xóa sink của lượt mới hơn - size M - [detail](docs/todo/CORE-04-failed-start-clears-newer-search.md)
+- [x] **CORE-06.** Core: kiểu `Candidate` và `InfoEvent::candidates` - size M - [detail](docs/todo/CORE-06-info-event-candidates.md)
 - [x] **DEAD-01.** DeadlineEngine: decorator that gives any EnginePort a search deadline - size M - [detail](docs/todo/DEAD-01-deadline-engine-decorator.md)
 - [x] **DEAD-02.** DeadlineEngine over GtpEngine and KataGomoEngine (fake-transport tests) - size M - [detail](docs/todo/DEAD-02-deadline-gtp-katagomo.md)
 - [x] **DEAD-03.** GomocupEngine: retire the built-in deadline, use DeadlineEngine - size M - [detail](docs/todo/DEAD-03-retire-gomocup-builtin-deadline.md)

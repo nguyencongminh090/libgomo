@@ -61,6 +61,10 @@ class SearchEvent {
     InfoEvent / BestMoveEvent / SwapEvent / PassEvent
     ResignEvent / ErrorEvent / MessageEvent / UnparsedEvent
 }
+class InfoEvent {
+    +candidates vector~Candidate~
+}
+class Candidate
 class Position
 class Rules
 class Limits
@@ -124,6 +128,8 @@ EnginePort ..> Rules
 EnginePort ..> Limits
 EnginePort ..> EventSink
 EventSink ..> SearchEvent
+SearchEvent ..> InfoEvent
+InfoEvent *-- Candidate
 Position *-- Move
 Move *-- Coord
 
@@ -149,6 +155,11 @@ Transport <|.. StreamTransport
 Transport <|.. ProcessTransport
 ProcessTransport *-- ProcessOptions
 ```
+
+`InfoEvent` holds search-wide summary fields (`depth`, `nodes`, `elapsed`, plus `score` and
+`principalVariation` from an unranked line or the rank-1 candidate) and a `candidates` list of
+`Candidate` values for per-move analysis.
+[search_event.hpp](../../include/pygomo/core/search_event.hpp)
 
 ## Session lifecycle
 

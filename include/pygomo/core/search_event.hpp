@@ -26,13 +26,29 @@ struct Score {
     constexpr bool operator==(const Score&) const = default;
 };
 
+/// One candidate move reported during a search (e.g. a ranked line or an analysis entry).
+struct Candidate {
+    std::optional<int> rank{}; ///< 1 = best; empty when the engine prints no rank.
+    std::optional<Coord> move{}; ///< Candidate move; empty for pass or when not sent.
+    std::optional<Score> score{}; ///< Evaluation of this move.
+    std::optional<std::int64_t> visits{}; ///< Visits or nodes spent on this move only.
+    std::optional<double> winrate{}; ///< 0..1, perspective as reported by the engine.
+    std::optional<double> drawrate{}; ///< 0..1; empty when the engine reports none.
+    std::vector<Coord> principalVariation{}; ///< Line from this move, first move first.
+
+    bool operator==(const Candidate&) const = default;
+};
+
 /// Progress report during a search. Every field is optional: engines differ in what they print.
+/// `nodes` is the search total (per-move visits live on `Candidate::visits`); `score` and
+/// `principalVariation` come only from an unranked line or the rank-1 candidate.
 struct InfoEvent {
     std::optional<int>          depth{};  ///< Search depth reached, in plies.
     std::optional<std::int64_t> nodes{};  ///< Nodes searched so far.
     std::optional<Score>        score{};  ///< Evaluation of the best line.
     std::optional<std::chrono::milliseconds> elapsed{}; ///< Time since the search started.
     std::vector<Coord> principalVariation{}; ///< Best line, first move first; empty if not sent.
+    std::vector<Candidate> candidates{}; ///< Candidate moves in this report; empty if none.
 
     bool operator==(const InfoEvent&) const = default;
 };

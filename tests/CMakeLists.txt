@@ -12,6 +12,9 @@ target_include_directories(pygomo_core_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR
 pygomo_enable_warnings(pygomo_core_tests)
 add_test(NAME port_sink COMMAND pygomo_core_tests "-tc=port_sink*")
 add_test(NAME port_contract COMMAND pygomo_core_tests "-tc=port_contract*")
+add_test(NAME cand1_defaults COMMAND pygomo_core_tests "-tc=cand1_defaults*")
+add_test(NAME cand1_equality COMMAND pygomo_core_tests "-tc=cand1_equality*")
+add_test(NAME cand1_compat COMMAND pygomo_core_tests "-tc=cand1_compat*")
 add_test(NAME core_tests COMMAND pygomo_core_tests)
 
 add_executable(pygomo_transport_tests

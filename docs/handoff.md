@@ -21,8 +21,10 @@ a design id).
 
 ## Next step
 1. Planning `detailed-search-analysis` approved 2026-11-22 (including moving 5 test assertions
-   to `candidates`). Todos in backlog, in order: CORE-06 (core type), GOMO-07 and GTP-07
-   (parsers, independent of each other), DOC-04 (ADR + guide, last). Start with CORE-06.
+   to `candidates`). CORE-06 done (`Candidate`, `InfoEvent::candidates`, ctest `cand1_*`).
+   Next: GOMO-07 and GTP-07 (independent of each other), then DOC-04 (ADR + guide, last).
+   `agy -p` in `--mode accept-edits` edits files but cannot run shell commands headless;
+   `--dangerously-skip-permissions` is blocked here, so the orchestrator builds and tests.
 
 Doc skills in `.claude/skills/`: README files of `documentation` and `writing-clearly-and-concisely` were read in DOC-02 (nothing to adapt); the other copied skills still carry unread README.WARNING.md/README.md.
 Style normalization (planning code-style-normalization) is finished; the owner may close the planning. A `.clang-format` stays a separate planning.
