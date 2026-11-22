@@ -564,7 +564,7 @@ int main(int argc, char** argv) {
     GtpEngine        engine{transport};
     PrintingSink     sink;  // declared after the engine, so it is destroyed first: close first
 
-    int rc = 1;
+    int  rc       = 1;
     auto position = Position::create(15, 15);
     if (engine.open() && position) {
         engine.setAnalyze(200ms);  // stream kata-genmove_analyze info lines
