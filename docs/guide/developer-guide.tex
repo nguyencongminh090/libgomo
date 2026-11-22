@@ -296,13 +296,13 @@ Figure~\ref{fig:modules} shows which links which.
 \begin{figure}[tbp]
 \centering
 \begin{tikzpicture}[pg figure]
-  % Row 1: the adapters (grouped) and the process transport.
+  % Row 1: the adapters (grouped) and the process transport (a helper).
   \node[pg mod=layeradapter] (gomocup) at (0,0)   {gomocup};
   \node[pg mod=layeradapter] (gtp)     at (2.8,0) {gtp};
   \node[pg mod=layeradapter] (kata)    at (5.6,0) {katagomo};
   \node[pg group, fit=(gomocup)(kata), label={[pg note]above:adapters}] (adapters) {};
-  \node[pg mod=layerio]      (process) at (10.2,0) {process};
-  \node[pg note, above=0.1cm of process] {built only if \code{UNIX}};
+  \node[pg mod=layerhelper]  (process) at (10.2,0) {process};
+  \node[pg note, right=0.35cm of process] {built only\\if \code{UNIX}};
   % Row 2: parse, transport and the engine helpers.
   \node[pg mod=layerio]      (parse)     at (1.4,-2.2)  {parse};
   \node[pg mod=layerio]      (transport) at (5.6,-2.2)  {transport};
@@ -310,6 +310,8 @@ Figure~\ref{fig:modules} shows which links which.
   % Row 3: the core and the system thread library.
   \node[pg mod=layercore]    (core)    at (3.5,-4.4) {core};
   \node[pg ext]              (threads) at (7.9,-4.4) {Threads (system)};
+  \node[pg group, fit=(process)(engine), label={[pg note]above:engine and process helpers}]
+    (helpers) {};
 
   \draw[pg arrow] (adapters.south -| parse)     -- (parse);
   \draw[pg arrow] (adapters.south -| transport) -- (transport);
@@ -319,13 +321,13 @@ Figure~\ref{fig:modules} shows which links which.
   \draw[pg arrow] (transport) -- (threads);
   \draw[pg arrow] (engine) -- (threads);
   \draw[pg arrow] (engine.south) -- ++(0,-2.9) -| (core.south);
-  \node[pg note, left=0.15cm of core] {links\\nothing};
 \end{tikzpicture}
 \caption{Module dependencies: an arrow points from a target to a target it links
   (\code{target\_link\_libraries} in the root \file{CMakeLists.txt}). The arrows leaving the
-  dashed box hold for each of the three adapters. The core links nothing, and the transport does
-  not link the core. The box shade repeats the layer that the module name already gives: core,
-  adapters, parse and transport, engine helpers.}
+  dashed adapters box hold for each of the three adapters. The core links nothing, and the
+  transport does not link the core. The dashed boxes group the adapters and the engine and process
+  helpers; the box shade repeats the layer (core, adapters, parse and transport, helpers) and
+  carries nothing else.}
 \label{fig:modules}
 \end{figure}
 
@@ -379,7 +381,7 @@ running down.
 \begin{tikzpicture}[pg figure]
   \node[pg ext]                 (app) at (0,0)    {Application};
   \node[pg mod=layeradapter]    (ad)  at (4.5,0)  {GomocupEngine};
-  \node[pg mod=layerio]         (tr)  at (9.0,0)  {ProcessTransport};
+  \node[pg mod=layerhelper]     (tr)  at (9.0,0)  {ProcessTransport};
   \node[pg ext]                 (en)  at (13.5,0) {engine program};
   \foreach \n in {app,ad,tr,en} \draw[pg lifeline] (\n.south) -- ++(0,-6.6);
 
@@ -1163,7 +1165,9 @@ Figure~\ref{fig:deadline} shows the timeline of a search that times out.
   \code{Limits::turnTime} $> 0$ has a deadline. A terminal event that arrives before
   \code{turnTime + 2 grace}, even after \code{stop()}, ends the search normally and cancels the
   deadline. After the \code{ErrorEvent} the decorator refuses new searches until the late
-  terminal event arrives; that event is dropped and the decorator is usable again.}
+  terminal event arrives; that event is dropped and the decorator is usable again. If it never
+  arrives, the decorator stays \code{Busy} and the caller must close the transport
+  (\file{docs/audit/AUD-03}).}
 \label{fig:deadline}
 \end{figure}
 

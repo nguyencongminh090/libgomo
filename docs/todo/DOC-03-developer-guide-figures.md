@@ -60,7 +60,10 @@ Acceptance in `docs/features.json` (`"todo": "DOC-03"`).
   transport (one arrow per target from the dashed adapter box, said in the caption); process ->
   transport; core links nothing. Fixed: engine -> Threads was missing (only transport had a
   "links Threads only" note); Threads is now one dotted external node with both arrows.
-  `process` carries the note "built only if UNIX" (`if(UNIX)`).
+  `process` carries the note "built only if UNIX" (`if(UNIX)`). Layers as in Scope: engine and
+  process share the helper shade and a labelled dashed group box (also ProcessTransport in
+  figure 2); "links nothing" note dropped (it read as a label on the adapters arrow; the
+  caption says it).
 - Figure 2 (`fig:search-flow`) against `GomocupEngine::startSearch/onLine`,
   `Transport::writeLine`, `TransportListener::onLine`, `EventSink::onEvent`,
   `parseGomocupLine`: startSearch(pos, limits, sink) -> writeLine once per line (START n,
@@ -76,15 +79,16 @@ Acceptance in `docs/features.json` (`"todo": "DOC-03"`).
   `startSearch` returns Busy while detached (39); the late terminal clears it and is dropped
   (70-72). Fixed: third tick said "+grace", now "turnTime + 2 grace"; added the end tick "late
   terminal event / dropped". Caption covers the paths not drawn: no deadline without turnTime,
-  and a terminal event before the error (even after stop) ends the search normally.
+  a terminal event before the error (even after stop) ends the search normally, and a late
+  terminal that never arrives leaves the decorator Busy until the transport is closed (AUD-03).
 - Floats: three `figure[tbp]`, `\centering`, caption below the picture, `\caption` then
   `\label{fig:modules|search-flow|deadline}`; each referenced once by `Figure~\ref` in the
   introducing sentence ("The diagram follows" and "The timeline ...:" reworded).
 - Style: one preamble block (`\colorlet` layer shades + `\tikzset` `pg *` styles); one arrow tip
   (Stealth 2 mm, 0.8 pt); fonts: `\small` boxes, `\scriptsize` labels and notes (smallest).
   Greyscale read: `docs/reports/DOC-03/guide-gray-p{7,8,20}.png` (pdftoppm -gray). Shades are
-  close in grey, but every box names its module and the caption says the shade only repeats the
-  layer; external boxes differ by dotted border, adapters by the labelled dashed group.
+  close in grey, so the layer is also given without colour: module names, labelled dashed boxes
+  for adapters and for engine/process helpers, dotted borders for what is outside PyGomo.
 - No package added (tikz libraries already loaded: arrows.meta, positioning, fit, calc).
 - Build: `latexmk` rc 0, log has no `undefined` and no `Overfull`; five `\part`, "never run
   against a real engine" once. New source lines within 100 columns (lines 409-410 over 100 are

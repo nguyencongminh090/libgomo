@@ -22,7 +22,6 @@ Style normalization (planning code-style-normalization) is finished; the owner m
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`); re-clone into the scratchpad when needed. Rapfi: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi` (binary `build/pbrain-rapfi`).
 
 ## Uncertain
-- Guide figure layer shades are close in greyscale (docs/reports/DOC-03); meaning rests on module names and borders, not shade.
 - Guide pre-existing source lines over 100 columns (about 18) were left alone (no restyle outside changed text).
 - check-doc-comments.sh is a heuristic: it checks types, aliases, free functions and public methods, not data members or enumerators (those are reviewed by hand). Overrides need their own `///` line each; accepting one group comment for them in the script would loosen the rule, so it needs an owner decision.
 - GtpEngine::stop() is a no-op by protocol: docs/audit/AUD-02 (KataGomo reads stdin on one thread; genmove cannot be interrupted). Limits persist in the engine between searches.
