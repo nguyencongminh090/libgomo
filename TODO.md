@@ -3,10 +3,10 @@
 ## Backlog
 
 ## Active
-- [~] **CORE-02.** Tuần tự hóa callback của DeadlineEngine khi hết hạn - size M - [detail](docs/todo/CORE-02-serialize-deadline-callbacks.md)
 
 ## Done
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
+- [x] **CORE-02.** Tuần tự hóa callback của DeadlineEngine khi hết hạn - size M - [detail](docs/todo/CORE-02-serialize-deadline-callbacks.md)
 - [x] **DEAD-01.** DeadlineEngine: decorator that gives any EnginePort a search deadline - size M - [detail](docs/todo/DEAD-01-deadline-engine-decorator.md)
 - [x] **DEAD-02.** DeadlineEngine over GtpEngine and KataGomoEngine (fake-transport tests) - size M - [detail](docs/todo/DEAD-02-deadline-gtp-katagomo.md)
 - [x] **DEAD-03.** GomocupEngine: retire the built-in deadline, use DeadlineEngine - size M - [detail](docs/todo/DEAD-03-retire-gomocup-builtin-deadline.md)

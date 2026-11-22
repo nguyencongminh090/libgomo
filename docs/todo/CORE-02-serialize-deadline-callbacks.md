@@ -2,9 +2,9 @@
 id: CORE-02-serialize-deadline-callbacks
 type: todo
 size: M
-status: active
+status: done
 owner: codex
-created: 2026-11-25
+created: 2026-11-22
 supersedes: []
 links: [engine-search-deadline]
 planning:
@@ -30,7 +30,7 @@ planning:
 
 ## Done-when
 
-Tiêu chí đề xuất cho `docs/features.json`, chờ chủ repo duyệt.
+Acceptance in `docs/features.json` (`"todo": "CORE-02"`), đã được chủ repo duyệt.
 
 - Khi watchdog hết hạn trong lúc callback thông tin còn chạy, sink chỉ nhận sự kiện
   kết thúc sau khi callback đó trả về. Mỗi lượt có đúng một sự kiện kết thúc và sự kiện

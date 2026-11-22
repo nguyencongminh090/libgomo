@@ -1386,6 +1386,26 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && node scripts/harness/harness-check.mjs  # plus grep -n \"raw command can end\" docs/guide/developer-guide.tex finds nothing",
       "passes": true
+    },
+    {
+      "id": "CORE-02-order",
+      "todo": "CORE-02",
+      "description": "WHEN the DeadlineEngine watchdog expires while an InfoEvent callback is still running THEN the sink gets ErrorEvent \"engine did not answer\" only after that callback returns, exactly one terminal event per search, no event after it; startSearch is Busy while timeout delivery is pending or the answer is owed, and a late answer (before or after timeout delivery) never reaches the next search",
+      "steps": [
+        "ctest --preset default -R \"^dead1_serialization$\" --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R \"^dead1_serialization$\" --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "CORE-02-deps",
+      "todo": "CORE-02",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

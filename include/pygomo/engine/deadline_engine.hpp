@@ -20,12 +20,14 @@ namespace pygomo {
 /// engine's stop() is called. After one more grace the watchdog commits to delivering
 /// ErrorEvent{"engine did not answer"}. The late engine events are dropped. startSearch returns
 /// Busy until timeout delivery begins and the inner engine's terminal event has arrived. An
-/// engine that never answers stays Busy. No turnTime (or 0) means no deadline.
+/// engine that never answers stays Busy; close it. No turnTime (or 0) means no deadline.
 ///
 /// The terminal callback starts after all earlier callbacks for that search have returned.
 /// The caller can release the sink once the terminal callback returns. Events reach the sink
 /// from the wrapped engine's thread, or from the watchdog thread for the timeout error, with
-/// the state mutex unlocked. The sink may call startSearch from either thread.
+/// the state mutex unlocked. The sink may call startSearch from either thread. A progress
+/// callback that never returns also holds back the timeout error (and the destructor), and one
+/// that makes the wrapped engine deliver its terminal event on the same thread deadlocks.
 class DeadlineEngine final : public EnginePort {
 public:
     /// Tuning for the deadline.
@@ -81,8 +83,8 @@ private:
     bool          quit_{false};
     EventSink*    sink_{nullptr};    // the caller's sink while a search runs
     bool          detached_{false};  // a search timed out and the engine has not answered it yet
-    bool terminalPending_{false};
-    std::size_t progressCallbacks_{0};
+    bool terminalPending_{false};  // a terminal event is claimed, waiting for progress callbacks
+    std::size_t progressCallbacks_{0};  // progress callbacks running outside the mutex
     bool          stopSent_{false};
     std::uint64_t searchId_{0};
     std::optional<Clock::time_point> deadline_;

@@ -126,6 +126,7 @@ void DeadlineEngine::watchdog() {
             lock.lock();
             continue;
         }
+        // sink_ is set here: every path that clears sink_ also resets deadline_.
         detached_ = true;
         finishSearch(lock, ErrorEvent{"engine did not answer"});
         lock.lock();
