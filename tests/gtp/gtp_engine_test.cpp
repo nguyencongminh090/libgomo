@@ -34,11 +34,11 @@ public:
     void closeNow() { listener->onClosed(CloseReason::Eof); }
     std::vector<std::string> lines() { std::lock_guard lock(m); return written; }
 
-    std::mutex m;
-    std::vector<std::string> written;
-    TransportListener* listener = nullptr;
+    std::mutex                              m;
+    std::vector<std::string>                written;
+    TransportListener*                      listener   = nullptr;
     std::function<void(const std::string&)> onWrite;  // runs under the lock, after recording
-    bool failWrites = false;
+    bool                                    failWrites = false;
 };
 
 struct Collect final : EventSink {
@@ -506,7 +506,7 @@ TEST_CASE("port3_gtp: a failed write while the search is live is refused with no
     r.t.onWrite = [&](const std::string& l) { r.t.failWrites = l.starts_with("2 "); };
     CHECK(r.e.startSearch(twoMoves(), {}, r.sink).error() == EngineError::TransportFailed);
     CHECK(r.sink.events.empty());
-    r.t.onWrite = nullptr;
+    r.t.onWrite    = nullptr;
     r.t.failWrites = false;
     CHECK(r.e.startSearch(twoMoves(), {}, r.sink));  // the refused search left no sink
 }

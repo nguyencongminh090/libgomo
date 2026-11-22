@@ -37,11 +37,12 @@ public:
 
     std::vector<std::string> lines() { std::lock_guard lock(m); return written; }
 
-    std::mutex m;
-    std::vector<std::string> written;
+    std::mutex                              m;
+    std::vector<std::string>                written;
     std::function<void(const std::string&)> onWrite;
-    TransportListener* listener = nullptr;
-    bool failWrites = false;  // set by onWrite to fail that write and every later one
+    TransportListener*                      listener   = nullptr;
+    // set by onWrite to fail that write and every later one
+    bool                                    failWrites = false;
 };
 
 struct Collect final : EventSink {
@@ -378,7 +379,7 @@ TEST_CASE("port3_gomocup: a failed write while the search is live is refused wit
     r.t.onWrite = [&](const std::string& l) { r.t.failWrites = l == "BOARD"; };
     CHECK(r.e.startSearch(threeMoves(), Limits{}, sink).error() == EngineError::TransportFailed);
     CHECK(sink.get().empty());
-    r.t.onWrite = nullptr;
+    r.t.onWrite    = nullptr;
     r.t.failWrites = false;
     CHECK(r.e.startSearch(threeMoves(), Limits{}, sink));  // the refused search left no sink
 }

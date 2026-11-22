@@ -46,7 +46,7 @@ std::expected<void, EngineError> GomocupEngine::startSearch(
     if (position.width() != position.height()) return std::unexpected(EngineError::Unsupported);
 
     std::vector<std::string> lines;
-    std::uint64_t id = 0;
+    std::uint64_t            id = 0;
     {
         std::lock_guard lock(mutex_);
         if (closed_) return std::unexpected(EngineError::NotReady);
@@ -75,7 +75,7 @@ std::expected<void, EngineError> GomocupEngine::startSearch(
         }
         sink_     = &sink;
         position_ = position;
-        id = ++searchId_;
+        id        = ++searchId_;
     }
     for (const auto& l : lines) {
         if (!transport_.writeLine(l)) {

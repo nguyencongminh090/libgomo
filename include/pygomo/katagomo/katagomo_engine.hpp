@@ -51,7 +51,8 @@ private:
     bool                    closed_{false};
     EventSink*              sink_{nullptr};  // non-null while a search runs
     std::optional<Position> position_;
-    std::uint64_t searchId_{0};  // counts started searches, so a failed start clears only its own
+    // counts started searches, so a failed start clears only its own
+    std::uint64_t           searchId_{0};
 };
 
 }  // namespace pygomo
