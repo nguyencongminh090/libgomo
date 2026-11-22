@@ -65,3 +65,26 @@ The parser returns nullopt when the char after the optional id is not blank (`sr
 
 ### Check that would have caught it
 `gtp_header: a marker glued to other text is not a header` and `gtp5_text` (registered in `tests/CMakeLists.txt`).
+
+## GTP-06-01-raw-reply-ends-search (2026-11-22, owner: claude)
+
+### Symptom
+After `GtpEngine::sendRaw("kata-set-param ...")`, the id-less `=` reply read during a search (or during a
+search started right after) ended it with `ErrorEvent{"engine reply carries no id"}`. Found by reading the
+code in DOC-02; reproduced by `gtp6_raw`.
+
+### First fix
+None shipped. A first attempt in the same session counted pending raw commands; review showed a raw
+line written after the search's lines made a real id-less setup failure count as the raw reply.
+
+### Real source
+`GtpEngine::onReply` assumed every id-less reply belongs to the search. Raw commands are the other source
+of id-less replies; `startSearch` also reset `inReply_`, cutting a raw reply that was being read.
+
+### Corrected fix
+A queue of unanswered commands in write order (search or raw), kept in step with the wire by `writeMutex_`;
+`onReply` gives replies whose entry is raw to the caller as MessageEvent; `startSearch` keeps the reply
+framing (`src/gtp/gtp_engine.cpp`, AUD-04).
+
+### Check that would have caught it
+`gtp6_raw` in `tests/gtp/gtp_engine_test.cpp` (registered in `tests/CMakeLists.txt`).

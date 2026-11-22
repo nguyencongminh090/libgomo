@@ -125,6 +125,7 @@ foreach(group sequence stream errors)
 endforeach()
 add_test(NAME gtp4_message COMMAND pygomo_gtp_tests "-tc=gtp4_message*")
 add_test(NAME gtp5_text COMMAND pygomo_gtp_tests "-tc=gtp5_text*")
+add_test(NAME gtp6_raw COMMAND pygomo_gtp_tests "-tc=gtp6_raw*")
 
 add_executable(pygomo_deadline_adapter_tests
   main.cpp

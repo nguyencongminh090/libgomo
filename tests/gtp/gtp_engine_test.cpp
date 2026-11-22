@@ -20,6 +20,7 @@ public:
     }
     std::expected<void, TransportError> writeLine(std::string_view line) override {
         std::lock_guard lock(m);
+        if (failWrites) return std::unexpected(TransportError::Closed);
         written.emplace_back(line);
         return {};
     }
@@ -33,6 +34,7 @@ public:
     std::mutex m;
     std::vector<std::string> written;
     TransportListener* listener = nullptr;
+    bool failWrites = false;
 };
 
 struct Collect final : EventSink {
@@ -346,4 +348,128 @@ TEST_CASE("gtp5_text: free text starting with = or ? is a MessageEvent, not a re
     CHECK(r.sink.events ==
           std::vector<SearchEvent>{MessageEvent{"=== Loaded ==="}, MessageEvent{"??x"},
                                    BestMoveEvent{Coord{9, 5}}});
+}
+
+TEST_CASE("gtp6_raw: the reply to a raw command sent before a search does not end the search") {
+    Rig r;
+    REQUIRE(r.e.sendRaw("kata-set-param maxVisits 5"));
+    REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));
+    r.t.reply("=");  // the raw command's reply comes before the search's own replies
+    const int id = r.ackSetup(6);
+    r.t.reply("=" + std::to_string(id) + " K10");
+    CHECK(r.sink.events ==
+          std::vector<SearchEvent>{MessageEvent{"="}, BestMoveEvent{Coord{9, 5}}});
+}
+
+TEST_CASE("gtp6_raw: raw replies read during a search are MessageEvents, also a ? reply") {
+    Rig r;
+    REQUIRE(r.e.sendRaw("kata-set-param maxVisits 5"));
+    REQUIRE(r.e.sendRaw("kata-unknown"));
+    REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));
+    r.t.reply("= ok");  // written before the search's lines, so answered first
+    r.t.reply("? unknown command");
+    CHECK(r.sink.events.size() == 2);  // the search still runs
+    const int id = r.ackSetup(6);
+    r.t.reply("=" + std::to_string(id) + " K10");
+    CHECK(r.sink.events == std::vector<SearchEvent>{MessageEvent{"= ok"},
+                                                   MessageEvent{"? unknown command"},
+                                                   BestMoveEvent{Coord{9, 5}}});
+}
+
+TEST_CASE("gtp6_raw: a raw command sent during setup does not hide an id-less setup failure") {
+    Rig r;
+    REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));
+    REQUIRE(r.e.sendRaw("kata-set-param maxVisits 5"));  // queued after genmove
+    r.t.reply("=1");
+    r.t.reply("=2");
+    r.t.reply("? bad setup");  // the reply to line 3, from an engine that drops ids
+    REQUIRE(r.sink.events.size() == 1);
+    CHECK(std::holds_alternative<ErrorEvent>(r.sink.events[0]));
+}
+
+TEST_CASE("gtp6_raw: a raw reply after the genmove reply is dropped; the next search is clean") {
+    Rig r;
+    REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));
+    REQUIRE(r.e.sendRaw("kata-set-param maxVisits 5"));
+    const int id = r.ackSetup(6);
+    r.t.reply("=" + std::to_string(id) + " K10");
+    r.t.reply("=");  // the raw reply, after the search ended
+    REQUIRE(r.sink.events == std::vector<SearchEvent>{BestMoveEvent{Coord{9, 5}}});
+    Collect next;
+    REQUIRE(r.e.startSearch(twoMoves(), {}, next));
+    r.t.reply("? bad setup");
+    REQUIRE(next.events.size() == 1);
+    CHECK(std::holds_alternative<ErrorEvent>(next.events[0]));
+}
+
+TEST_CASE("gtp6_raw: a raw line with its own id inside the search's id range") {
+    Rig r;
+    REQUIRE(r.e.sendRaw("6 name"));  // 6 will also be the genmove id
+    REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));
+    r.t.reply("=6 KataGo");
+    CHECK(r.sink.events == std::vector<SearchEvent>{MessageEvent{"=6 KataGo"}});
+    r.t.reply("=1");  // the search's replies follow
+    const int id = r.ackSetup(6);
+    r.t.reply("=" + std::to_string(id) + " K10");
+    CHECK(r.sink.events.back() == SearchEvent{BestMoveEvent{Coord{9, 5}}});
+}
+
+TEST_CASE("gtp6_raw: a failed raw write leaves no reply expected") {
+    Rig r;
+    r.t.failWrites = true;
+    CHECK(r.e.sendRaw("kata-set-param maxVisits 5") ==
+          std::unexpected(EngineError::TransportFailed));
+    r.t.failWrites = false;
+    REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));
+    r.t.reply("? bad setup");  // nothing queued for the failed write: this is the search's
+    REQUIRE(r.sink.events.size() == 1);
+    CHECK(std::holds_alternative<ErrorEvent>(r.sink.events[0]));
+}
+
+TEST_CASE("gtp6_raw: an id-less reply with no raw command pending still ends the search") {
+    SUBCASE("? reply") {
+        Rig r;
+        REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));
+        r.t.reply("? bad setup");
+        REQUIRE(r.sink.events.size() == 1);
+        CHECK(std::holds_alternative<ErrorEvent>(r.sink.events[0]));
+    }
+    SUBCASE("= reply") {
+        Rig r;
+        REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));
+        r.t.reply("=");
+        REQUIRE(r.sink.events.size() == 1);
+        CHECK(std::holds_alternative<ErrorEvent>(r.sink.events[0]));
+    }
+    SUBCASE("empty and comment lines get no reply and are not expected") {
+        Rig r;
+        REQUIRE(r.e.sendRaw(""));
+        REQUIRE(r.e.sendRaw("# a comment"));
+        REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));
+        r.t.reply("? bad setup");
+        REQUIRE(r.sink.events.size() == 1);
+        CHECK(std::holds_alternative<ErrorEvent>(r.sink.events[0]));
+    }
+}
+
+TEST_CASE("gtp6_raw: a raw reply between searches is counted and dropped") {
+    Rig r;
+    REQUIRE(r.e.sendRaw("kata-set-param maxVisits 5"));
+    r.t.reply("= ok");  // no search runs: dropped, but no longer pending
+    REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));
+    r.t.reply("? bad setup");
+    REQUIRE(r.sink.events.size() == 1);
+    CHECK(std::holds_alternative<ErrorEvent>(r.sink.events[0]));
+}
+
+TEST_CASE("gtp6_raw: a raw reply whose header was read before the search started") {
+    Rig r;
+    REQUIRE(r.e.sendRaw("kata-set-param maxVisits 5"));
+    r.t.say("= ok");
+    REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));
+    r.t.say("");  // ends the raw reply, which started before the search
+    const int id = r.ackSetup(6);
+    r.t.reply("=" + std::to_string(id) + " K10");
+    CHECK(r.sink.events ==
+          std::vector<SearchEvent>{MessageEvent{"= ok"}, BestMoveEvent{Coord{9, 5}}});
 }

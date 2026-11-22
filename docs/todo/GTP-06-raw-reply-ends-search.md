@@ -2,7 +2,7 @@
 id: GTP-06-raw-reply-ends-search
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-22
 supersedes: []
@@ -33,10 +33,14 @@ planning:
   command can end a search").
 
 ## Done-when
-Acceptance in `docs/features.json` (`"todo": "GTP-06"`), to be added by the owner.
+Acceptance in `docs/features.json` (`"todo": "GTP-06"`); features approved by the owner on 2026-11-22.
 
 ## Evidence
-Filled in before marking done.
+- Reproduced first: 3 of 5 initial `gtp6_raw` cases failed before any fix (raw-before, raw-during, header read before the search).
+- First fix (pending-raw counter) was rejected by the reviewer agent: a raw line sent during setup let an id-less setup failure pass as the raw reply (the Trap). Replaced by a write-order reply queue (AUD-04, fix-log GTP-06-01); `gtp6_raw` now has 9 cases, including that interleaving, a raw line with its own id, raw after genmove, and a failed write. Raw-during now uses an order a real engine can produce.
+- `ctest --preset default`: 65/65 pass (`gtp6_raw` registered); `ctest --preset tsan`: 65/65 pass; `ctest --preset tsan -R gtp --repeat until-fail:30` pass.
+- `scripts/check-core-deps.sh` OK, `scripts/check-doc-comments.sh` OK, `harness-check.mjs` 0 findings.
+- Guide: Practical rules, GTP reply framing and Known limitations updated; `grep "raw command can end"` finds nothing; PDF rebuilt with latexmk rc 0, no overfull or undefined warnings (same as before).
 
 ## Links
 `src/gtp/gtp_engine.cpp` (`onReply`, `startSearch`), `docs/guide/developer-guide.tex`, DOC-02

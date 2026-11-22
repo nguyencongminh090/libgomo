@@ -1346,6 +1346,46 @@
       ],
       "checked_by": "grep -n \"tikzset\" docs/guide/developer-guide.tex  # plus manual greyscale read recorded in Evidence",
       "passes": false
+    },
+    {
+      "id": "GTP-06-raw-before",
+      "todo": "GTP-06",
+      "description": "WHEN sendRaw(\"kata-set-param maxVisits 5\") is followed by startSearch and the raw command id-less `=` reply arrives first THEN the search ends with the genmove BestMoveEvent and no ErrorEvent",
+      "steps": [
+        "ctest --preset default -R gtp --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-06-raw-during",
+      "todo": "GTP-06",
+      "description": "WHEN the id-less reply of a raw command (`=` or `? msg`) arrives during a search THEN the sink receives MessageEvent{\"= ...\" or \"? msg\"} and the search still ends with the genmove result",
+      "steps": [
+        "ctest --preset default -R gtp --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-06-noid-error",
+      "todo": "GTP-06",
+      "description": "WHEN no raw command is pending and an id-less reply (`?` or `=`) arrives during a search THEN the search ends with ErrorEvent as before",
+      "steps": [
+        "ctest --preset default -R gtp --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R gtp --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "GTP-06-docs",
+      "todo": "GTP-06",
+      "description": "WHEN the fix is in THEN the guide (Practical rules and Known limitations) no longer says a raw command can end a search, the PDF is rebuilt, and the full suite, the tsan preset and harness-check pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && node scripts/harness/harness-check.mjs  # plus grep -n \"raw command can end\" docs/guide/developer-guide.tex finds nothing"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && node scripts/harness/harness-check.mjs  # plus grep -n \"raw command can end\" docs/guide/developer-guide.tex finds nothing",
+      "passes": true
     }
   ]
 }

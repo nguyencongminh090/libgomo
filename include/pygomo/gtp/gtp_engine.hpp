@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <deque>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -48,15 +49,17 @@ public:
         const Position& position, const Limits& limits, EventSink& sink) override;
     /// Does nothing: a running `genmove` cannot be interrupted (see the class comment).
     void stop() override;
-    /// Writes the line to the engine. Errors: TransportFailed.
+    /// Writes the line to the engine as is. GTP answers in order, so its reply is known by its
+    /// place: a MessageEvent during a search, dropped otherwise (docs/audit/AUD-04). Errors:
+    /// TransportFailed.
     [[nodiscard]] std::expected<void, EngineError> sendRaw(std::string_view line) override;
 
 private:
     void onLine(std::string_view line) override;
     void onClosed(CloseReason reason) override;
 
-    /// Handles one complete reply of the running search. Caller holds the lock and passes the
-    /// sink out through `deliver` when an event must be reported.
+    /// Handles one complete reply (of the running search or of a raw command). Caller holds the
+    /// lock and passes the sink out through `deliver` when an event must be reported.
     void onReply(bool ok, std::optional<int> id, const std::string& text, EventSink*& deliver,
                  std::optional<SearchEvent>& event);
 
@@ -71,6 +74,10 @@ private:
     int lastId_{0};
     std::optional<std::chrono::milliseconds> analyzeInterval_{};  // setting for the next search
     bool analyzing_{false};                                       // the running search uses analyze
+    // Unanswered commands in write order, true for a raw one (AUD-04). writeMutex_ is taken
+    // before mutex_ and held over a queue push and its write, so the queue matches the wire.
+    std::deque<bool> pending_{};
+    std::mutex writeMutex_;
 
     // Reply framing: a header line, then body lines, ended by a blank line.
     bool               inReply_{false};

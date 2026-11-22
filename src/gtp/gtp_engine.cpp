@@ -1,6 +1,7 @@
 #include "pygomo/gtp/gtp_engine.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <format>
 #include <vector>
@@ -20,6 +21,12 @@ const char* basicRule(BoardRule r) {
 }
 
 const char* color(Side s) { return s == Side::Black ? "B" : "W"; }
+
+// True if the engine replies to `line`: GTP 2 (section 2.4) skips empty and comment lines.
+bool getsReply(std::string_view line) {
+    const auto first = line.find_first_not_of(" \t\r");
+    return first != std::string_view::npos && line[first] != '#';
+}
 
 }  // namespace
 
@@ -53,6 +60,7 @@ std::expected<void, EngineError> GtpEngine::startSearch(
     }
 
     std::vector<std::string> lines;
+    std::lock_guard writeLock(writeMutex_);
     {
         std::lock_guard lock(mutex_);
         if (closed_) return std::unexpected(EngineError::NotReady);
@@ -82,14 +90,18 @@ std::expected<void, EngineError> GtpEngine::startSearch(
 
         firstId_ = nextId_;
         for (auto& c : all) lines.push_back(std::format("{} {}", nextId_++, c));
+        pending_.insert(pending_.end(), lines.size(), false);
         lastId_   = nextId_ - 1;
         sink_     = &sink;
         position_ = position;
-        inReply_  = false;
+        // inReply_ is kept: a raw reply being read now must still be framed to its blank line.
     }
-    for (const auto& l : lines) {
-        if (!transport_.writeLine(l)) {
+    for (std::size_t i = 0; i < lines.size(); ++i) {
+        if (!transport_.writeLine(lines[i])) {
             std::lock_guard lock(mutex_);
+            // The unwritten lines are the newest entries; no reply can have taken them.
+            const auto unwritten = std::min(lines.size() - i, pending_.size());
+            pending_.erase(pending_.end() - static_cast<std::ptrdiff_t>(unwritten), pending_.end());
             sink_ = nullptr;
             return std::unexpected(EngineError::TransportFailed);
         }
@@ -105,12 +117,37 @@ void GtpEngine::setAnalyze(std::optional<std::chrono::milliseconds> interval) {
 void GtpEngine::stop() {}  // See the class comment: a running genmove cannot be interrupted.
 
 std::expected<void, EngineError> GtpEngine::sendRaw(std::string_view line) {
-    if (!transport_.writeLine(line)) return std::unexpected(EngineError::TransportFailed);
+    const std::size_t replies = getsReply(line) ? 1 : 0;
+    std::lock_guard writeLock(writeMutex_);
+    {
+        // Queued before the write: the reply may be read before writeLine returns.
+        std::lock_guard lock(mutex_);
+        pending_.insert(pending_.end(), replies, true);
+    }
+    if (!transport_.writeLine(line)) {
+        std::lock_guard lock(mutex_);
+        const auto unwritten = std::min(replies, pending_.size());
+        pending_.erase(pending_.end() - static_cast<std::ptrdiff_t>(unwritten), pending_.end());
+        return std::unexpected(EngineError::TransportFailed);
+    }
     return {};
 }
 
 void GtpEngine::onReply(bool ok, std::optional<int> id, const std::string& text,
                         EventSink*& deliver, std::optional<SearchEvent>& event) {
+    bool raw = false;
+    if (!pending_.empty()) {
+        raw = pending_.front();
+        pending_.pop_front();
+    }
+    if (raw) {  // the answer to a raw command, with or without an id: never the search's end
+        if (!sink_) return;
+        std::string header = ok ? "=" : "?";
+        if (id) header += std::to_string(*id);
+        deliver = sink_;
+        event = MessageEvent{text.empty() ? header : header + " " + text};
+        return;
+    }
     if (!sink_) return;  // late reply of a search that already ended
     if (id && (*id < firstId_ || *id > lastId_)) return;  // stale reply of an earlier search
     auto finish = [&](SearchEvent e) {
@@ -180,6 +217,7 @@ void GtpEngine::onClosed(CloseReason) {
     {
         std::lock_guard lock(mutex_);
         closed_ = true;
+        pending_.clear();
         sink    = sink_;
         sink_   = nullptr;
     }

@@ -561,8 +561,8 @@ Follow these rules in any application built on the port:
         you trust the engine to answer.
   \item Return from \code{onEvent} quickly; hand the event to your own queue or thread.
   \item Use \code{sendRaw} for engine-only commands (Rapfi database commands, KataGomo
-        \code{kata-set-param} keys, VCN rules). Nothing about the reply is promised, and on GTP a
-        raw command can end the running or the next search (Section~\ref{sec:limits}).
+        \code{kata-set-param} keys, VCN rules). Nothing about the reply is promised; on GTP it
+        never ends a search (Section~\ref{sec:limits}).
 \end{itemize}
 
 %======================================================================
@@ -1003,8 +1003,11 @@ commands, each with a numeric id:
 
 \begin{itemize}
   \item \textbf{Reply framing.} A header \code{=id body} or \code{?id body}, then body lines, then a
-        blank line. Replies with an id outside the running search are ignored (stale replies of
-        an earlier search). A \code{?} reply ends the search with \code{ErrorEvent}.
+        blank line. Replies are matched to commands by order: the reply to a \code{sendRaw} line
+        becomes \code{MessageEvent} during a search and never ends it (AUD-04). The rules below
+        are for replies to the search's own commands. Replies with an id outside the running
+        search are ignored (stale replies of an earlier search). A \code{?} reply ends the search
+        with \code{ErrorEvent}.
   \item \textbf{Result.} The \code{genmove} reply becomes \code{BestMoveEvent}, \code{PassEvent}
         (\code{pass}) or \code{ResignEvent} (\code{resign}). An occupied point, an unreadable
         move, an analysis reply without a final \code{play}, and a reply without an id each end
@@ -1284,10 +1287,10 @@ What version 0.1.0 does not do, or has not verified against a real engine:
   \item \textbf{An engine that never answers} after a timeout keeps \code{DeadlineEngine} in
         \code{Busy}; the caller must close the transport (AUD-03). The timeout path was run
         against a frozen Rapfi; for GTP and KataGomo only against fake transports.
-  \item \textbf{GTP: a raw command can end a search.} \code{sendRaw} sends the line without an
-        id. If its reply is read while a search runs (including one started right after the raw
-        command), the adapter takes the id-less reply as a failure and ends the search with
-        \code{ErrorEvent}. Open as todo GTP-06.
+  \item \textbf{GTP: replies are matched by order.} The adapter tells a raw command's reply from
+        a search's by its place in the reply order (\code{MessageEvent} during a search, never the
+        end of one; AUD-04). An engine that skips a reply puts every later reply out of step until
+        the connection is closed.
   \item \textbf{Lines outside a search are dropped} by every adapter (there is no sink to receive
         them).
   \item \textbf{Not covered by fixtures:} late \code{[Pondering]} lines and Rapfi's

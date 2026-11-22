@@ -12,12 +12,11 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. Committed and passing: DOC-02 (guide pass 2: 33df804 stale facts, then the prose pass; PDF rebuilt), DOC-01 (pass 1, 8890484). Before them: STYLE-01..04, DEAD-01..04, GOMO-01..06, GTP-01..05, PROC-01..03 and the rest (see TODO.md).
+Nothing in progress. GTP-06 done: GtpEngine matches replies to commands by write order, so a sendRaw reply is a MessageEvent and never ends a search (AUD-04, fix-log GTP-06-01; reviewer agent passed it after a redesign). Before it: DOC-02, DOC-01, and the rest (see TODO.md).
 
 ## Next step
 
 1. DOC-03 (backlog todo, features in docs/features.json): revise the three TikZ figures in `docs/guide/developer-guide.tex` (module dependencies, search data flow, DeadlineEngine timeline). Note `tex-tables-and-figures` in SKILLS_TREE.
-2. GTP-06 (backlog, found in DOC-02): an id-less reply to `GtpEngine::sendRaw` ends a running or the next search. Needs features from the owner, then a fake-transport reproduction first. The guide states it in Known limitations; update that bullet when fixed.
 Doc skills in `.claude/skills/`: README files of `documentation` and `writing-clearly-and-concisely` were read in DOC-02 (nothing to adapt); the other copied skills still carry unread README.WARNING.md/README.md.
 Style normalization (planning code-style-normalization) is finished; the owner may close the planning. A `.clang-format` stays a separate planning.
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`); re-clone into the scratchpad when needed. Rapfi: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi` (binary `build/pbrain-rapfi`).
@@ -29,6 +28,7 @@ KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhz
 - GTP and KataGomo `gom` shapes (GtpEngine, KataGomoEngine) are read from source only; no such engine was ever run. VCN rules and `kata-set-rule` not mapped.
 - Late `[Pondering]` lines and `coord_conversion_mode` != none are not covered by any Gomocup fixture.
 - GomocupEngine drops lines outside a search (by design, no sink). An `ERROR` during a search is now a MessageEvent (GOMO-04); a search with turnTime ends with ErrorEvent "engine did not answer" only when wrapped in DeadlineEngine (turnTime+2s grace+2s, DEAD-01..03); unwrapped there is no timeout. `KataGomoEngine` still ends the search on `ERROR` (KATA-01 feature).
+- GtpEngine reply attribution assumes one reply per non-empty, non-comment line (AUD-04 Cost). Untested: a partial write failure in startSearch (i > 0), and stale replies of a failed search with a raw command between them (traced by the reviewer, correct).
 - GtpEngine: text outside a reply during a search -> `MessageEvent`; unparsable analyze lines -> `UnparsedEvent` (kept, not lost). KataGomo (Gom2026 @ checked 2026-11-20) never prints `info string`, so nothing more is planned.
 - `GTP-04-deps` tsan check no longer hangs after PORT-02 (owner may confirm it can stay passing).
 

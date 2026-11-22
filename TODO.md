@@ -2,7 +2,6 @@
 
 ## Backlog
 - [ ] **DOC-03.** Developer guide, pass 3: the three TikZ figures - size M - [detail](docs/todo/DOC-03-developer-guide-figures.md)
-- [ ] **GTP-06.** GtpEngine: the id-less reply to a raw command ends a search - size M - [detail](docs/todo/GTP-06-raw-reply-ends-search.md)
 
 ## Active
 
@@ -25,6 +24,7 @@
 - [x] **GTP-03.** GtpEngine: `kata-genmove_analyze` streaming (source-derived) - size M - [detail](docs/todo/GTP-03-kata-genmove-analyze.md)
 - [x] **GTP-04.** GtpEngine: text outside a reply becomes MessageEvent - size M - [detail](docs/todo/GTP-04-message-event-outside-reply.md)
 - [x] **GTP-05.** GTP: free text starting with `=` or `?` is taken as a reply header - size M - [detail](docs/todo/GTP-05-free-text-mistaken-for-header.md)
+- [x] **GTP-06.** GtpEngine: the id-less reply to a raw command ends a search - size M - [detail](docs/todo/GTP-06-raw-reply-ends-search.md)
 - [x] **HARNESS-01.** Validate profile names before import() - size M - [detail](docs/todo/HARNESS-01-profile-name-validation.md)
 - [x] **HARNESS-02.** Edit gate asks for control config - size M - [detail](docs/todo/HARNESS-02-gate-control-config-ask.md)
 - [x] **HARNESS-03.** Canonical path for the features.json match - size M - [detail](docs/todo/HARNESS-03-canonical-features-path.md)
