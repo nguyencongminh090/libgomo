@@ -2,7 +2,7 @@
 id: GOMO-07-multipv-candidates
 type: todo
 size: M
-status: active
+status: done
 owner: claude
 created: 2026-11-22
 supersedes: []
@@ -49,6 +49,16 @@ planning: detailed-search-analysis
 Features `GOMO-07-*` trong `docs/features.json`.
 
 ## Evidence
+
+Implemented by agy (Gemini 4 Neon High) in worktree branch `gomo07`, merged in `a22145a`.
+Reviewed by Claude: whitespace-only edits to untouched lines reverted, `parseInfo` why-comment
+restored. Real capture `tests/fixtures/gomocup/rapfi-nbest-normal.txt` (commit `6373bf3`):
+Rapfi prints `(N)` lines only after `YXSHOWINFO` + `YXNBEST N`. Checks on master, 2026-11-22:
+
+- `ctest --preset default -R "^gomo7_"`: 4/4 (`gomo7_live` Skipped without `PYGOMO_RAPFI`).
+- `ctest --preset default -R "^(gomo7_|gomo2_parse|parse_)"`: 9/9.
+- `PYGOMO_RAPFI=…/pbrain-rapfi ctest --preset default -R "^gomo7_live"`: Passed (ran, 1.03 s).
+- Full suite with `PYGOMO_RAPFI`: 82/82, none Skipped. tsan 82/82. `check-core-deps`: OK.
 
 ## Links
 

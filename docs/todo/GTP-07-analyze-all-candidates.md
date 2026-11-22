@@ -2,7 +2,7 @@
 id: GTP-07-analyze-all-candidates
 type: todo
 size: M
-status: active
+status: done
 owner: claude
 created: 2026-11-22
 supersedes: []
@@ -45,6 +45,15 @@ planning: detailed-search-analysis
 Features `GTP-07-*` trong `docs/features.json`.
 
 ## Evidence
+
+Implemented by agy (Gemini 4 Neon High) in worktree branch `gtp07`, merged in `2e21945`.
+Reviewed by Claude: one removed alignment restored. Checks on master, 2026-11-22:
+
+- `ctest --preset default -R "^(gtp7_|gtp_analyze)"`: 6/6.
+- `ctest --preset default -R "^(gtp7_|gtp3_)"`: 8/8; `ctest --preset default`: 82/82;
+  `check-core-deps`: OK. tsan 82/82.
+- Still source-derived only: no real GTP/KataGomo engine was run (fixtures mirror
+  KataGomo `Gom2026@9a0e65c`).
 
 ## Links
 

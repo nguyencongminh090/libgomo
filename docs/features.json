@@ -1505,7 +1505,7 @@
         "ctest --preset default -R \"^gomo7_\" --output-on-failure"
       ],
       "checked_by": "ctest --preset default -R \"^gomo7_\" --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "GOMO-07-forms",
@@ -1515,7 +1515,7 @@
         "ctest --preset default -R \"^(gomo7_|gomo2_parse|parse_)\" --output-on-failure"
       ],
       "checked_by": "ctest --preset default -R \"^(gomo7_|gomo2_parse|parse_)\" --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "GOMO-07-live",
@@ -1525,7 +1525,7 @@
         "PYGOMO_RAPFI=/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi/build/pbrain-rapfi ctest --preset default -R \"^gomo7_live\" --output-on-failure"
       ],
       "checked_by": "PYGOMO_RAPFI=/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi/build/pbrain-rapfi ctest --preset default -R \"^gomo7_live\" --output-on-failure  # must run, not be Skipped",
-      "passes": false
+      "passes": true
     },
     {
       "id": "GTP-07-candidates",
@@ -1535,7 +1535,7 @@
         "ctest --preset default -R \"^(gtp7_|gtp_analyze)\" --output-on-failure"
       ],
       "checked_by": "ctest --preset default -R \"^(gtp7_|gtp_analyze)\" --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "GTP-07-robust",
@@ -1545,7 +1545,7 @@
         "ctest --preset default -R \"^(gtp7_|gtp3_)\" --output-on-failure && ctest --preset default && scripts/check-core-deps.sh"
       ],
       "checked_by": "ctest --preset default -R \"^(gtp7_|gtp3_)\" --output-on-failure && ctest --preset default && scripts/check-core-deps.sh",
-      "passes": false
+      "passes": true
     },
     {
       "id": "DOC-04-adr",

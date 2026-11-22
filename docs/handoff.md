@@ -21,8 +21,8 @@ a design id).
 
 ## Next step
 1. Planning `detailed-search-analysis` approved 2026-11-22 (including moving 5 test assertions
-   to `candidates`). CORE-06 done (`Candidate`, `InfoEvent::candidates`, ctest `cand1_*`).
-   Next: GOMO-07 and GTP-07 (independent of each other), then DOC-04 (ADR + guide, last).
+   to `candidates`). CORE-06, GOMO-07 and GTP-07 done (ctest `cand1_*`, `gomo7_*`, `gtp7_*`).
+   Next: DOC-04 (ADR + guide), the last todo of the planning.
    `agy -p` in `--mode accept-edits` edits files but cannot run shell commands headless;
    `--dangerously-skip-permissions` is blocked here, so the orchestrator builds and tests.
 

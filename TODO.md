@@ -4,8 +4,6 @@
 - [ ] **DOC-04.** ADR cho hình dạng `InfoEvent` và cập nhật guide - size M - [detail](docs/todo/DOC-04-candidates-adr-guide.md)
 
 ## Active
-- [~] **GOMO-07.** Gomocup: giữ hạng MultiPV và dữ liệu ứng viên - size M - [detail](docs/todo/GOMO-07-multipv-candidates.md)
-- [~] **GTP-07.** GTP: đọc mọi ứng viên trong một dòng analyze - size M - [detail](docs/todo/GTP-07-analyze-all-candidates.md)
 
 ## Done
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
@@ -26,12 +24,14 @@
 - [x] **GOMO-04.** GomocupEngine: an ERROR line during a search is a warning, not the end - size M - [detail](docs/todo/GOMO-04-error-line-does-not-end-search.md)
 - [x] **GOMO-05.** GomocupEngine: a search with a turn time has a deadline - size M - [detail](docs/todo/GOMO-05-search-deadline.md)
 - [x] **GOMO-06.** GomocupEngine: a move that arrives after the timeout is not taken as the next search's answer - size M - [detail](docs/todo/GOMO-06-late-move-after-timeout.md)
+- [x] **GOMO-07.** Gomocup: giữ hạng MultiPV và dữ liệu ứng viên - size M - [detail](docs/todo/GOMO-07-multipv-candidates.md)
 - [x] **GTP-01.** GTP response and vertex parser (source-derived) - size M - [detail](docs/todo/GTP-01-gtp-parser.md)
 - [x] **GTP-02.** GTP engine adapter (source-derived, fake-transport tested) - size M - [detail](docs/todo/GTP-02-gtp-adapter.md)
 - [x] **GTP-03.** GtpEngine: `kata-genmove_analyze` streaming (source-derived) - size M - [detail](docs/todo/GTP-03-kata-genmove-analyze.md)
 - [x] **GTP-04.** GtpEngine: text outside a reply becomes MessageEvent - size M - [detail](docs/todo/GTP-04-message-event-outside-reply.md)
 - [x] **GTP-05.** GTP: free text starting with `=` or `?` is taken as a reply header - size M - [detail](docs/todo/GTP-05-free-text-mistaken-for-header.md)
 - [x] **GTP-06.** GtpEngine: the id-less reply to a raw command ends a search - size M - [detail](docs/todo/GTP-06-raw-reply-ends-search.md)
+- [x] **GTP-07.** GTP: đọc mọi ứng viên trong một dòng analyze - size M - [detail](docs/todo/GTP-07-analyze-all-candidates.md)
 - [x] **HARNESS-01.** Validate profile names before import() - size M - [detail](docs/todo/HARNESS-01-profile-name-validation.md)
 - [x] **HARNESS-02.** Edit gate asks for control config - size M - [detail](docs/todo/HARNESS-02-gate-control-config-ask.md)
 - [x] **HARNESS-03.** Canonical path for the features.json match - size M - [detail](docs/todo/HARNESS-03-canonical-features-path.md)
