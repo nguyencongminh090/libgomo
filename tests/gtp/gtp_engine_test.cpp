@@ -268,7 +268,12 @@ TEST_CASE(
     r.t.say("=" + std::to_string(id));  // printed before the first info line
     r.t.say("info move H8 visits 120 winrate 5600 prior 3100 order 0 pv H8 G7 J9");
     REQUIRE(r.sink.events.size() == 1);
-    CHECK(std::get<InfoEvent>(r.sink.events[0]).nodes == 120);
+    const auto& firstInfo = std::get<InfoEvent>(r.sink.events[0]);
+    CHECK_FALSE(firstInfo.nodes);
+    REQUIRE(firstInfo.candidates.size() == 1);
+    CHECK(firstInfo.candidates[0].visits == 120);
+    REQUIRE(firstInfo.candidates[0].winrate);
+    CHECK(*firstInfo.candidates[0].winrate == doctest::Approx(0.56));
     r.t.say("info move H8 visits 240 winrate 5600 prior 3100 order 0 pv H8 G7 J9");
     CHECK(r.sink.events.size() == 2);  // search still running: no terminal event yet
     r.t.say("play H9");
@@ -509,4 +514,34 @@ TEST_CASE("port3_gtp: a failed write while the search is live is refused with no
     r.t.onWrite    = nullptr;
     r.t.failWrites = false;
     CHECK(r.e.startSearch(twoMoves(), {}, r.sink));  // the refused search left no sink
+}
+
+TEST_CASE("gtp7_engine: analyze streams multi-candidate kata InfoEvent and ends with play") {
+    Rig r;
+    r.e.setAnalyze(std::chrono::milliseconds{500});
+    REQUIRE(r.e.startSearch(twoMoves(), Limits{}, r.sink));
+    const int id = r.ackSetup(6);
+    r.t.say("=" + std::to_string(id));
+    r.t.say("info move H8 visits 120 utility 0.12 winrate 0.56 scoreMean 20 scoreLead 20 "
+            "order 0 pv H8 G7 pvVisits 120 60 "
+            "info move J9 visits 40 utility 0.02 winrate 0.51 order 1 pv J9");
+    REQUIRE(r.sink.events.size() == 1);
+    const auto& info = std::get<InfoEvent>(r.sink.events[0]);
+    CHECK_FALSE(info.nodes);
+    CHECK(info.principalVariation == std::vector<Coord>{{7, 7}, {6, 8}});
+    REQUIRE(info.candidates.size() == 2);
+    CHECK(info.candidates[0].rank == 1);
+    CHECK(info.candidates[0].visits == 120);
+    REQUIRE(info.candidates[0].winrate);
+    CHECK(*info.candidates[0].winrate == doctest::Approx(0.56));
+    CHECK_FALSE(info.candidates[0].drawrate);
+    CHECK(info.candidates[1].rank == 2);
+    CHECK(info.candidates[1].move == Coord{8, 6});
+    CHECK(info.candidates[1].visits == 40);
+    REQUIRE(info.candidates[1].winrate);
+    CHECK(*info.candidates[1].winrate == doctest::Approx(0.51));
+    r.t.say("play J9");
+    r.t.say("");
+    REQUIRE(r.sink.events.size() == 2);
+    CHECK(std::get<BestMoveEvent>(r.sink.events[1]).coord == Coord{8, 6});
 }
