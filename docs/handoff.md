@@ -29,7 +29,7 @@ implemented by Codex:
    may only happen with a contract-breaking engine; the owner decides after the repro.
 2. Planning `detailed-search-analysis` (draft, size L): GTP drops later candidates and Gomocup
    drops MultiPV ranks when building `InfoEvent`. The owner must choose the public
-   representation before todos are split. Its `created: 2026-11-25` is a future date; fix it.
+   representation before todos are split.
 
 Doc skills in `.claude/skills/`: README files of `documentation` and `writing-clearly-and-concisely` were read in DOC-02 (nothing to adapt); the other copied skills still carry unread README.WARNING.md/README.md.
 Style normalization (planning code-style-normalization) is finished; the owner may close the planning. A `.clang-format` stays a separate planning.
