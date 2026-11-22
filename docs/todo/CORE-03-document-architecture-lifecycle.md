@@ -39,6 +39,8 @@ Tiêu chí đề xuất cho `docs/features.json`, chờ chủ repo duyệt.
 - Draw.io Desktop mở và xuất sơ đồ sang PNG 1604 × 2892. Kiểm tra trực quan cạnh
   `parse → core`, `open()` trên ba adapter, và trình tự mở, tìm kiếm, đóng. XML nhúng
   trong PNG trùng với nguồn sau khi chuẩn hóa bằng `xmllint`.
+- Sau khi bo góc các đường nối, kiểm tra trực quan bản PNG xuất lại và xác nhận XML
+  nhúng khớp với nguồn Draw.io.
 - Đối chiếu cạnh phụ thuộc với `target_link_libraries(pygomo_parse PUBLIC pygomo::core)`.
   Đối chiếu lời gọi và vòng đời với header và mã nguồn của các adapter,
   `ProcessTransport` và `DeadlineEngine`. Một chương trình chạy thử với tiến trình con

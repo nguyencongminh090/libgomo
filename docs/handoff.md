@@ -12,7 +12,7 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-CORE-03 documents `parse -> core`, each adapter's `open()`, and the `ProcessTransport` session lifecycle in Draw.io, its PNG export, and Mermaid. Draw.io and Mermaid rendered successfully, and the harness no longer reports `FM-MISSING`. The ctest run passed 62 checks and skipped four live Rapfi checks.
+CORE-03 documents `parse -> core`, each adapter's `open()`, and the `ProcessTransport` session lifecycle in Draw.io, its PNG export, and Mermaid. The Draw.io connectors have rounded bends, and the regenerated PNG matches its source. The harness no longer reports `FM-MISSING`. The ctest run passed 62 checks and skipped four live Rapfi checks.
 
 Last: `/align` pass on `docs/guide/developer-guide.tex` (one block, `rc`/`position` in the PrintingSink listing), committed alone as `dd7ec2b style: align columns`; ctest passed, 4 `gomo2_*` live tests skipped (no `PYGOMO_RAPFI`); the LaTeX was not recompiled (whitespace only). DOC-03 done: the three TikZ figures of the developer guide are captioned floats (fig:modules, fig:search-flow, fig:deadline) with one shared `\tikzset` style; each was checked against the code (engine -> Threads arrow added, writeLine per line, deadline tick turnTime + 2 grace). Before it: GTP-06, DOC-02, DOC-01 (see TODO.md).
 
