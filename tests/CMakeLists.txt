@@ -86,19 +86,25 @@ if(UNIX)
 endif()
 add_test(NAME gomo2_parse COMMAND pygomo_parse_tests "-tc=gomo2_parse*")
 add_test(NAME gomo2_fixtures COMMAND pygomo_parse_tests "-tc=gomo2_fixtures*")
+foreach(group ranks forms fixture)
+  add_test(NAME gomo7_${group} COMMAND pygomo_parse_tests "-tc=gomo7_${group}*")
+endforeach()
 
 # Needs a real Rapfi: run with PYGOMO_RAPFI=/path/to/pbrain-rapfi. Otherwise every test is skipped.
 if(UNIX)
   add_executable(pygomo_live_tests
     main.cpp
     live/rapfi_live_test.cpp)
-  target_link_libraries(pygomo_live_tests PRIVATE pygomo::gomocup pygomo::process pygomo::engine)
+  target_link_libraries(pygomo_live_tests PRIVATE pygomo::gomocup pygomo::parse pygomo::process
+                                                  pygomo::engine)
   target_include_directories(pygomo_live_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
   pygomo_enable_warnings(pygomo_live_tests)
   foreach(group live stop close deadline)
     add_test(NAME gomo2_${group} COMMAND pygomo_live_tests "-tc=gomo2_${group}*")
     set_tests_properties(gomo2_${group} PROPERTIES SKIP_REGULAR_EXPRESSION "SKIPPED")
   endforeach()
+  add_test(NAME gomo7_live COMMAND pygomo_live_tests "-tc=gomo7_live*")
+  set_tests_properties(gomo7_live PROPERTIES SKIP_REGULAR_EXPRESSION "SKIPPED")
 endif()
 
 foreach(group header vertex analyze total)
