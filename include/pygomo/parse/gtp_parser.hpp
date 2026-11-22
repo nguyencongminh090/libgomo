@@ -43,11 +43,13 @@ using GtpVertex = std::variant<GtpPass, GtpResign, Coord>;
 /// board is wider than 625 columns (the engine switches to the machine form there).
 [[nodiscard]] std::optional<std::string> formatGtpVertex(Coord coord, int width, int height);
 
-/// One `info ...` line of `kata-analyze` / `lz-analyze`. Only the first entry on the line (the
-/// engine's best move) is read: `visits` becomes nodes and `pv` the principal variation, which
-/// stops at a pass. Winrate, prior and the like are left out; in KataGomo Gom2026 the score
-/// fields hold the draw rate, not a score. Anything else, or a bad PV vertex, comes back as
-/// UnparsedEvent with the whole line.
+/// Parses one `info ...` line of `kata-analyze` or `lz-analyze` into an InfoEvent. Each `info`
+/// entry becomes a Candidate in printed order (`move`, empty for pass; `visits`; `winrate`, 0..1
+/// when `utility` is present else divided by 10000 and omitted outside 0..1; `order` + 1 as rank;
+/// `pv`, stopping at pass, `pvVisits`, `pvEdgeVisits` or the next `info`). Summary `nodes` and
+/// `score` stay empty; summary `principalVariation` comes from rank 1 (or the first entry when no
+/// entry carries `order`). Score fields are ignored (KataGomo stores draw rate there). A non-info
+/// line or broken first entry gives UnparsedEvent; a broken later entry keeps earlier candidates.
 [[nodiscard]] SearchEvent parseGtpAnalyzeLine(std::string_view line, int width, int height);
 
 }  // namespace pygomo::parse

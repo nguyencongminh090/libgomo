@@ -2,7 +2,10 @@
 
 #include <cctype>
 #include <charconv>
+#include <cmath>
 #include <cstdint>
+#include <limits>
+#include <span>
 #include <vector>
 
 namespace pygomo::parse {
@@ -57,6 +60,84 @@ int letterIndex(char c) {
 
 bool onBoard(Coord c, int width, int height) {
     return c.x >= 0 && c.y >= 0 && c.x < width && c.y < height;
+}
+
+bool isSkippedAnalyzeKey(std::string_view w) {
+    return w == "scoreMean" || w == "scoreStdev" || w == "scoreLead" ||
+           w == "prior" || w == "lcb" || w == "utilityLcb" ||
+           w == "weight" || w == "isSymmetryOf";
+}
+
+// Parses one `info` entry (tokens after `info`, before the next `info`); nullopt if malformed.
+std::optional<Candidate> parseGtpAnalyzeEntry(
+    std::span<const std::string_view> entry, int width, int height) {
+    Candidate cand;
+    bool sawField = false;
+    bool hasUtility = false;
+    std::optional<double> rawWinrate;
+
+    for (std::size_t i = 0; i < entry.size(); ++i) {
+        std::string_view w = entry[i];
+        if (w == "move") {
+            if (i + 1 >= entry.size()) return std::nullopt;
+            auto vertex = parseGtpVertex(entry[++i], width, height);
+            if (!vertex) return std::nullopt;
+            if (auto* coord = std::get_if<Coord>(&*vertex)) {
+                cand.move = *coord;
+            } else if (std::holds_alternative<GtpPass>(*vertex)) {
+                cand.move.reset();
+            } else {
+                return std::nullopt;
+            }
+            sawField = true;
+        } else if (w == "visits") {
+            if (i + 1 >= entry.size()) return std::nullopt;
+            auto v = toNumber<std::int64_t>(entry[++i]);
+            if (!v || *v < 0) return std::nullopt;
+            cand.visits = *v;
+            sawField = true;
+        } else if (w == "winrate") {
+            if (i + 1 >= entry.size()) return std::nullopt;
+            auto v = toNumber<double>(entry[++i]);
+            if (!v) return std::nullopt;
+            rawWinrate = *v;
+            sawField = true;
+        } else if (w == "order") {
+            if (i + 1 >= entry.size()) return std::nullopt;
+            auto ord = toNumber<int>(entry[++i]);
+            if (!ord || *ord < 0 || *ord == std::numeric_limits<int>::max()) {
+                return std::nullopt;
+            }
+            cand.rank = *ord + 1;
+            sawField = true;
+        } else if (w == "pv") {
+            cand.principalVariation.clear();
+            while (i + 1 < entry.size() && entry[i + 1] != "pvVisits" &&
+                   entry[i + 1] != "pvEdgeVisits") {
+                auto vertex = parseGtpVertex(entry[++i], width, height);
+                if (!vertex) return std::nullopt;
+                auto* coord = std::get_if<Coord>(&*vertex);
+                if (!coord) break;
+                cand.principalVariation.push_back(*coord);
+            }
+            sawField = true;
+        } else if (w == "pvVisits" || w == "pvEdgeVisits") {
+            while (i + 1 < entry.size() && toNumber<std::int64_t>(entry[i + 1])) ++i;
+        } else if (w == "utility") {
+            hasUtility = true;
+            if (i + 1 < entry.size()) ++i;
+        } else if (isSkippedAnalyzeKey(w)) {
+            if (i + 1 < entry.size()) ++i;
+        }
+    }
+    if (!sawField) return std::nullopt;
+    if (rawWinrate) {
+        double scaled = hasUtility ? *rawWinrate : *rawWinrate / 10000.0;
+        if (std::isfinite(scaled) && scaled >= 0.0 && scaled <= 1.0) {
+            cand.winrate = scaled == 0.0 ? 0.0 : scaled;
+        }
+    }
+    return cand;
 }
 
 }  // namespace
@@ -140,28 +221,30 @@ SearchEvent parseGtpAnalyzeLine(std::string_view line, int width, int height) {
     if (words.empty() || words.front() != "info") return unparsed();
 
     InfoEvent info;
-    bool sawField = false;
-    for (std::size_t i = 1; i < words.size(); ++i) {
-        std::string_view w = words[i];
-        if (w == "info") break;  // second entry: only the first is read
-        if (w == "visits" && i + 1 < words.size()) {
-            auto v = toNumber<std::int64_t>(words[++i]);
-            if (!v) return unparsed();
-            info.nodes = *v;
-            sawField   = true;
-        } else if (w == "pv") {
-            while (i + 1 < words.size() && words[i + 1] != "pvVisits" &&
-                   words[i + 1] != "pvEdgeVisits" && words[i + 1] != "info") {
-                auto vertex = parseGtpVertex(words[++i], width, height);
-                if (!vertex) return unparsed();
-                auto* coord = std::get_if<Coord>(&*vertex);
-                if (!coord) break;
-                info.principalVariation.push_back(*coord);
-            }
-            sawField = true;
+    std::size_t pos = 0;
+    while (pos < words.size()) {
+        std::size_t next = pos + 1;
+        while (next < words.size() && words[next] != "info") ++next;
+        std::span<const std::string_view> entry(words.data() + pos + 1, next - pos - 1);
+        auto cand = parseGtpAnalyzeEntry(entry, width, height);
+        if (!cand) {
+            if (info.candidates.empty()) return unparsed();
+            break;
+        }
+        info.candidates.push_back(std::move(*cand));
+        pos = next;
+    }
+
+    const Candidate* summary = nullptr;
+    bool anyRanked = false;
+    for (const Candidate& c : info.candidates) {
+        if (c.rank) {
+            anyRanked = true;
+            if (*c.rank == 1 && !summary) summary = &c;
         }
     }
-    if (!sawField) return unparsed();
+    if (!anyRanked && !info.candidates.empty()) summary = &info.candidates.front();
+    if (summary) info.principalVariation = summary->principalVariation;
     return info;
 }
 

@@ -104,6 +104,9 @@ endif()
 foreach(group header vertex analyze total)
   add_test(NAME gtp_${group} COMMAND pygomo_parse_tests "-tc=gtp_${group}*")
 endforeach()
+foreach(group probe fixtures candidates robust)
+  add_test(NAME gtp7_${group} COMMAND pygomo_parse_tests "-tc=gtp7_${group}*")
+endforeach()
 
 add_executable(pygomo_gtp_tests
   main.cpp
@@ -130,6 +133,7 @@ endforeach()
 add_test(NAME gtp4_message COMMAND pygomo_gtp_tests "-tc=gtp4_message*")
 add_test(NAME gtp5_text COMMAND pygomo_gtp_tests "-tc=gtp5_text*")
 add_test(NAME gtp6_raw COMMAND pygomo_gtp_tests "-tc=gtp6_raw*")
+add_test(NAME gtp7_engine COMMAND pygomo_gtp_tests "-tc=gtp7_engine*")
 add_test(NAME port3_gtp COMMAND pygomo_gtp_tests "-tc=port3_gtp*")
 add_test(NAME port3_kata COMMAND pygomo_katagomo_tests "-tc=port3_kata*")
 add_test(NAME port3_gomocup COMMAND pygomo_gomocup_tests "-tc=port3_gomocup*")
