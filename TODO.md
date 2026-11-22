@@ -1,7 +1,6 @@
 # TODO
 
 ## Backlog
-- [ ] **DOC-03.** Developer guide, pass 3: the three TikZ figures - size M - [detail](docs/todo/DOC-03-developer-guide-figures.md)
 
 ## Active
 
@@ -13,6 +12,7 @@
 - [x] **DEAD-04.** Live test: a frozen Rapfi times out, then answers late and is usable again - size M - [detail](docs/todo/DEAD-04-live-frozen-rapfi.md)
 - [x] **DOC-01.** Developer guide, pass 1: restructure the content by documentation type - size M - [detail](docs/todo/DOC-01-developer-guide-restructure.md)
 - [x] **DOC-02.** Developer guide, pass 2: prose, structure inside sections, and fact re-check - size M - [detail](docs/todo/DOC-02-developer-guide-prose.md)
+- [x] **DOC-03.** Developer guide, pass 3: the three TikZ figures - size M - [detail](docs/todo/DOC-03-developer-guide-figures.md)
 - [x] **GOMO-01.** Gomocup adapter - size M - [detail](docs/todo/GOMO-01-gomocup-adapter.md)
 - [x] **GOMO-02.** GomocupEngine against the real Rapfi - size M - [detail](docs/todo/GOMO-02-real-engine-rapfi.md)
 - [x] **GOMO-03.** GomocupEngine: `INFO` upper case, keys lower case - size M - [detail](docs/todo/GOMO-03-lowercase-info-keys.md)

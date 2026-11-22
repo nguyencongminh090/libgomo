@@ -2,7 +2,7 @@
 id: DOC-03-developer-guide-figures
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-22
 supersedes: []
@@ -55,8 +55,40 @@ planning:
 Acceptance in `docs/features.json` (`"todo": "DOC-03"`).
 
 ## Evidence
-Filled in before marking done: per-figure check against the code, packages added (if any), build
-log result, before/after page images if useful (`docs/reports/`).
+- Figure 1 (`fig:modules`) against root `CMakeLists.txt` `target_link_libraries`: transport ->
+  Threads; parse -> core; engine -> core, Threads; gomocup/gtp/katagomo -> core, parse,
+  transport (one arrow per target from the dashed adapter box, said in the caption); process ->
+  transport; core links nothing. Fixed: engine -> Threads was missing (only transport had a
+  "links Threads only" note); Threads is now one dotted external node with both arrows.
+  `process` carries the note "built only if UNIX" (`if(UNIX)`).
+- Figure 2 (`fig:search-flow`) against `GomocupEngine::startSearch/onLine`,
+  `Transport::writeLine`, `TransportListener::onLine`, `EventSink::onEvent`,
+  `parseGomocupLine`: startSearch(pos, limits, sink) -> writeLine once per line (START n,
+  INFO ..., BEGIN or BOARD ... DONE; was one "writeLine(...)") -> returns at once after the
+  writes; `MESSAGE depth 5 ev 12` (UCI-like, `depth` first, same as the parser test) -> onLine on
+  the reader thread -> parse -> onEvent(InfoEvent); `7,8` -> onLine -> parse and the
+  contains/occupied check (added) -> onEvent(BestMoveEvent), terminal. Lifelines now name the
+  real classes (GomocupEngine, ProcessTransport); Application and the engine program are dotted
+  (outside PyGomo), "engine" = external program per the DOC-02 terms.
+- Figure 3 (`fig:deadline`) against `src/engine/deadline_engine.cpp`: deadline set only when
+  `turnTime > 0` (line 44) at `turnTime + grace`; watchdog calls `inner_.stop()` and re-arms
+  `now + grace` (98-104); then `ErrorEvent{"engine did not answer"}`, `detached_` (106-111);
+  `startSearch` returns Busy while detached (39); the late terminal clears it and is dropped
+  (70-72). Fixed: third tick said "+grace", now "turnTime + 2 grace"; added the end tick "late
+  terminal event / dropped". Caption covers the paths not drawn: no deadline without turnTime,
+  and a terminal event before the error (even after stop) ends the search normally.
+- Floats: three `figure[tbp]`, `\centering`, caption below the picture, `\caption` then
+  `\label{fig:modules|search-flow|deadline}`; each referenced once by `Figure~\ref` in the
+  introducing sentence ("The diagram follows" and "The timeline ...:" reworded).
+- Style: one preamble block (`\colorlet` layer shades + `\tikzset` `pg *` styles); one arrow tip
+  (Stealth 2 mm, 0.8 pt); fonts: `\small` boxes, `\scriptsize` labels and notes (smallest).
+  Greyscale read: `docs/reports/DOC-03/guide-gray-p{7,8,20}.png` (pdftoppm -gray). Shades are
+  close in grey, but every box names its module and the caption says the shade only repeats the
+  layer; external boxes differ by dotted border, adapters by the labelled dashed group.
+- No package added (tikz libraries already loaded: arrows.meta, positioning, fit, calc).
+- Build: `latexmk` rc 0, log has no `undefined` and no `Overfull`; five `\part`, "never run
+  against a real engine" once. New source lines within 100 columns (lines 409-410 over 100 are
+  pre-existing prose). `docs/guide/developer-guide.pdf` copied from that build.
 
 ## Links
 `docs/guide/developer-guide.tex`, root `CMakeLists.txt`, `src/engine/deadline_engine.cpp`,

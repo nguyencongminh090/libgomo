@@ -12,16 +12,17 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. GTP-06 done: GtpEngine matches replies to commands by write order, so a sendRaw reply is a MessageEvent and never ends a search (AUD-04, fix-log GTP-06-01; reviewer agent passed it after a redesign). Before it: DOC-02, DOC-01, and the rest (see TODO.md).
+Nothing in progress. DOC-03 done: the three TikZ figures of the developer guide are captioned floats (fig:modules, fig:search-flow, fig:deadline) with one shared `\tikzset` style; each was checked against the code (engine -> Threads arrow added, writeLine per line, deadline tick turnTime + 2 grace). Before it: GTP-06, DOC-02, DOC-01 (see TODO.md).
 
 ## Next step
 
-1. DOC-03 (backlog todo, features in docs/features.json): revise the three TikZ figures in `docs/guide/developer-guide.tex` (module dependencies, search data flow, DeadlineEngine timeline). Note `tex-tables-and-figures` in SKILLS_TREE.
+1. No todo queued; pick from TODO.md backlog or ask the owner.
 Doc skills in `.claude/skills/`: README files of `documentation` and `writing-clearly-and-concisely` were read in DOC-02 (nothing to adapt); the other copied skills still carry unread README.WARNING.md/README.md.
 Style normalization (planning code-style-normalization) is finished; the owner may close the planning. A `.clang-format` stays a separate planning.
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`); re-clone into the scratchpad when needed. Rapfi: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi` (binary `build/pbrain-rapfi`).
 
 ## Uncertain
+- Guide figure layer shades are close in greyscale (docs/reports/DOC-03); meaning rests on module names and borders, not shade.
 - Guide pre-existing source lines over 100 columns (about 18) were left alone (no restyle outside changed text).
 - check-doc-comments.sh is a heuristic: it checks types, aliases, free functions and public methods, not data members or enumerators (those are reviewed by hand). Overrides need their own `///` line each; accepting one group comment for them in the script would loosen the rule, so it needs an owner decision.
 - GtpEngine::stop() is a no-op by protocol: docs/audit/AUD-02 (KataGomo reads stdin on one thread; genmove cannot be interrupted). Limits persist in the engine between searches.

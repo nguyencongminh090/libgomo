@@ -22,6 +22,25 @@
 \definecolor{cm}{HTML}{6A737D}
 \definecolor{st}{HTML}{067D17}
 
+% One style for the three figures. Fill shade marks the layer; every box also names its module,
+% so no meaning rests on colour alone. Dotted boxes are outside PyGomo.
+\colorlet{layercore}{gray!20}
+\colorlet{layeradapter}{blue!10}
+\colorlet{layerio}{green!12}
+\colorlet{layerhelper}{orange!15}
+\tikzset{
+  pg figure/.style={font=\small, line width=0.6pt},
+  pg arrow/.style={-{Stealth[length=2mm]}, line width=0.8pt},
+  pg mod/.style={draw, rounded corners=2pt, minimum width=2.3cm, minimum height=0.75cm,
+                 font=\small\ttfamily, fill=#1},
+  pg mod/.default={white},
+  pg ext/.style={draw, dotted, rounded corners=2pt, minimum width=2.3cm, minimum height=0.75cm,
+                 font=\small\itshape, fill=white},
+  pg group/.style={draw, dashed, rounded corners=4pt, inner sep=6pt},
+  pg note/.style={font=\scriptsize\itshape, align=center},
+  pg label/.style={font=\scriptsize\ttfamily, fill=white, inner sep=1pt},
+  pg lifeline/.style={dashed, black!45}}
+
 \lstdefinestyle{cpp}{
   language=C++, basicstyle=\ttfamily\footnotesize, backgroundcolor=\color{codebg},
   keywordstyle=\color{kw}\bfseries, commentstyle=\color{cm}\itshape, stringstyle=\color{st},
@@ -271,39 +290,44 @@ the wire format. In short:
 
 \subsection{Modules and dependencies}
 
-Each module is one static library with an alias target \code{pygomo::<module>}.
+Each module is one static library with an alias target \code{pygomo::<module>};
+Figure~\ref{fig:modules} shows which links which.
 
-\begin{center}
-\begin{tikzpicture}[
-    mod/.style={draw, rounded corners=2pt, minimum width=2.5cm, minimum height=0.8cm,
-                font=\small\ttfamily, fill=#1},
-    mod/.default={white},
-    dep/.style={-{Stealth[length=2.2mm]}, thick, black!70},
-    node distance=1.0cm and 0.6cm]
-  % Row 1: adapters (grouped) and the engine helpers.
-  \node[mod=blue!8]                  (gomocup) {gomocup};
-  \node[mod=blue!8, right=of gomocup] (gtp)     {gtp};
-  \node[mod=blue!8, right=of gtp]     (kata)    {katagomo};
-  \node[draw, dashed, rounded corners=4pt, inner sep=6pt, fit=(gomocup)(kata),
-        label={[font=\scriptsize]above:adapters}] (adapters) {};
-  \node[mod=orange!12, right=1.4cm of kata] (engine) {engine};
-  % Row 2: parse and transport; process beside transport.
-  \node[mod=green!10, below=1.6cm of gtp, xshift=-2.2cm] (parse)     {parse};
-  \node[mod=green!10, below=1.6cm of gtp, xshift=2.2cm]  (transport) {transport};
-  \node[mod=orange!12, below=1.6cm of engine]            (process)   {process};
-  % Row 3: the core.
-  \node[mod=gray!15, below=1.4cm of parse] (core) {core};
+\begin{figure}[tbp]
+\centering
+\begin{tikzpicture}[pg figure]
+  % Row 1: the adapters (grouped) and the process transport.
+  \node[pg mod=layeradapter] (gomocup) at (0,0)   {gomocup};
+  \node[pg mod=layeradapter] (gtp)     at (2.8,0) {gtp};
+  \node[pg mod=layeradapter] (kata)    at (5.6,0) {katagomo};
+  \node[pg group, fit=(gomocup)(kata), label={[pg note]above:adapters}] (adapters) {};
+  \node[pg mod=layerio]      (process) at (10.2,0) {process};
+  \node[pg note, above=0.1cm of process] {built only if \code{UNIX}};
+  % Row 2: parse, transport and the engine helpers.
+  \node[pg mod=layerio]      (parse)     at (1.4,-2.2)  {parse};
+  \node[pg mod=layerio]      (transport) at (5.6,-2.2)  {transport};
+  \node[pg mod=layerhelper]  (engine)    at (10.2,-2.2) {engine};
+  % Row 3: the core and the system thread library.
+  \node[pg mod=layercore]    (core)    at (3.5,-4.4) {core};
+  \node[pg ext]              (threads) at (7.9,-4.4) {Threads (system)};
 
-  \draw[dep] (adapters.south -| parse)     -- (parse);
-  \draw[dep] (adapters.south -| transport) -- (transport);
-  \draw[dep] (adapters.west) -| ++(-0.5,0) |- (core.west);
-  \draw[dep] (parse) -- (core);
-  \draw[dep] (engine.east) -| ++(0.5,0) |- (core.east);
-  \draw[dep] (process) -- (transport);
-  \node[font=\scriptsize\itshape, below=0.15cm of core] {links nothing};
-  \node[font=\scriptsize\itshape, below=0.15cm of transport] {links Threads only};
+  \draw[pg arrow] (adapters.south -| parse)     -- (parse);
+  \draw[pg arrow] (adapters.south -| transport) -- (transport);
+  \draw[pg arrow] (adapters.west) -- ++(-0.5,0) |- (core.west);
+  \draw[pg arrow] (process) -- (transport);
+  \draw[pg arrow] (parse) -- (core);
+  \draw[pg arrow] (transport) -- (threads);
+  \draw[pg arrow] (engine) -- (threads);
+  \draw[pg arrow] (engine.south) -- ++(0,-2.9) -| (core.south);
+  \node[pg note, left=0.15cm of core] {links\\nothing};
 \end{tikzpicture}
-\end{center}
+\caption{Module dependencies: an arrow points from a target to a target it links
+  (\code{target\_link\_libraries} in the root \file{CMakeLists.txt}). The arrows leaving the
+  dashed box hold for each of the three adapters. The core links nothing, and the transport does
+  not link the core. The box shade repeats the layer that the module name already gives: core,
+  adapters, parse and transport, engine helpers.}
+\label{fig:modules}
+\end{figure}
 
 \begin{center}
 \small
@@ -347,31 +371,39 @@ pygomo\_process   & transport & \code{ProcessTransport}: spawns the engine (POSI
 
 \subsection{Data flow of one search}
 
-The diagram follows one Gomocup search from the call to the move, with time running down.
+Figure~\ref{fig:search-flow} follows one Gomocup search from the call to the move, with time
+running down.
 
-\begin{center}
-\begin{tikzpicture}[
-    life/.style={draw, fill=gray!10, minimum width=2.2cm, minimum height=0.7cm, font=\small},
-    msg/.style={-{Stealth[length=2mm]}, thick},
-    lbl/.style={font=\scriptsize\ttfamily, fill=white, inner sep=1pt}]
-  \node[life] (app) at (0,0)    {Application};
-  \node[life] (ad)  at (4.2,0)  {Adapter};
-  \node[life] (tr)  at (8.4,0)  {Transport};
-  \node[life] (en)  at (12.6,0) {Engine process};
-  \foreach \n in {app,ad,tr,en} \draw[dashed, black!40] (\n.south) -- ++(0,-6.2);
+\begin{figure}[tbp]
+\centering
+\begin{tikzpicture}[pg figure]
+  \node[pg ext]                 (app) at (0,0)    {Application};
+  \node[pg mod=layeradapter]    (ad)  at (4.5,0)  {GomocupEngine};
+  \node[pg mod=layerio]         (tr)  at (9.0,0)  {ProcessTransport};
+  \node[pg ext]                 (en)  at (13.5,0) {engine program};
+  \foreach \n in {app,ad,tr,en} \draw[pg lifeline] (\n.south) -- ++(0,-6.6);
 
-  \draw[msg] (0,-1.0) -- node[lbl,above]{startSearch(pos, limits, sink)} (4.2,-1.0);
-  \draw[msg] (4.2,-1.5) -- node[lbl,above]{writeLine(...)} (8.4,-1.5);
-  \draw[msg] (8.4,-1.9) -- node[lbl,above]{stdin} (12.6,-1.9);
-  \draw[msg, dashed] (4.2,-2.3) -- node[lbl,above]{returns at once} (0,-2.3);
-  \draw[msg] (12.6,-3.0) -- node[lbl,above]{"MESSAGE depth 5 ..."} (8.4,-3.0);
-  \draw[msg] (8.4,-3.4) -- node[lbl,above]{onLine (reader thread)} (4.2,-3.4);
-  \draw[msg] (4.2,-3.9) -- node[lbl,above]{onEvent(InfoEvent)} (0,-3.9);
-  \draw[msg] (12.6,-4.8) -- node[lbl,above]{"7,8"} (8.4,-4.8);
-  \draw[msg] (8.4,-5.2) -- node[lbl,above]{onLine} (4.2,-5.2);
-  \draw[msg] (4.2,-5.7) -- node[lbl,above]{onEvent(BestMoveEvent) -- terminal} (0,-5.7);
+  \draw[pg arrow] (0,-1.0) -- node[pg label,above]{startSearch(pos, limits, sink)} (4.5,-1.0);
+  \draw[pg arrow] (4.5,-1.5) -- node[pg label,above]{writeLine(line) per line} (9.0,-1.5);
+  \draw[pg arrow] (9.0,-1.9) -- node[pg label,above]{START 15, INFO ..., BEGIN} (13.5,-1.9);
+  \draw[pg arrow, dashed] (4.5,-2.4) -- node[pg label,above]{returns at once} (0,-2.4);
+  \draw[pg arrow] (13.5,-3.2) -- node[pg label,above]{MESSAGE depth 5 ev 12} (9.0,-3.2);
+  \draw[pg arrow] (9.0,-3.6) -- node[pg label,above]{onLine(line), reader thread} (4.5,-3.6);
+  \node[pg note, fill=white, draw, anchor=west] at (4.6,-4.0) {parse};
+  \draw[pg arrow] (4.5,-4.4) -- node[pg label,above]{onEvent(InfoEvent)} (0,-4.4);
+  \draw[pg arrow] (13.5,-5.1) -- node[pg label,above]{7,8} (9.0,-5.1);
+  \draw[pg arrow] (9.0,-5.5) -- node[pg label,above]{onLine(line)} (4.5,-5.5);
+  \node[pg note, fill=white, draw, anchor=west] at (4.6,-5.9) {parse, check move};
+  \draw[pg arrow] (4.5,-6.3) -- node[pg label,above]{onEvent(BestMoveEvent)} (0,-6.3)
+    node[pg note, anchor=east] {terminal\\event};
 \end{tikzpicture}
-\end{center}
+\caption{One Gomocup search. \code{startSearch} writes one line per request line through
+  \code{Transport::writeLine} (\code{START}, the \code{INFO} lines, then \code{BEGIN} or
+  \code{BOARD}~\ldots~\code{DONE}) and returns before the engine answers. Every later step runs on
+  the transport's reader thread: \code{TransportListener::onLine}, the parser, and
+  \code{EventSink::onEvent}. Dotted boxes are outside PyGomo.}
+\label{fig:search-flow}
+\end{figure}
 
 \noindent \code{startSearch} writes the request and returns. The transport's reader thread delivers
 each line to the adapter (\code{TransportListener::onLine}); the adapter parses it, checks it against
@@ -1107,22 +1139,33 @@ example from inside a sink).
 \subsection{DeadlineEngine (\file{engine/deadline\_engine.hpp})}\label{sec:deadline}
 
 \code{DeadlineEngine} is a decorator that gives any \code{EnginePort} a search deadline. It is the
-only place with timeouts; adapters have no timers (\file{docs/audit/AUD-03}). The timeline of a
-search that times out:
+only place with timeouts; adapters have no timers (\file{docs/audit/AUD-03}).
+Figure~\ref{fig:deadline} shows the timeline of a search that times out.
 
-\begin{center}
-\begin{tikzpicture}[x=1.0cm, font=\small]
-  \draw[thick,-{Stealth}] (0,0) -- (12.4,0) node[right] {time};
-  \foreach \x/\t in {0/startSearch, 4/{turnTime+grace}, 7.5/{+grace}} {
-    \draw (\x,0.15) -- (\x,-0.15) node[below, align=center] {\t};
+\begin{figure}[tbp]
+\centering
+\begin{tikzpicture}[pg figure]
+  \draw[pg arrow] (0,0) -- (12.6,0) node[right] {time};
+  \foreach \x/\t in {0/{0},
+                     4/{turnTime\\+ grace},
+                     7.5/{turnTime\\+ 2 grace},
+                     11/{late terminal\\event}} {
+    \draw (\x,0.15) -- (\x,-0.15) node[below, pg note, font=\scriptsize] {\t};
   }
-  \node[above, align=center] at (4,0.2) {inner.stop()};
+  \node[above, align=center] at (0,0.2)   {\code{startSearch}};
+  \node[above, align=center] at (4,0.2)   {\code{inner.stop()}};
   \node[above, align=center] at (7.5,0.2) {sink gets\\\code{ErrorEvent}};
-  \draw[thick, black!50, {Bar}-{Bar}] (7.6,-0.9) -- (12,-0.9)
-    node[midway, below, align=center] {owed answer: \code{startSearch} returns \code{Busy};\\
-    the late terminal event is dropped, then the decorator is usable again};
+  \node[above, align=center] at (11,0.2)  {dropped};
+  \draw[line width=0.8pt, {Bar}-{Bar}] (7.5,-1.3) -- (11,-1.3)
+    node[midway, below, pg note] {owed answer:\\\code{startSearch} returns \code{Busy}};
 \end{tikzpicture}
-\end{center}
+\caption{A search that times out in \code{DeadlineEngine}. Only a search with
+  \code{Limits::turnTime} $> 0$ has a deadline. A terminal event that arrives before
+  \code{turnTime + 2 grace}, even after \code{stop()}, ends the search normally and cancels the
+  deadline. After the \code{ErrorEvent} the decorator refuses new searches until the late
+  terminal event arrives; that event is dropped and the decorator is usable again.}
+\label{fig:deadline}
+\end{figure}
 
 \begin{itemize}
   \item Only a search with \code{Limits::turnTime} $> 0$ gets a deadline; \code{grace} defaults to

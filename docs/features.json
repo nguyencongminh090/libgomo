@@ -1312,7 +1312,7 @@
         "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined|Overfull\" /tmp/pygomo-guide/developer-guide.log"
       ],
       "checked_by": "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined|Overfull\" /tmp/pygomo-guide/developer-guide.log",
-      "passes": false
+      "passes": true
     },
     {
       "id": "DOC-03-code",
@@ -1323,7 +1323,7 @@
         "read each figure against the code; record the per-figure check in Evidence"
       ],
       "checked_by": "grep -n target_link_libraries CMakeLists.txt  # plus the per-figure check recorded in Evidence",
-      "passes": false
+      "passes": true
     },
     {
       "id": "DOC-03-floats",
@@ -1334,7 +1334,7 @@
         "grep -n \"label{fig:\\|ref{fig:\" docs/guide/developer-guide.tex  # 3 labels, each referenced"
       ],
       "checked_by": "grep -c \"begin{figure}\" docs/guide/developer-guide.tex && grep -n \"label{fig:\\|ref{fig:\" docs/guide/developer-guide.tex",
-      "passes": false
+      "passes": true
     },
     {
       "id": "DOC-03-style",
@@ -1345,7 +1345,7 @@
         "manual: view the figure pages in greyscale; record the result in Evidence"
       ],
       "checked_by": "grep -n \"tikzset\" docs/guide/developer-guide.tex  # plus manual greyscale read recorded in Evidence",
-      "passes": false
+      "passes": true
     },
     {
       "id": "GTP-06-raw-before",
