@@ -1,5 +1,6 @@
 #include "pygomo/engine/deadline_engine.hpp"
 
+#include <utility>
 #include <variant>
 
 namespace pygomo {
@@ -36,7 +37,7 @@ std::expected<void, EngineError> DeadlineEngine::startSearch(
     const Position& position, const Limits& limits, EventSink& sink) {
     {
         std::lock_guard lock(mutex_);
-        if (detached_ || sink_) return std::unexpected(EngineError::Busy);
+        if (detached_ || terminalPending_ || sink_) return std::unexpected(EngineError::Busy);
         // Installed before the call: the engine may deliver events before it returns.
         sink_ = &sink;
         ++searchId_;
@@ -64,20 +65,42 @@ void DeadlineEngine::onInnerEvent(const SearchEvent& event) {
     const bool terminal = !std::holds_alternative<InfoEvent>(event) &&
                           !std::holds_alternative<MessageEvent>(event) &&
                           !std::holds_alternative<UnparsedEvent>(event);
-    EventSink* sink = nullptr;
-    {
-        std::lock_guard lock(mutex_);
-        if (detached_) {  // events of a search that timed out
-            if (terminal) detached_ = false;
-            return;
-        }
-        sink = sink_;
-        if (!sink) return;
-        if (terminal) {
-            sink_ = nullptr;
-            deadline_.reset();
-        }
+    std::unique_lock lock(mutex_);
+    if (detached_) {  // events of a search that timed out
+        if (terminal) detached_ = false;
+        return;
     }
+    if (!sink_) return;
+    if (terminal) {
+        finishSearch(lock, event);
+        return;
+    }
+
+    struct ProgressCallback {
+        DeadlineEngine& engine;
+        ~ProgressCallback() {
+            std::lock_guard lock(engine.mutex_);
+            if (--engine.progressCallbacks_ == 0 && engine.terminalPending_) {
+                engine.cv_.notify_all();
+            }
+        }
+    };
+    auto* sink = sink_;
+    ++progressCallbacks_;
+    lock.unlock();
+    const ProgressCallback callback{*this};
+    sink->onEvent(event);
+}
+
+void DeadlineEngine::finishSearch(std::unique_lock<std::mutex>& lock, const SearchEvent& event) {
+    // Claim the terminal event now. Keep startSearch Busy until in-flight progress returns,
+    // even if the timed-out engine answers while delivery is pending.
+    auto* sink = std::exchange(sink_, nullptr);
+    deadline_.reset();
+    terminalPending_ = true;
+    cv_.wait(lock, [this] { return progressCallbacks_ == 0; });
+    terminalPending_ = false;
+    lock.unlock();
     sink->onEvent(event);
 }
 
@@ -103,12 +126,8 @@ void DeadlineEngine::watchdog() {
             lock.lock();
             continue;
         }
-        EventSink* sink = sink_;
-        sink_           = nullptr;
-        deadline_.reset();
-        detached_ = sink != nullptr;
-        lock.unlock();
-        if (sink) sink->onEvent(ErrorEvent{"engine did not answer"});
+        detached_ = true;
+        finishSearch(lock, ErrorEvent{"engine did not answer"});
         lock.lock();
     }
 }

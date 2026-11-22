@@ -2,8 +2,11 @@
 
 #include <atomic>
 #include <chrono>
+#include <future>
+#include <latch>
 #include <mutex>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "pygomo/engine/deadline_engine.hpp"
@@ -187,4 +190,81 @@ TEST_CASE(
     port.say(kMove, true);  // terminal event: the sink starts the next search at once
     CHECK(again.started);
     CHECK(port.starts == 3);
+}
+
+TEST_CASE("dead1_serialization: the timeout waits for an active info callback to return") {
+    struct HoldInfo final : EventSink {
+        void onEvent(const SearchEvent& event) override {
+            if (std::holds_alternative<InfoEvent>(event)) {
+                infoStarted.set_value();
+                releaseInfo.wait();
+            }
+            events.onEvent(event);
+            if (std::holds_alternative<ErrorEvent>(event)) timeoutDelivered.set_value();
+        }
+
+        std::promise<void> infoStarted;
+        std::latch releaseInfo{1};
+        std::promise<void> timeoutDelivered;
+        Collect events;
+    } first;
+    Collect next;
+    FakePort port;
+    DeadlineEngine eng{port, DeadlineEngine::Options{10ms}};
+    auto infoStarted = first.infoStarted.get_future();
+    auto timeout = first.timeoutDelivered.get_future();
+    const auto position = pos();
+
+    bool answerWhileBlocked = false;
+    SUBCASE("late answer before timeout delivery") { answerWhileBlocked = true; }
+    SUBCASE("late answer after timeout delivery") {}
+
+    REQUIRE(eng.startSearch(position, turn(100ms), first));
+    std::jthread adapter([&] { port.say(InfoEvent{}, false); });
+    const bool infoEntered = infoStarted.wait_for(2s) == std::future_status::ready;
+    const bool timedOutWhileBlocked = timeout.wait_for(250ms) == std::future_status::ready;
+    const bool stopRequested = port.stops == 1;
+    bool busyWhilePending = false;
+    bool lateAnswerReturned = false;
+    std::jthread lateAnswer;
+    if (answerWhileBlocked) {
+        std::promise<void> returned;
+        auto answer = returned.get_future();
+        lateAnswer = std::jthread([&port, returned = std::move(returned)]() mutable {
+            port.say(kMove, true);
+            returned.set_value();
+        });
+        lateAnswerReturned = answer.wait_for(2s) == std::future_status::ready;
+        auto retry = eng.startSearch(position, Limits{}, next);
+        busyWhilePending = !retry && retry.error() == EngineError::Busy;
+    }
+    first.releaseInfo.count_down();
+    adapter.join();
+    if (lateAnswer.joinable()) lateAnswer.join();
+
+    REQUIRE(infoEntered);
+    CHECK(stopRequested);
+    CHECK_FALSE(timedOutWhileBlocked);
+    REQUIRE(timeout.wait_for(2s) == std::future_status::ready);
+    auto events = first.events.get();
+    REQUIRE(events.size() == 2);
+    CHECK(std::holds_alternative<InfoEvent>(events[0]));
+    REQUIRE(std::holds_alternative<ErrorEvent>(events[1]));
+    CHECK(std::get<ErrorEvent>(events[1]).message == "engine did not answer");
+
+    if (answerWhileBlocked) {
+        CHECK(lateAnswerReturned);
+        CHECK(busyWhilePending);
+    } else {
+        auto retry = eng.startSearch(position, Limits{}, next);
+        REQUIRE_FALSE(retry);
+        CHECK(retry.error() == EngineError::Busy);
+        port.say(kMove, true);
+    }
+    CHECK(first.events.get().size() == 2);
+    REQUIRE(eng.startSearch(position, Limits{}, next));
+    port.say(kMove, true);
+    events = next.get();
+    REQUIRE(events.size() == 1);
+    CHECK(std::holds_alternative<BestMoveEvent>(events[0]));
 }

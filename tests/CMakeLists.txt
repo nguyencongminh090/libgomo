@@ -55,7 +55,7 @@ target_link_libraries(pygomo_engine_tests PRIVATE pygomo::engine)
 target_include_directories(pygomo_engine_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
 pygomo_enable_warnings(pygomo_engine_tests)
 add_test(NAME port_blocking COMMAND pygomo_engine_tests "-tc=port_blocking*")
-foreach(group timeout intime nodeadline callback)
+foreach(group timeout intime nodeadline callback serialization)
   add_test(NAME dead1_${group} COMMAND pygomo_engine_tests "-tc=dead1_${group}*")
 endforeach()
 

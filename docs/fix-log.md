@@ -88,3 +88,27 @@ framing (`src/gtp/gtp_engine.cpp`, AUD-04).
 
 ### Check that would have caught it
 `gtp6_raw` in `tests/gtp/gtp_engine_test.cpp` (registered in `tests/CMakeLists.txt`).
+
+## CORE-02-01-overlapping-deadline-callbacks (2026-11-22, owner codex)
+
+### Symptom
+
+The watchdog could deliver `ErrorEvent` while the same sink was still handling `InfoEvent`.
+The caller could then release the sink while the info callback was still using it.
+
+### Real source
+
+Both paths copied the borrowed sink pointer under the state mutex and released the mutex
+before calling the sink. The terminal path had no record of callbacks already in progress.
+
+### Corrected fix
+
+`DeadlineEngine` claims the terminal event under the state mutex, stops accepting progress,
+and waits for active callbacks to return. It releases the mutex before invoking the terminal
+callback. The decorator returns `Busy` while delivery is pending or a late answer is owed.
+
+### Regression check
+
+`ctest --preset default -R '^dead1_serialization$'` holds an info callback open through expiry.
+It checks callback order, exactly one terminal event, and late answers on both sides of
+timeout delivery.

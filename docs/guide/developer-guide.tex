@@ -1156,7 +1156,7 @@ Figure~\ref{fig:deadline} shows the timeline of a search that times out.
   }
   \node[above, align=center] at (0,0.2)   {\code{startSearch}};
   \node[above, align=center] at (4,0.2)   {\code{inner.stop()}};
-  \node[above, align=center] at (7.5,0.2) {sink gets\\\code{ErrorEvent}};
+  \node[above, align=center] at (7.5,0.2) {watchdog commits\\to \code{ErrorEvent}};
   \node[above, align=center] at (11,0.2)  {dropped};
   \draw[line width=0.8pt, {Bar}-{Bar}] (7.5,-1.3) -- (11,-1.3)
     node[midway, below, pg note] {owed answer:\\\code{startSearch} returns \code{Busy}};
@@ -1164,9 +1164,10 @@ Figure~\ref{fig:deadline} shows the timeline of a search that times out.
 \caption{A search that times out in \code{DeadlineEngine}. Only a search with
   \code{Limits::turnTime} $> 0$ has a deadline. A terminal event that arrives before
   \code{turnTime + 2 grace}, even after \code{stop()}, ends the search normally and cancels the
-  deadline. After the \code{ErrorEvent} the decorator refuses new searches until the late
-  terminal event arrives; that event is dropped and the decorator is usable again. If it never
-  arrives, the decorator stays \code{Busy} and the caller must close the transport
+  deadline. After the watchdog commits to the error, it waits for any active callback to return.
+  The decorator refuses new searches until it begins the timeout callback and drops the late
+  terminal event. If that event never arrives, the decorator stays \code{Busy} and the caller
+  must close the transport
   (\file{docs/audit/AUD-03}).}
 \label{fig:deadline}
 \end{figure}
@@ -1175,16 +1176,16 @@ Figure~\ref{fig:deadline} shows the timeline of a search that times out.
   \item Only a search with \code{Limits::turnTime} $> 0$ gets a deadline; \code{grace} defaults to
         2000\,ms (\code{DeadlineEngine::Options}).
   \item At \code{turnTime + grace} the decorator calls \code{stop()} on the wrapped port. After one
-        more \code{grace} the sink receives \code{ErrorEvent\{"engine did not answer"\}} from a
-        watchdog thread (never under a lock).
-  \item The engine still owes its answer: until its late terminal event arrives (and is dropped),
-        \code{startSearch} returns \code{Busy} without calling the wrapped port, so a late move
-        can never be taken as the answer to a later search. Why this is the only safe state:
-        Section~\ref{sec:why-deadline}.
+        more \code{grace} the watchdog schedules \code{ErrorEvent\{"engine did not answer"\}}
+        and drops further events from that search.
+  \item The watchdog starts the timeout callback once active callbacks from that search have
+        returned. It calls the sink with the state mutex unlocked, so the sink can call
+        \code{startSearch}. That call returns \code{Busy} while timeout delivery is pending or
+        the engine still owes its answer (Section~\ref{sec:why-deadline}).
   \item If the engine never answers, the decorator stays \code{Busy}; close the transport.
-  \item \textbf{Lifetime.} The wrapped port is not owned and must outlive the decorator. Destroy
-        the decorator only after the wrapped port has stopped delivering events: close the
-        transport first.
+  \item \textbf{Lifetime.} Keep the sink alive until the terminal callback returns. The wrapped
+        port must outlive the decorator. Close the transport and let the wrapped port finish
+        delivering events before destroying the decorator.
 \end{itemize}
 
 %======================================================================

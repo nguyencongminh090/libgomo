@@ -3,6 +3,7 @@
 ## Backlog
 
 ## Active
+- [~] **CORE-02.** Tuần tự hóa callback của DeadlineEngine khi hết hạn - size M - [detail](docs/todo/CORE-02-serialize-deadline-callbacks.md)
 
 ## Done
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
