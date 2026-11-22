@@ -66,7 +66,13 @@ TEST_CASE("parse_info: partial lines fill only what is present") {
 
     auto m = parseGomocupLine("MESSAGE multipv 2 ev 7 pv 1,1");
     REQUIRE(as<InfoEvent>(m));
-    CHECK(as<InfoEvent>(m)->principalVariation == std::vector<Coord>{{1, 1}});
+    CHECK_FALSE(as<InfoEvent>(m)->score);
+    CHECK(as<InfoEvent>(m)->principalVariation.empty());
+    REQUIRE(as<InfoEvent>(m)->candidates.size() == 1);
+    CHECK(as<InfoEvent>(m)->candidates[0].rank == 2);
+    CHECK(as<InfoEvent>(m)->candidates[0].move == Coord{1, 1});
+    CHECK(as<InfoEvent>(m)->candidates[0].score == Score{Score::Kind::Eval, 7});
+    CHECK(as<InfoEvent>(m)->candidates[0].principalVariation == std::vector<Coord>{{1, 1}});
 
     // Truncated or garbled tails never throw and never lose the line.
     for (const char* l : {"MESSAGE depth", "MESSAGE depth x ev y", "MESSAGE depth 5 ev"}) {

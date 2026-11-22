@@ -17,6 +17,7 @@
 #include "pygomo/engine/blocking_search.hpp"
 #include "pygomo/engine/deadline_engine.hpp"
 #include "pygomo/gomocup/gomocup_engine.hpp"
+#include "pygomo/parse/gomocup_parser.hpp"
 #include "pygomo/process/process_transport.hpp"
 
 using namespace pygomo;
@@ -63,6 +64,35 @@ struct Terminal final : EventSink {
     std::condition_variable  cv;
     std::vector<SearchEvent> events;
     bool                     done = false;
+};
+
+// Collects parsed events from raw transport lines and wakes wait() on BestMove or close.
+struct RawListener final : TransportListener {
+    void onLine(std::string_view line) override {
+        auto ev = parse::parseGomocupLine(line);
+        std::lock_guard lock(m);
+        if (auto* info = std::get_if<InfoEvent>(&ev)) {
+            infos.push_back(*info);
+        } else if (std::holds_alternative<BestMoveEvent>(ev)) {
+            gotMove = true;
+            done = true;
+            cv.notify_all();
+        }
+    }
+    void onClosed(CloseReason) override {
+        std::lock_guard lock(m);
+        done = true;
+        cv.notify_all();
+    }
+    bool wait(std::chrono::milliseconds timeout) {
+        std::unique_lock lock(m);
+        return cv.wait_for(lock, timeout, [&] { return done; });
+    }
+    std::mutex m;
+    std::condition_variable cv;
+    std::vector<InfoEvent> infos;
+    bool gotMove = false;
+    bool done = false;
 };
 
 // Launch options for the engine named by PYGOMO_RAPFI.
@@ -204,4 +234,27 @@ TEST_CASE("gomo2_deadline: a frozen engine times out, its late move is dropped, 
     CHECK(pos.contains(std::get<BestMoveEvent>(second.events.back()).coord));
     CHECK_FALSE(pos.occupied(std::get<BestMoveEvent>(second.events.back()).coord));
     t.close();
+}
+
+TEST_CASE("gomo7_live: real Rapfi MultiPV search yields a rank-2 candidate") {
+    REQUIRE_RAPFI();
+    RawListener listener;
+    ProcessTransport t(rapfi());
+    REQUIRE(t.start(listener));
+    // YXSHOWINFO switches Rapfi from brief to normal mode so ranked lines are printed.
+    for (const char* cmd : {"START 15", "YXSHOWINFO", "INFO timeout_turn 1000", "YXBOARD",
+                            "7,7,1", "8,8,2", "DONE", "YXNBEST 3"}) {
+        REQUIRE(t.writeLine(cmd));
+    }
+    const bool finished = listener.wait(10s);
+    t.close();
+    REQUIRE(finished);
+    CHECK(listener.gotMove);
+    bool hasRank2 = false;
+    for (const auto& info : listener.infos) {
+        for (const auto& cand : info.candidates) {
+            if (cand.rank == 2) hasRank2 = true;
+        }
+    }
+    REQUIRE(hasRank2);
 }
