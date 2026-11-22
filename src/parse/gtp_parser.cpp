@@ -71,9 +71,9 @@ bool isSkippedAnalyzeKey(std::string_view w) {
 // Parses one `info` entry (tokens after `info`, before the next `info`); nullopt if malformed.
 std::optional<Candidate> parseGtpAnalyzeEntry(
     std::span<const std::string_view> entry, int width, int height) {
-    Candidate cand;
-    bool sawField = false;
-    bool hasUtility = false;
+    Candidate             cand;
+    bool                  sawField   = false;
+    bool                  hasUtility = false;
     std::optional<double> rawWinrate;
 
     for (std::size_t i = 0; i < entry.size(); ++i) {
@@ -95,13 +95,13 @@ std::optional<Candidate> parseGtpAnalyzeEntry(
             auto v = toNumber<std::int64_t>(entry[++i]);
             if (!v || *v < 0) return std::nullopt;
             cand.visits = *v;
-            sawField = true;
+            sawField    = true;
         } else if (w == "winrate") {
             if (i + 1 >= entry.size()) return std::nullopt;
             auto v = toNumber<double>(entry[++i]);
             if (!v) return std::nullopt;
             rawWinrate = *v;
-            sawField = true;
+            sawField   = true;
         } else if (w == "order") {
             if (i + 1 >= entry.size()) return std::nullopt;
             auto ord = toNumber<int>(entry[++i]);
@@ -109,7 +109,7 @@ std::optional<Candidate> parseGtpAnalyzeEntry(
                 return std::nullopt;
             }
             cand.rank = *ord + 1;
-            sawField = true;
+            sawField  = true;
         } else if (w == "pv") {
             cand.principalVariation.clear();
             while (i + 1 < entry.size() && entry[i + 1] != "pvVisits" &&
@@ -235,8 +235,8 @@ SearchEvent parseGtpAnalyzeLine(std::string_view line, int width, int height) {
         pos = next;
     }
 
-    const Candidate* summary = nullptr;
-    bool anyRanked = false;
+    const Candidate* summary   = nullptr;
+    bool             anyRanked = false;
     for (const Candidate& c : info.candidates) {
         if (c.rank) {
             anyRanked = true;

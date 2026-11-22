@@ -333,17 +333,17 @@ TEST_CASE("gomo7_forms: unranked lines keep candidates empty and unrecognised st
 
 TEST_CASE("gomo7_fixture: real Rapfi nbest capture keeps ranks 1..3 and summary rules") {
     const std::string path = std::string{PYGOMO_FIXTURE_DIR} + "/rapfi-nbest-normal.txt";
-    std::ifstream in(path);
+    std::ifstream     in(path);
     REQUIRE_MESSAGE(in.good(), path);
 
     std::string line;
-    int rank1 = 0;
-    int rank2 = 0;
-    int rank3 = 0;
-    int unrankedInfos = 0;
-    int moves = 0;
-    bool sawDepth17Rank1 = false;
-    bool sawDepth17Rank2 = false;
+    int         rank1           = 0;
+    int         rank2           = 0;
+    int         rank3           = 0;
+    int         unrankedInfos   = 0;
+    int         moves           = 0;
+    bool        sawDepth17Rank1 = false;
+    bool        sawDepth17Rank2 = false;
 
     while (std::getline(in, line)) {
         if (!line.empty() && line[0] == '#') continue;

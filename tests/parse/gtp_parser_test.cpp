@@ -202,8 +202,8 @@ TEST_CASE("gtp7_probe: single entry and two entries produce different InfoEvents
     const std::string_view twoLine =
         "info move H8 visits 120 pv H8 info move G8 visits 50 pv G8";
 
-    auto e1 = parseGtpAnalyzeLine(oneLine, 15, 15);
-    auto e2 = parseGtpAnalyzeLine(twoLine, 15, 15);
+    auto  e1  = parseGtpAnalyzeLine(oneLine, 15, 15);
+    auto  e2  = parseGtpAnalyzeLine(twoLine, 15, 15);
     auto* one = std::get_if<InfoEvent>(&e1);
     auto* two = std::get_if<InfoEvent>(&e2);
     REQUIRE(one);
@@ -237,7 +237,7 @@ TEST_CASE("gtp7_probe: single entry and two entries produce different InfoEvents
 }
 
 TEST_CASE("gtp7_fixtures: kata-analyze reads all candidates with rank, visits, winrate, PV") {
-    auto e = parseGtpAnalyzeLine(fixtureLine("kata_analyze.txt"), 15, 15);
+    auto  e    = parseGtpAnalyzeLine(fixtureLine("kata_analyze.txt"), 15, 15);
     auto* info = std::get_if<InfoEvent>(&e);
     REQUIRE(info);
     CHECK_FALSE(info->nodes);
@@ -267,7 +267,7 @@ TEST_CASE("gtp7_fixtures: kata-analyze reads all candidates with rank, visits, w
 }
 
 TEST_CASE("gtp7_fixtures: lz-analyze reads all candidates with scaled winrate") {
-    auto e = parseGtpAnalyzeLine(fixtureLine("lz_analyze.txt"), 15, 15);
+    auto  e    = parseGtpAnalyzeLine(fixtureLine("lz_analyze.txt"), 15, 15);
     auto* info = std::get_if<InfoEvent>(&e);
     REQUIRE(info);
     CHECK_FALSE(info->nodes);
@@ -299,7 +299,7 @@ TEST_CASE("gtp7_fixtures: lz-analyze reads all candidates with scaled winrate") 
 TEST_CASE("gtp7_candidates: summary PV follows rank 1; non-rank-1 leaves summary PV empty") {
     const std::string_view swapped =
         "info move G8 visits 40 order 1 pv G8 info move H8 visits 120 order 0 pv H8 J9";
-    auto e1 = parseGtpAnalyzeLine(swapped, 15, 15);
+    auto  e1 = parseGtpAnalyzeLine(swapped, 15, 15);
     auto* i1 = std::get_if<InfoEvent>(&e1);
     REQUIRE(i1);
     REQUIRE(i1->candidates.size() == 2);
@@ -307,7 +307,7 @@ TEST_CASE("gtp7_candidates: summary PV follows rank 1; non-rank-1 leaves summary
     CHECK(i1->candidates[1].rank == 1);
     CHECK(i1->principalVariation == std::vector<Coord>{{7, 7}, {8, 6}});
 
-    auto e2 = parseGtpAnalyzeLine("info move G8 visits 40 order 1 pv G8", 15, 15);
+    auto  e2 = parseGtpAnalyzeLine("info move G8 visits 40 order 1 pv G8", 15, 15);
     auto* i2 = std::get_if<InfoEvent>(&e2);
     REQUIRE(i2);
     REQUIRE(i2->candidates.size() == 1);
@@ -319,7 +319,7 @@ TEST_CASE("gtp7_candidates: move pass, skipped keys, pvEdgeVisits and winrate bo
     const std::string_view passLine =
         "info move pass visits 10 utility 0.0 winrate 0.5 scoreMean 25 scoreLead 25 "
         "isSymmetryOf H8 order 0 pv H8 pvEdgeVisits 10";
-    auto e = parseGtpAnalyzeLine(passLine, 15, 15);
+    auto  e    = parseGtpAnalyzeLine(passLine, 15, 15);
     auto* info = std::get_if<InfoEvent>(&e);
     REQUIRE(info);
     REQUIRE(info->candidates.size() == 1);
@@ -339,7 +339,7 @@ TEST_CASE("gtp7_candidates: move pass, skipped keys, pvEdgeVisits and winrate bo
              "info move H8 visits 10 winrate 10001 pv H8",
              "info move H8 visits 10 winrate -1 pv H8"}) {
         INFO(outOfRange);
-        auto ev = parseGtpAnalyzeLine(outOfRange, 15, 15);
+        auto  ev = parseGtpAnalyzeLine(outOfRange, 15, 15);
         auto* in = std::get_if<InfoEvent>(&ev);
         REQUIRE(in);
         REQUIRE(in->candidates.size() == 1);
@@ -362,7 +362,7 @@ TEST_CASE("gtp7_robust: broken later entry keeps earlier candidates and stops re
     const std::string_view badSecond =
         "info move H8 visits 120 order 0 pv H8 info move G8 visits bad pv G8 "
         "info move F8 visits 10 order 2 pv F8";
-    auto e1 = parseGtpAnalyzeLine(badSecond, 15, 15);
+    auto  e1 = parseGtpAnalyzeLine(badSecond, 15, 15);
     auto* i1 = std::get_if<InfoEvent>(&e1);
     REQUIRE(i1);
     REQUIRE(i1->candidates.size() == 1);
@@ -372,14 +372,14 @@ TEST_CASE("gtp7_robust: broken later entry keeps earlier candidates and stops re
 
     const std::string_view badThird =
         "info move H8 visits 120 pv H8 info move G8 visits 50 pv G8 info move Z99 pv Z99";
-    auto e2 = parseGtpAnalyzeLine(badThird, 15, 15);
+    auto  e2 = parseGtpAnalyzeLine(badThird, 15, 15);
     auto* i2 = std::get_if<InfoEvent>(&e2);
     REQUIRE(i2);
     REQUIRE(i2->candidates.size() == 2);
     CHECK(i2->candidates[0].move == Coord{7, 7});
     CHECK(i2->candidates[1].move == Coord{6, 7});
 
-    auto e3 = parseGtpAnalyzeLine("info move H8 visits 120 pv H8 info", 15, 15);
+    auto  e3 = parseGtpAnalyzeLine("info move H8 visits 120 pv H8 info", 15, 15);
     auto* i3 = std::get_if<InfoEvent>(&e3);
     REQUIRE(i3);
     REQUIRE(i3->candidates.size() == 1);
@@ -397,7 +397,7 @@ TEST_CASE("gtp7_robust: broken first entry and non-info lines give UnparsedEvent
              "info move H8 winrate nope pv H8",
              "info move H8 visits -3 pv H8"}) {
         INFO(bad);
-        auto e = parseGtpAnalyzeLine(bad, 15, 15);
+        auto  e  = parseGtpAnalyzeLine(bad, 15, 15);
         auto* un = std::get_if<UnparsedEvent>(&e);
         REQUIRE(un);
         CHECK(un->line == bad);

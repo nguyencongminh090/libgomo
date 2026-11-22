@@ -75,7 +75,7 @@ struct RawListener final : TransportListener {
             infos.push_back(*info);
         } else if (std::holds_alternative<BestMoveEvent>(ev)) {
             gotMove = true;
-            done = true;
+            done    = true;
             cv.notify_all();
         }
     }
@@ -88,11 +88,11 @@ struct RawListener final : TransportListener {
         std::unique_lock lock(m);
         return cv.wait_for(lock, timeout, [&] { return done; });
     }
-    std::mutex m;
+    std::mutex              m;
     std::condition_variable cv;
-    std::vector<InfoEvent> infos;
-    bool gotMove = false;
-    bool done = false;
+    std::vector<InfoEvent>  infos;
+    bool                    gotMove = false;
+    bool                    done    = false;
 };
 
 // Launch options for the engine named by PYGOMO_RAPFI.
@@ -238,7 +238,7 @@ TEST_CASE("gomo2_deadline: a frozen engine times out, its late move is dropped, 
 
 TEST_CASE("gomo7_live: real Rapfi MultiPV search yields a rank-2 candidate") {
     REQUIRE_RAPFI();
-    RawListener listener;
+    RawListener      listener;
     ProcessTransport t(rapfi());
     REQUIRE(t.start(listener));
     // YXSHOWINFO switches Rapfi from brief to normal mode so ranked lines are printed.

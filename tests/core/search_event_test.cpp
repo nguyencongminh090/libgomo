@@ -89,12 +89,12 @@ TEST_CASE("cand1_defaults: default InfoEvent and Candidate leave all fields empt
 
 TEST_CASE("cand1_equality: Candidate compares every field by value") {
     const Candidate base{
-        .rank = 1,
-        .move = Coord{7, 7},
-        .score = Score{Score::Kind::Eval, 25},
-        .visits = 120,
-        .winrate = 0.55,
-        .drawrate = 0.10,
+        .rank               = 1,
+        .move               = Coord{7, 7},
+        .score              = Score{Score::Kind::Eval, 25},
+        .visits             = 120,
+        .winrate            = 0.55,
+        .drawrate           = 0.10,
         .principalVariation = {{7, 7}, {8, 8}},
     };
     CHECK(base == Candidate{base});
@@ -107,33 +107,33 @@ TEST_CASE("cand1_equality: Candidate compares every field by value") {
     diffMove.move = Coord{6, 6};
     CHECK(base != diffMove);
 
-    auto diffScore = base;
+    auto diffScore  = base;
     diffScore.score = Score{Score::Kind::Eval, 26};
     CHECK(base != diffScore);
 
-    auto diffVisits = base;
+    auto diffVisits   = base;
     diffVisits.visits = 121;
     CHECK(base != diffVisits);
 
-    auto diffWinrate = base;
+    auto diffWinrate    = base;
     diffWinrate.winrate = 0.56;
     CHECK(base != diffWinrate);
 
-    auto diffDrawrate = base;
+    auto diffDrawrate     = base;
     diffDrawrate.drawrate = 0.11;
     CHECK(base != diffDrawrate);
 
-    auto diffPv = base;
+    auto diffPv               = base;
     diffPv.principalVariation = {{7, 7}};
     CHECK(base != diffPv);
 }
 
 TEST_CASE("cand1_equality: InfoEvents differing only in candidates compare unequal") {
     InfoEvent a;
-    a.depth = 12;
-    a.nodes = 1000;
-    a.score = Score{Score::Kind::Eval, 7};
-    a.elapsed = 100ms;
+    a.depth              = 12;
+    a.nodes              = 1000;
+    a.score              = Score{Score::Kind::Eval, 7};
+    a.elapsed            = 100ms;
     a.principalVariation = {{1, 1}};
 
     InfoEvent b = a;
@@ -159,10 +159,10 @@ TEST_CASE("cand1_compat: existing InfoEvent forms still compile and compare equa
     CHECK(positional == InfoEvent{positional});
 
     InfoEvent designated{
-        .depth = 10,
-        .nodes = 500,
-        .score = Score{Score::Kind::Eval, 12},
-        .elapsed = 50ms,
+        .depth              = 10,
+        .nodes              = 500,
+        .score              = Score{Score::Kind::Eval, 12},
+        .elapsed            = 50ms,
         .principalVariation = {{7, 7}},
     };
     CHECK(designated == positional);

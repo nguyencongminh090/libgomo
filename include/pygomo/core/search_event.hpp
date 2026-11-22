@@ -28,13 +28,13 @@ struct Score {
 
 /// One candidate move reported during a search (e.g. a ranked line or an analysis entry).
 struct Candidate {
-    std::optional<int> rank{}; ///< 1 = best; empty when the engine prints no rank.
-    std::optional<Coord> move{}; ///< Candidate move; empty for pass or when not sent.
-    std::optional<Score> score{}; ///< Evaluation of this move.
-    std::optional<std::int64_t> visits{}; ///< Visits or nodes spent on this move only.
-    std::optional<double> winrate{}; ///< 0..1, perspective as reported by the engine.
-    std::optional<double> drawrate{}; ///< 0..1; empty when the engine reports none.
-    std::vector<Coord> principalVariation{}; ///< Line from this move, first move first.
+    std::optional<int>          rank{};     ///< 1 = best; empty when the engine prints no rank.
+    std::optional<Coord>        move{};     ///< Candidate move; empty for pass or when not sent.
+    std::optional<Score>        score{};    ///< Evaluation of this move.
+    std::optional<std::int64_t> visits{};   ///< Visits or nodes spent on this move only.
+    std::optional<double>       winrate{};  ///< 0..1, perspective as reported by the engine.
+    std::optional<double>       drawrate{}; ///< 0..1; empty when the engine reports none.
+    std::vector<Coord>          principalVariation{}; ///< Line from this move, first move first.
 
     bool operator==(const Candidate&) const = default;
 };

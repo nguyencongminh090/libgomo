@@ -147,7 +147,7 @@ bool parseParenRates(std::string_view field, std::size_t from, Candidate& cand) 
     const auto close = field.find(')', open + 1);
     if (close == std::string_view::npos) return false;
 
-    std::string_view body = field.substr(open + 1, close - open - 1);
+    std::string_view              body = field.substr(open + 1, close - open - 1);
     std::vector<std::string_view> tok;
     while (!body.empty()) {
         const auto start = body.find_first_not_of(" \t,");
@@ -164,12 +164,12 @@ bool parseParenRates(std::string_view field, std::size_t from, Candidate& cand) 
         if (tok[i] == "W") {
             if (auto w = toPercentRate(tok[i + 1])) {
                 cand.winrate = w;
-                any = true;
+                any          = true;
             }
         } else if (tok[i] == "D") {
             if (auto d = toPercentRate(tok[i + 1])) {
                 cand.drawrate = d;
-                any = true;
+                any           = true;
             }
         }
     }
@@ -217,7 +217,7 @@ std::optional<InfoEvent> parseNormalInfo(std::string_view text) {
             if (tok.size() >= 2) {
                 if (auto sc = toScore(tok[1])) {
                     cand.score = sc;
-                    any = true;
+                    any        = true;
                 }
             }
             if (parseParenRates(fields[0], tok[0].size(), cand)) any = true;
@@ -244,13 +244,13 @@ std::optional<InfoEvent> parseNormalInfo(std::string_view text) {
         } else if (rank && tok[0] == "V" && tok.size() >= 2) {
             if (auto v = toCount(tok[1])) {
                 cand.visits = v;
-                any = true;
+                any         = true;
             }
         } else if (tok[0] == "Time" && tok.size() >= 2) {
             if (auto t = toDuration(tok[1])) { info.elapsed = t; any = true; }
         } else if (auto pv = toPath(tok, 0); !pv.empty() && pv.size() == tok.size()) {
             if (rank) {
-                cand.move = pv.front();
+                cand.move               = pv.front();
                 cand.principalVariation = std::move(pv);
             } else {
                 info.principalVariation = std::move(pv);
@@ -261,7 +261,7 @@ std::optional<InfoEvent> parseNormalInfo(std::string_view text) {
     if (!any) return std::nullopt;
     if (rank) {
         if (*rank == 1) {
-            info.score = cand.score;
+            info.score              = cand.score;
             info.principalVariation = cand.principalVariation;
         }
         info.candidates.push_back(std::move(cand));
@@ -278,12 +278,12 @@ std::optional<InfoEvent> parseInfo(std::string_view text) {
     if (tok.empty() || (tok[0] != "depth" && tok[0] != "multipv")) return std::nullopt;
 
     InfoEvent info;
-    std::optional<int> rank;
-    std::optional<Score> score;
+    std::optional<int>          rank;
+    std::optional<Score>        score;
     std::optional<std::int64_t> visits;
-    std::optional<double> winrate;
-    std::optional<double> drawrate;
-    std::vector<Coord> pv;
+    std::optional<double>       winrate;
+    std::optional<double>       drawrate;
+    std::vector<Coord>          pv;
 
     for (std::size_t i = 0; i + 1 < tok.size(); i += 2) {
         auto key = tok[i];
@@ -319,20 +319,20 @@ std::optional<InfoEvent> parseInfo(std::string_view text) {
         Candidate cand;
         cand.rank = rank;
         if (!pv.empty()) cand.move = pv.front();
-        cand.score = score;
-        cand.visits = visits;
-        cand.winrate = winrate;
-        cand.drawrate = drawrate;
+        cand.score              = score;
+        cand.visits             = visits;
+        cand.winrate            = winrate;
+        cand.drawrate           = drawrate;
         cand.principalVariation = std::move(pv);
         if (*rank == 1) {
-            info.score = cand.score;
+            info.score              = cand.score;
             info.principalVariation = cand.principalVariation;
         }
         info.candidates.push_back(std::move(cand));
         return info;
     }
     if (!hasSummary) return std::nullopt;
-    info.score = score;
+    info.score              = score;
     info.principalVariation = std::move(pv);
     return info;
 }
