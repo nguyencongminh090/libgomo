@@ -2,7 +2,7 @@
 id: GTP-07-analyze-all-candidates
 type: todo
 size: M
-status: backlog
+status: active
 owner: claude
 created: 2026-11-22
 supersedes: []
