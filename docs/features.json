@@ -1303,6 +1303,49 @@
       ],
       "checked_by": "manual: read each part against skill documentation Step 4; record any subsection moved or split in Evidence",
       "passes": true
+    },
+    {
+      "id": "DOC-03-build",
+      "todo": "DOC-03",
+      "description": "WHEN latexmk builds docs/guide/developer-guide.tex THEN it succeeds with no undefined reference and no Overfull box",
+      "steps": [
+        "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined|Overfull\" /tmp/pygomo-guide/developer-guide.log"
+      ],
+      "checked_by": "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined|Overfull\" /tmp/pygomo-guide/developer-guide.log",
+      "passes": false
+    },
+    {
+      "id": "DOC-03-code",
+      "todo": "DOC-03",
+      "description": "WHEN each figure is compared with the code (figure 1 with target_link_libraries in CMakeLists.txt, figure 2 with EnginePort/Transport/EventSink calls, figure 3 with src/engine/deadline_engine.cpp) THEN every arrow, message and time matches, and nothing the code has is missing without a caption saying so",
+      "steps": [
+        "grep -n target_link_libraries CMakeLists.txt",
+        "read each figure against the code; record the per-figure check in Evidence"
+      ],
+      "checked_by": "grep -n target_link_libraries CMakeLists.txt  # plus the per-figure check recorded in Evidence",
+      "passes": false
+    },
+    {
+      "id": "DOC-03-floats",
+      "todo": "DOC-03",
+      "description": "WHEN the guide is searched for figures THEN there are exactly three figure floats, each with a caption and a fig: label that the text references",
+      "steps": [
+        "grep -c \"begin{figure}\" docs/guide/developer-guide.tex  # 3",
+        "grep -n \"label{fig:\\|ref{fig:\" docs/guide/developer-guide.tex  # 3 labels, each referenced"
+      ],
+      "checked_by": "grep -c \"begin{figure}\" docs/guide/developer-guide.tex && grep -n \"label{fig:\\|ref{fig:\" docs/guide/developer-guide.tex",
+      "passes": false
+    },
+    {
+      "id": "DOC-03-style",
+      "todo": "DOC-03",
+      "description": "WHEN the rebuilt PDF is read in greyscale THEN the three figures share one style defined once with \\tikzset, carry no meaning by colour alone, and no text is smaller than scriptsize",
+      "steps": [
+        "grep -n \"tikzset\" docs/guide/developer-guide.tex",
+        "manual: view the figure pages in greyscale; record the result in Evidence"
+      ],
+      "checked_by": "grep -n \"tikzset\" docs/guide/developer-guide.tex  # plus manual greyscale read recorded in Evidence",
+      "passes": false
     }
   ]
 }

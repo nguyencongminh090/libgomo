@@ -1,6 +1,7 @@
 # TODO
 
 ## Backlog
+- [ ] **DOC-03.** Developer guide, pass 3: the three TikZ figures - size M - [detail](docs/todo/DOC-03-developer-guide-figures.md)
 - [ ] **GTP-06.** GtpEngine: the id-less reply to a raw command ends a search - size M - [detail](docs/todo/GTP-06-raw-reply-ends-search.md)
 
 ## Active
