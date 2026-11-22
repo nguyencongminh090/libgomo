@@ -2,7 +2,7 @@
 id: detailed-search-analysis
 type: planning
 size: L
-status: draft
+status: approved
 owner: claude
 created: 2026-11-22
 supersedes: []
@@ -71,7 +71,7 @@ lấy lại phần dữ liệu đã bị bỏ.
 
 Chủ repo chọn (2026-11-22): chỉ dữ liệu có kiểu; phương án 1; trường tối thiểu cộng winrate và
 drawrate. Chủ repo giao cho người lập planning quyết nghĩa của các trường tóm tắt; quyết định
-bên dưới cần chủ repo xác nhận khi duyệt.
+bên dưới được chủ repo duyệt cùng planning (2026-11-22).
 
 Kiểu mới trong core (`search_event.hpp`):
 

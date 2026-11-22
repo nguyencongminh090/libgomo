@@ -1476,6 +1476,96 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "CORE-06-candidate-type",
+      "todo": "CORE-06",
+      "description": "WHEN an InfoEvent is default-built, compared, or built with the existing aggregate forms THEN candidates is empty by default, two events that differ only in candidates compare unequal, and the old forms still compile",
+      "steps": [
+        "ctest --preset default -R \"^cand1_\" --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R \"^cand1_\" --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "CORE-06-deps",
+      "todo": "CORE-06",
+      "description": "WHEN the whole suite (with line-length, doc-comment and ctest-coverage checks), the tsan preset and scripts/check-core-deps.sh run THEN all pass and existing parser tests are unchanged",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": false
+    },
+    {
+      "id": "GOMO-07-ranks",
+      "todo": "GOMO-07",
+      "description": "WHEN MESSAGE multipv 1 ev 7 pv 1,1 and MESSAGE multipv 2 ev 7 pv 1,1 are parsed THEN the two InfoEvents differ: each has one Candidate with rank 1 and rank 2, and only rank 1 fills the summary score and PV",
+      "steps": [
+        "ctest --preset default -R \"^gomo7_\" --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R \"^gomo7_\" --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "GOMO-07-forms",
+      "todo": "GOMO-07",
+      "description": "WHEN each of the four Rapfi ranked forms, an unranked line and an unrecognised line are parsed THEN ranked lines give rank, move, score, visits, winrate and drawrate (0..1) as in the planning, summary nodes comes only from search totals, unranked lines keep candidates empty, and unrecognised lines stay MessageEvent or UnparsedEvent",
+      "steps": [
+        "ctest --preset default -R \"^(gomo7_|gomo2_parse|parse_)\" --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R \"^(gomo7_|gomo2_parse|parse_)\" --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "GOMO-07-live",
+      "todo": "GOMO-07",
+      "description": "WHEN a real Rapfi searches with MultiPV above 1 THEN at least one InfoEvent carries a Candidate with rank 2",
+      "steps": [
+        "PYGOMO_RAPFI=/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi/build/pbrain-rapfi ctest --preset default -R \"^gomo7_live\" --output-on-failure"
+      ],
+      "checked_by": "PYGOMO_RAPFI=/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi/build/pbrain-rapfi ctest --preset default -R \"^gomo7_live\" --output-on-failure  # must run, not be Skipped",
+      "passes": false
+    },
+    {
+      "id": "GTP-07-candidates",
+      "todo": "GTP-07",
+      "description": "WHEN info move H8 visits 120 pv H8 is parsed alone and with info move G8 visits 50 pv G8 appended THEN the two InfoEvents differ in candidates, and the kata and lz fixtures give every entry with rank order+1, visits, winrate in 0..1 and PV",
+      "steps": [
+        "ctest --preset default -R \"^(gtp7_|gtp_analyze)\" --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R \"^(gtp7_|gtp_analyze)\" --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "GTP-07-robust",
+      "todo": "GTP-07",
+      "description": "WHEN the first entry is broken, a later entry is broken, or the line is not an info line THEN a broken first entry or a non-info line gives UnparsedEvent, a broken later entry keeps the candidates before it, and GtpEngine still streams InfoEvents and ends the search as before",
+      "steps": [
+        "ctest --preset default -R \"^(gtp7_|gtp3_)\" --output-on-failure && ctest --preset default && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default -R \"^(gtp7_|gtp3_)\" --output-on-failure && ctest --preset default && scripts/check-core-deps.sh",
+      "passes": false
+    },
+    {
+      "id": "DOC-04-adr",
+      "todo": "DOC-04",
+      "description": "WHEN docs/adr is read THEN one ADR records the InfoEvent::candidates decision, the rejected options and the summary-field meaning, and harness-check reports no finding",
+      "steps": [
+        "node scripts/harness/harness-check.mjs"
+      ],
+      "checked_by": "node scripts/harness/harness-check.mjs  # plus reading the ADR against the planning Decision",
+      "passes": false
+    },
+    {
+      "id": "DOC-04-guide",
+      "todo": "DOC-04",
+      "description": "WHEN the developer guide is built THEN it builds without undefined references or overfull boxes and explains candidates, the summary-field meaning and the known limits",
+      "steps": [
+        "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined|Overfull\" /tmp/pygomo-guide/developer-guide.log"
+      ],
+      "checked_by": "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined|Overfull\" /tmp/pygomo-guide/developer-guide.log",
+      "passes": false
     }
   ]
 }

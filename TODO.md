@@ -1,6 +1,10 @@
 # TODO
 
 ## Backlog
+- [ ] **CORE-06.** Core: kiểu `Candidate` và `InfoEvent::candidates` - size M - [detail](docs/todo/CORE-06-info-event-candidates.md)
+- [ ] **DOC-04.** ADR cho hình dạng `InfoEvent` và cập nhật guide - size M - [detail](docs/todo/DOC-04-candidates-adr-guide.md)
+- [ ] **GOMO-07.** Gomocup: giữ hạng MultiPV và dữ liệu ứng viên - size M - [detail](docs/todo/GOMO-07-multipv-candidates.md)
+- [ ] **GTP-07.** GTP: đọc mọi ứng viên trong một dòng analyze - size M - [detail](docs/todo/GTP-07-analyze-all-candidates.md)
 
 ## Active
 
