@@ -12,11 +12,13 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. Last: `/align` pass on `docs/guide/developer-guide.tex` (one block, `rc`/`position` in the PrintingSink listing), committed alone as `dd7ec2b style: align columns`; ctest passed, 4 `gomo2_*` live tests skipped (no `PYGOMO_RAPFI`); the LaTeX was not recompiled (whitespace only). DOC-03 done: the three TikZ figures of the developer guide are captioned floats (fig:modules, fig:search-flow, fig:deadline) with one shared `\tikzset` style; each was checked against the code (engine -> Threads arrow added, writeLine per line, deadline tick turnTime + 2 grace). Before it: GTP-06, DOC-02, DOC-01 (see TODO.md).
+CORE-03 documents `parse -> core`, each adapter's `open()`, and the `ProcessTransport` session lifecycle in Draw.io, its PNG export, and Mermaid. Draw.io and Mermaid rendered successfully, and the harness no longer reports `FM-MISSING`. The ctest run passed 62 checks and skipped four live Rapfi checks.
+
+Last: `/align` pass on `docs/guide/developer-guide.tex` (one block, `rc`/`position` in the PrintingSink listing), committed alone as `dd7ec2b style: align columns`; ctest passed, 4 `gomo2_*` live tests skipped (no `PYGOMO_RAPFI`); the LaTeX was not recompiled (whitespace only). DOC-03 done: the three TikZ figures of the developer guide are captioned floats (fig:modules, fig:search-flow, fig:deadline) with one shared `\tikzset` style; each was checked against the code (engine -> Threads arrow added, writeLine per line, deadline tick turnTime + 2 grace). Before it: GTP-06, DOC-02, DOC-01 (see TODO.md).
 
 ## Next step
 
-1. No todo queued; pick from TODO.md backlog or ask the owner.
+1. Register CORE-03's two verified acceptance entries after owner approval, then close the todo.
 Doc skills in `.claude/skills/`: README files of `documentation` and `writing-clearly-and-concisely` were read in DOC-02 (nothing to adapt); the other copied skills still carry unread README.WARNING.md/README.md.
 Style normalization (planning code-style-normalization) is finished; the owner may close the planning. A `.clang-format` stays a separate planning.
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`); re-clone into the scratchpad when needed. Rapfi: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi` (binary `build/pbrain-rapfi`).
@@ -38,4 +40,4 @@ KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhz
 - DeadlineEngine: an engine that never answers after a timeout stays Busy; the caller must close it (docs/audit/AUD-03). The Gomocup timeout path ran against a real Rapfi (frozen with SIGSTOP, DEAD-04); GTP and KataGomo only against fake transports; `DeadlineEngine` must be destroyed after the inner engine stopped delivering events.
 
 ## Blockers
-None.
+- CORE-03 is active pending owner approval to register its two acceptance entries in `docs/features.json`.
