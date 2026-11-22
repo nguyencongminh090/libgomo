@@ -44,6 +44,7 @@ std::expected<void, EngineError> KataGomoEngine::startSearch(
     if (position.width() != position.height()) return std::unexpected(EngineError::Unsupported);
 
     std::vector<std::string> lines;
+    std::uint64_t id = 0;
     {
         std::lock_guard lock(mutex_);
         if (closed_) return std::unexpected(EngineError::NotReady);
@@ -67,10 +68,14 @@ std::expected<void, EngineError> KataGomoEngine::startSearch(
         lines.push_back("DONE");
         sink_     = &sink;
         position_ = position;
+        id = ++searchId_;
     }
     for (const auto& l : lines) {
         if (!transport_.writeLine(l)) {
             std::lock_guard lock(mutex_);
+            // The search already ended (a close or terminal line gave the sink its terminal
+            // event): that is its one outcome, so report success, not a second one (PORT-03).
+            if (!sink_ || searchId_ != id) return {};
             sink_ = nullptr;
             return std::unexpected(EngineError::TransportFailed);
         }

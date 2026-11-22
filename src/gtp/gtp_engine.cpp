@@ -102,6 +102,10 @@ std::expected<void, EngineError> GtpEngine::startSearch(
             // The unwritten lines are the newest entries; no reply can have taken them.
             const auto unwritten = std::min(lines.size() - i, pending_.size());
             pending_.erase(pending_.end() - static_cast<std::ptrdiff_t>(unwritten), pending_.end());
+            // A close or a rejected setup command already gave the sink its terminal event: that
+            // is the one outcome, so report success (PORT-03). writeMutex_ keeps any newer search
+            // out until this call returns, so a set sink_ is still this call's.
+            if (!sink_) return {};
             sink_ = nullptr;
             return std::unexpected(EngineError::TransportFailed);
         }

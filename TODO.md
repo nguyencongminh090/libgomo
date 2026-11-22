@@ -1,7 +1,6 @@
 # TODO
 
 ## Backlog
-- [ ] **PORT-03.** Adapter: transport đóng giữa startSearch gây hai kết quả cho một lời gọi - size M - [detail](docs/todo/PORT-03-closed-during-start-double-outcome.md)
 
 ## Active
 
@@ -38,6 +37,7 @@
 - [x] **PARSE-01.** Gomocup line parser - size M - [detail](docs/todo/PARSE-01-gomocup-line-parser.md)
 - [x] **PORT-01.** EnginePort and EventSink - size M - [detail](docs/todo/PORT-01-engine-port-event-sink.md)
 - [x] **PORT-02.** port_blocking test: worker uses the sink after search() returned - size M - [detail](docs/todo/PORT-02-blocking-test-sink-lifetime.md)
+- [x] **PORT-03.** Adapter: transport đóng giữa startSearch gây hai kết quả cho một lời gọi - size M - [detail](docs/todo/PORT-03-closed-during-start-double-outcome.md)
 - [x] **PROC-01.** ProcessTransport (POSIX) - size M - [detail](docs/todo/PROC-01-process-transport.md)
 - [x] **PROC-02.** ProcessTransport: kill the process group, no process-wide SIGPIPE change - size M - [detail](docs/todo/PROC-02-process-group-sigpipe.md)
 - [x] **PROC-03.** ProcessTransport: also end the process group when the child exits by itself - size M - [detail](docs/todo/PROC-03-kill-orphans-after-child-exit.md)

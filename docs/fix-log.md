@@ -141,3 +141,37 @@ leaves it alone.
 `ctest --preset default -R '^core4_failed_start$'`: a contract-breaking `EnginePort` fake ends
 the first search and refuses; the newer search still gets its BestMoveEvent or its timeout
 ErrorEvent, and a nested start that is refused too leaves the decorator idle.
+
+## PORT-03-01-closed-during-start-double-outcome (2026-11-22, owner claude)
+
+### Symptom
+
+`GomocupEngine`, `KataGomoEngine` and `GtpEngine` install the sink under the mutex, then write
+the request outside it. When the transport closed between those steps, `onClosed` delivered
+`ErrorEvent{"engine connection closed"}` and the failed write then returned `TransportFailed`:
+two outcomes for one call, against "A refused call never starts a search" in `EnginePort`. GTP
+also did this when a setup command was rejected with `?` before a later write failed.
+Reproduced with fake transports for all four cases.
+
+### First fix
+
+CORE-04 (fix-log CORE-04-01) made `DeadlineEngine` tolerate the double outcome. That was the
+caller's side; the adapters still broke the contract.
+
+### Real source
+
+The write-failure branch of each adapter's `startSearch` assumed the search was still its own
+and live, so it always cleared `sink_` and reported failure, even after the sink had already
+received the search's terminal event.
+
+### Corrected fix
+
+The branch now returns success when the search has already ended (`sink_` is null, or for
+Gomocup and KataGomo a newer search holds it: `searchId_` differs). Only a still-live search is
+cleared and refused. The `EnginePort` contract is unchanged (owner decision, PORT-03).
+
+### Regression check
+
+`ctest --preset default -R '^port3_'`: a fake transport closes (or GTP rejects setup) during
+startSearch; the call succeeds and the sink gets exactly one ErrorEvent. A failed write while
+the search is live is still refused with no event and leaves no sink.

@@ -127,6 +127,9 @@ endforeach()
 add_test(NAME gtp4_message COMMAND pygomo_gtp_tests "-tc=gtp4_message*")
 add_test(NAME gtp5_text COMMAND pygomo_gtp_tests "-tc=gtp5_text*")
 add_test(NAME gtp6_raw COMMAND pygomo_gtp_tests "-tc=gtp6_raw*")
+add_test(NAME port3_gtp COMMAND pygomo_gtp_tests "-tc=port3_gtp*")
+add_test(NAME port3_kata COMMAND pygomo_katagomo_tests "-tc=port3_kata*")
+add_test(NAME port3_gomocup COMMAND pygomo_gomocup_tests "-tc=port3_gomocup*")
 
 add_executable(pygomo_deadline_adapter_tests
   main.cpp

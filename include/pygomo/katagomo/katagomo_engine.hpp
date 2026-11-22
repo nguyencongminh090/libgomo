@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <mutex>
 #include <optional>
 
@@ -48,6 +49,7 @@ private:
     bool                    closed_{false};
     EventSink*              sink_{nullptr};  // non-null while a search runs
     std::optional<Position> position_;
+    std::uint64_t searchId_{0};  // counts started searches, so a failed start clears only its own
 };
 
 }  // namespace pygomo

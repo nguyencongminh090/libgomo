@@ -1,5 +1,6 @@
 #include <doctest.h>
 
+#include <functional>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -19,16 +20,22 @@ public:
     }
     std::expected<void, TransportError> writeLine(std::string_view line) override {
         std::lock_guard lock(m);
+        if (failWrites) return std::unexpected(TransportError::Closed);
         written.emplace_back(line);
+        if (onWrite) onWrite(std::string{line});
+        if (failWrites) return std::unexpected(TransportError::Closed);
         return {};
     }
     void close() override {}
     void say(std::string_view l) { listener->onLine(l); }
+    void closeNow() { listener->onClosed(CloseReason::Eof); }
     std::vector<std::string> lines() { std::lock_guard lock(m); return written; }
 
     std::mutex m;
     std::vector<std::string> written;
     TransportListener* listener = nullptr;
+    std::function<void(const std::string&)> onWrite;
+    bool failWrites = false;  // set by onWrite to fail that write and every later one
 };
 
 struct Collect final : EventSink {
@@ -129,4 +136,28 @@ TEST_CASE("kata_events: OK dropped, MESSAGE unparsed, x,y best move, ERROR termi
     CHECK(std::holds_alternative<ErrorEvent>(s2.get()[0]));
     Collect s3;
     CHECK(r.e.startSearch(threeMoves(), Limits{}, s3));  // search ended, not Busy
+}
+
+TEST_CASE("port3_kata: a close during startSearch gives one outcome, not event plus error") {
+    Rig r;
+    Collect sink;
+    r.t.onWrite = [&](const std::string& l) {
+        if (l != "BOARD") return;
+        r.t.failWrites = true;
+        r.t.closeNow();  // the reader sees EOF while startSearch is still writing
+    };
+    CHECK(r.e.startSearch(threeMoves(), Limits{}, sink));
+    REQUIRE(sink.get().size() == 1);
+    CHECK(std::holds_alternative<ErrorEvent>(sink.get()[0]));
+}
+
+TEST_CASE("port3_kata: a failed write while the search is live is refused with no event") {
+    Rig r;
+    Collect sink;
+    r.t.onWrite = [&](const std::string& l) { r.t.failWrites = l == "BOARD"; };
+    CHECK(r.e.startSearch(threeMoves(), Limits{}, sink).error() == EngineError::TransportFailed);
+    CHECK(sink.get().empty());
+    r.t.onWrite = nullptr;
+    r.t.failWrites = false;
+    CHECK(r.e.startSearch(threeMoves(), Limits{}, sink));  // the refused search left no sink
 }

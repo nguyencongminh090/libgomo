@@ -1456,6 +1456,26 @@
       ],
       "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
       "passes": true
+    },
+    {
+      "id": "PORT-03-one-outcome",
+      "todo": "PORT-03",
+      "description": "WHEN the transport closes between the sink being installed and a failed write in startSearch of GomocupEngine, KataGomoEngine or GtpEngine, or a GTP setup command is rejected with ? before a later write fails, THEN the caller gets exactly one outcome: startSearch succeeds and the sink got exactly one terminal ErrorEvent; a write failure while the search is still live still returns TransportFailed with no event",
+      "steps": [
+        "ctest --preset default -R \"^port3_\" --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R \"^port3_\" --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "PORT-03-deps",
+      "todo": "PORT-03",
+      "description": "WHEN the whole suite, the tsan preset and scripts/check-core-deps.sh run THEN all pass",
+      "steps": [
+        "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh"
+      ],
+      "checked_by": "ctest --preset default && ctest --preset tsan && scripts/check-core-deps.sh",
+      "passes": true
     }
   ]
 }

@@ -1,5 +1,6 @@
 #include <doctest.h>
 
+#include <functional>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -22,6 +23,8 @@ public:
         std::lock_guard lock(m);
         if (failWrites) return std::unexpected(TransportError::Closed);
         written.emplace_back(line);
+        if (onWrite) onWrite(std::string{line});
+        if (failWrites) return std::unexpected(TransportError::Closed);
         return {};
     }
     void close() override {}
@@ -34,6 +37,7 @@ public:
     std::mutex m;
     std::vector<std::string> written;
     TransportListener* listener = nullptr;
+    std::function<void(const std::string&)> onWrite;  // runs under the lock, after recording
     bool failWrites = false;
 };
 
@@ -472,4 +476,37 @@ TEST_CASE("gtp6_raw: a raw reply whose header was read before the search started
     r.t.reply("=" + std::to_string(id) + " K10");
     CHECK(r.sink.events ==
           std::vector<SearchEvent>{MessageEvent{"= ok"}, BestMoveEvent{Coord{9, 5}}});
+}
+
+TEST_CASE("port3_gtp: a close during startSearch gives one outcome, not event plus error") {
+    Rig r;
+    r.t.onWrite = [&](const std::string& l) {
+        if (!l.starts_with("2 ")) return;
+        r.t.failWrites = true;
+        r.t.closeNow();  // the reader sees EOF while startSearch is still writing
+    };
+    CHECK(r.e.startSearch(twoMoves(), {}, r.sink));
+    REQUIRE(r.sink.events.size() == 1);
+    CHECK(r.sink.events[0] == SearchEvent{ErrorEvent{"engine connection closed"}});
+}
+
+TEST_CASE("port3_gtp: a setup reply that ends the search before a failed write gives one outcome") {
+    Rig r;
+    r.t.onWrite = [&](const std::string& l) {
+        if (l.starts_with("1 ")) r.t.reply("?1 unacceptable size");
+        if (l.starts_with("2 ")) r.t.failWrites = true;
+    };
+    CHECK(r.e.startSearch(twoMoves(), {}, r.sink));
+    REQUIRE(r.sink.events.size() == 1);
+    CHECK(r.sink.events[0] == SearchEvent{ErrorEvent{"unacceptable size"}});
+}
+
+TEST_CASE("port3_gtp: a failed write while the search is live is refused with no event") {
+    Rig r;
+    r.t.onWrite = [&](const std::string& l) { r.t.failWrites = l.starts_with("2 "); };
+    CHECK(r.e.startSearch(twoMoves(), {}, r.sink).error() == EngineError::TransportFailed);
+    CHECK(r.sink.events.empty());
+    r.t.onWrite = nullptr;
+    r.t.failWrites = false;
+    CHECK(r.e.startSearch(twoMoves(), {}, r.sink));  // the refused search left no sink
 }

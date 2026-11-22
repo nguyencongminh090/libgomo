@@ -25,8 +25,10 @@ public:
     }
     std::expected<void, TransportError> writeLine(std::string_view line) override {
         std::lock_guard lock(m);
+        if (failWrites) return std::unexpected(TransportError::Closed);
         written.emplace_back(line);
         if (onWrite) onWrite(std::string{line});
+        if (failWrites) return std::unexpected(TransportError::Closed);
         return {};
     }
     void close() override {}
@@ -39,6 +41,7 @@ public:
     std::vector<std::string> written;
     std::function<void(const std::string&)> onWrite;
     TransportListener* listener = nullptr;
+    bool failWrites = false;  // set by onWrite to fail that write and every later one
 };
 
 struct Collect final : EventSink {
@@ -354,4 +357,28 @@ TEST_CASE(
     for (int i = 0; i < 400 && !again.called; ++i) std::this_thread::sleep_for(5ms);
     CHECK(again.called);
     CHECK(again.refused);
+}
+
+TEST_CASE("port3_gomocup: a close during startSearch gives one outcome, not event plus error") {
+    Rig r;
+    Collect sink;
+    r.t.onWrite = [&](const std::string& l) {
+        if (l != "BOARD") return;
+        r.t.failWrites = true;
+        r.t.closeNow();  // the reader sees EOF while startSearch is still writing
+    };
+    CHECK(r.e.startSearch(threeMoves(), Limits{}, sink));
+    REQUIRE(sink.get().size() == 1);
+    CHECK(std::holds_alternative<ErrorEvent>(sink.get()[0]));
+}
+
+TEST_CASE("port3_gomocup: a failed write while the search is live is refused with no event") {
+    Rig r;
+    Collect sink;
+    r.t.onWrite = [&](const std::string& l) { r.t.failWrites = l == "BOARD"; };
+    CHECK(r.e.startSearch(threeMoves(), Limits{}, sink).error() == EngineError::TransportFailed);
+    CHECK(sink.get().empty());
+    r.t.onWrite = nullptr;
+    r.t.failWrites = false;
+    CHECK(r.e.startSearch(threeMoves(), Limits{}, sink));  // the refused search left no sink
 }
