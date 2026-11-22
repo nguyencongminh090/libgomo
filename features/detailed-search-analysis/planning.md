@@ -95,8 +95,10 @@ Quy tắc ánh xạ:
   `k + 1`. Entry GTP không có `order` có `rank` rỗng.
 - Gomocup chỉ tạo `Candidate` khi dòng có hạng. Dòng một PV không hạng (`depth … ev … pv`,
   `Bestline`, `Speed …`) giữ `candidates` rỗng như hiện nay.
-- GTP: mỗi entry `info` trong dòng thành một `Candidate`, theo thứ tự in. Một entry hỏng làm cả
-  dòng thành `UnparsedEvent` như hiện nay.
+- GTP: mỗi entry `info` trong dòng thành một `Candidate`, theo thứ tự in. Entry đầu hỏng làm cả
+  dòng thành `UnparsedEvent` như hiện nay. Entry sau hỏng (hành vi mới, hôm nay các entry sau
+  không được đọc): giữ các ứng viên trước nó và dừng đọc ở đó, để dòng đang là `InfoEvent` không
+  thành `UnparsedEvent`.
 - `move`: GTP `move`; Gomocup là nước đầu của PV.
 - `winrate`/`drawrate`: Rapfi `W`/`D` và `w`/`d` (phần trăm) chia 100. GTP: entry có khóa
   `utility` là thang kata (0..1), không có là thang lz (chia 10000). Giá trị ngoài 0..1 bỏ trống.
@@ -108,7 +110,10 @@ Nghĩa các trường tóm tắt của `InfoEvent` (quyết định của ngư�
 - `nodes`: chỉ là tổng node của search (`n`, `Node`, `Visit` của dòng `Speed`). Visits riêng của
   một ứng viên (`V`, `v`, GTP `visits`) chỉ nằm trong `Candidate::visits`.
 - `score`, `principalVariation`: chỉ lấy từ dòng không hạng hoặc ứng viên hạng 1. Dòng hạng 2
-  trở đi để trống hai trường này.
+  trở đi để trống hai trường này. Dòng GTP không entry nào có `order`: tóm tắt lấy từ entry đầu
+  (quy ước, giữ hành vi hiện nay, ví dụ cặp probe `H8`/`G8` ở Goal).
+- Hai fixture GTP (`tests/fixtures/gtp/kata_analyze.txt`, `lz_analyze.txt`) đều có `order`;
+  fixture kata có `utility` nên đọc theo thang 0..1, fixture lz theo thang 10000.
 
 Lý do: khi đã có `candidates`, một bản tóm tắt chứa dữ liệu hạng 2 hoặc visits của một nước sẽ
 đánh lừa ứng dụng chỉ đọc tóm tắt (tưởng là nước tốt nhất, tưởng là tổng node). Rapfi luôn in
