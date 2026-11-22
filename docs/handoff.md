@@ -20,9 +20,11 @@ real Rapfi when PORT-03 closed. Previous todo: CORE-04. The next CORE todo is CO
 a design id).
 
 ## Next step
-1. Planning `detailed-search-analysis` (draft, size L): GTP drops later candidates and Gomocup
-   drops MultiPV ranks when building `InfoEvent`. The owner must choose the public
-   representation before todos are split.
+1. Planning `detailed-search-analysis` (draft, size L, no open questions): owner chose typed
+   data only, `InfoEvent::candidates` (vector of `Candidate`), fields rank/move/score/visits/
+   winrate/drawrate/PV. Summary-field meaning (nodes = search total; score/PV from rank 1 only)
+   was delegated and decided by Claude; it moves 5 existing test assertions to `candidates`.
+   Waiting for the owner to approve; then split the 4 todos listed in its Decision.
 
 Doc skills in `.claude/skills/`: README files of `documentation` and `writing-clearly-and-concisely` were read in DOC-02 (nothing to adapt); the other copied skills still carry unread README.WARNING.md/README.md.
 Style normalization (planning code-style-normalization) is finished; the owner may close the planning. A `.clang-format` stays a separate planning.
