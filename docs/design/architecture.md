@@ -195,7 +195,7 @@ The application coordinates shutdown because it owns the session objects. It cal
 `close()` from the control thread while the adapter, decorator and any active sink are
 still alive. `GomocupEngine::onClosed()` only emits `ErrorEvent{"engine connection closed"}`
 while a search is active. If the watchdog has already timed out that search, the relay
-consumes the terminal event. [GomocupEngine source](../../src/gomocup/gomocup_engine.cpp#L133) ·
+consumes the terminal event. [GomocupEngine source](../../src/gomocup/gomocup_engine.cpp#L138) ·
 [DeadlineEngine source](../../src/engine/deadline_engine.cpp#L67-L81)
 
 The sink can be released once its terminal callback returns, including a timeout callback

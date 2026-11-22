@@ -32,6 +32,8 @@ public:
     /// Sends START, the rule, limit settings and the moves as BOARD..DONE, then returns.
     /// Errors: Unsupported for matchTime, maxDepth or a non-square board, Busy while a search
     /// runs, NotReady after the connection closed, TransportFailed when a line cannot be written.
+    /// A failed write after the search already ended (its terminal event was delivered) is not
+    /// an error: the call succeeds, so the caller sees one outcome.
     [[nodiscard]] std::expected<void, EngineError> startSearch(
         const Position& position, const Limits& limits, EventSink& sink) override;
     /// Does nothing: the engine cannot be interrupted during a search.

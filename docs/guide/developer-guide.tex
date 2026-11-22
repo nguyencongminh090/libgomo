@@ -643,7 +643,9 @@ public:
         // 1. Reject what the protocol cannot express, before anything is sent.
         // 2. Under the lock: NotReady if closed_, Busy if sink_; build every line;
         //    set sink_ = &sink and remember the position.
-        // 3. Outside the lock: write the lines; on failure clear sink_, return TransportFailed.
+        // 3. Outside the lock: write the lines. On failure, if sink_ is gone the search
+        //    already ended (closed mid-start): return success. Else clear sink_, return
+        //    TransportFailed.
     }
 
 private:

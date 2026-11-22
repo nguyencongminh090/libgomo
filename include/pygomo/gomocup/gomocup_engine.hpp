@@ -34,6 +34,8 @@ public:
     /// Sends START, the INFO settings and the position (BEGIN, or BOARD..DONE), then returns.
     /// Errors: Unsupported for a non-square board, Busy while a search runs, NotReady after the
     /// connection closed, TransportFailed when a line cannot be written.
+    /// A failed write after the search already ended (its terminal event was delivered) is not
+    /// an error: the call succeeds, so the caller sees one outcome.
     [[nodiscard]] std::expected<void, EngineError> startSearch(
         const Position& position, const Limits& limits, EventSink& sink) override;
     /// Sends YXSTOP if a search runs; the engine is expected to answer with a move, which ends it.

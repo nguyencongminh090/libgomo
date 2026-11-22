@@ -45,6 +45,8 @@ public:
     /// `genmove` (or `kata-genmove_analyze`), each with an id; then returns. Errors: Unsupported
     /// for matchTime, maxDepth or a position that has no GTP vertex, Busy while a search runs,
     /// NotReady after the connection closed, TransportFailed when a line cannot be written.
+    /// A failed write after the search already ended (its terminal event was delivered) is not
+    /// an error: the call succeeds, so the caller sees one outcome.
     [[nodiscard]] std::expected<void, EngineError> startSearch(
         const Position& position, const Limits& limits, EventSink& sink) override;
     /// Does nothing: a running `genmove` cannot be interrupted (see the class comment).

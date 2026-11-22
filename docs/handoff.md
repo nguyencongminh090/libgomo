@@ -12,18 +12,15 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. This session (2026-11-22) closed CORE-04: reproduced only with a
-contract-breaking `EnginePort` fake; the owner chose to keep the defence. `DeadlineEngine`'s
-failed `startSearch` now clears state only while its `searchId_` is current (fix-log
-CORE-04-01, ctest `core4_failed_start`). 67/67 on default and tsan. The adapter-side cause
-(transport closes during startSearch -> terminal event plus error) is backlog PORT-03.
-Previous session: CORE-02, CORE-03 and the align pass (see git log). CORE-05 is taken by the
-design id `CORE-05-overall-architecture`, so the next CORE todo is CORE-06.
+Nothing in progress. This session (2026-11-22) closed PORT-03: reproduced in all three adapters
+with fake transports; the owner chose fixing the adapters. A failed write in startSearch now
+returns success when the search already ended (fix-log PORT-03-01, ctest `port3_*`). 70/70 on
+default and tsan; `gomo2_*` passed against the real Rapfi. The two PORT-03 features were added by
+script (the owner hook did not ask): the owner should confirm their text in docs/features.json.
+Previous session: CORE-04. The next CORE todo is CORE-06 (CORE-05 is a design id).
 
 ## Next step
-1. PORT-03 (backlog): reproduce the double outcome with a fake transport; the owner then picks
-   fixing the adapters or loosening the `EnginePort` contract (that would be size L).
-2. Planning `detailed-search-analysis` (draft, size L): GTP drops later candidates and Gomocup
+1. Planning `detailed-search-analysis` (draft, size L): GTP drops later candidates and Gomocup
    drops MultiPV ranks when building `InfoEvent`. The owner must choose the public
    representation before todos are split.
 
@@ -38,14 +35,14 @@ KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhz
 - `dead1_serialization` assumes the watchdog reaches the timeout within a 250 ms window; 72
   parallel tsan runs passed, but a very loaded machine could still flake it.
 - `docs/design/architecture.md` links `deadline_engine.cpp#L67-L81` and
-  `gomocup_engine.cpp#L133`; re-check them when those files change.
+  `gomocup_engine.cpp#L138`; re-check them when those files change.
 - Guide pre-existing source lines over 100 columns (about 18) were left alone (no restyle outside changed text).
 - check-doc-comments.sh is a heuristic: it checks types, aliases, free functions and public methods, not data members or enumerators (those are reviewed by hand). Overrides need their own `///` line each; accepting one group comment for them in the script would loosen the rule, so it needs an owner decision.
 - GtpEngine::stop() is a no-op by protocol: docs/audit/AUD-02 (KataGomo reads stdin on one thread; genmove cannot be interrupted). Limits persist in the engine between searches.
 - GTP and KataGomo `gom` shapes (GtpEngine, KataGomoEngine) are read from source only; no such engine was ever run. VCN rules and `kata-set-rule` not mapped.
 - Late `[Pondering]` lines and `coord_conversion_mode` != none are not covered by any Gomocup fixture.
 - GomocupEngine drops lines outside a search (by design, no sink). An `ERROR` during a search is a MessageEvent (GOMO-04); a search with turnTime ends with ErrorEvent "engine did not answer" only when wrapped in DeadlineEngine (DEAD-01..03); unwrapped there is no timeout. `KataGomoEngine` still ends the search on `ERROR` (KATA-01 feature).
-- GtpEngine reply attribution assumes one reply per non-empty, non-comment line (AUD-04 Cost). Untested: a partial write failure in startSearch (i > 0), and stale replies of a failed search with a raw command between them (traced by the reviewer, correct).
+- GtpEngine reply attribution assumes one reply per non-empty, non-comment line (AUD-04 Cost). Untested: stale replies of a failed search with a raw command between them (traced by the reviewer, correct).
 - GtpEngine: text outside a reply during a search -> `MessageEvent`; unparsable analyze lines -> `UnparsedEvent` (kept, not lost). KataGomo (Gom2026 @ checked 2026-11-20) never prints `info string`, so nothing more is planned.
 - `GTP-04-deps` tsan check no longer hangs after PORT-02 (owner may confirm it can stay passing).
 - ProcessTransport: the child no longer gets terminal Ctrl-C (own process group). Processes that call setsid in the group escape the kill.
