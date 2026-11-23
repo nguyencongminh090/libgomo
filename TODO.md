@@ -1,8 +1,6 @@
 # TODO
 
 ## Backlog
-- [ ] **EXT-00.** Audit: Rapfi extension findings (VC2, YXANALZ, WALL, Torus, Portal, Caro, BOARD, STOP) - size M - [detail](docs/todo/EXT-00-audit-rapfi-findings.md)
-- [ ] **EXT-01.** Core: isTerminal(SearchEvent) replaces four copies of the terminal test - size M - [detail](docs/todo/EXT-01-is-terminal-helper.md)
 - [ ] **EXT-02.** Core: Value and CustomEvent - size M - [detail](docs/todo/EXT-02-value-and-custom-event.md)
 - [ ] **EXT-03.** GomocupEngine: pluggable LineParser and chainParsers - size M - [detail](docs/todo/EXT-03-line-parser-gomocup.md)
 - [ ] **EXT-04.** GtpEngine and KataGomoEngine: pluggable LineParser - size M - [detail](docs/todo/EXT-04-line-parser-gtp-katagomo.md)
@@ -15,8 +13,10 @@
 - [ ] **EXT-11.** ADR, developer guide and architecture for the extension points - size M - [detail](docs/todo/EXT-11-adr-guide-architecture.md)
 
 ## Active
+- [~] **EXT-00.** Audit: Rapfi extension findings (VC2, YXANALZ, WALL, Torus, Portal, Caro, BOARD, STOP) - size M - [detail](docs/todo/EXT-00-audit-rapfi-findings.md)
 
 ## Done
+- [x] **EXT-01.** Core: isTerminal(SearchEvent) replaces four copies of the terminal test - size M - [detail](docs/todo/EXT-01-is-terminal-helper.md)
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
 - [x] **CORE-02.** Tuần tự hóa callback của DeadlineEngine khi hết hạn - size M - [detail](docs/todo/CORE-02-serialize-deadline-callbacks.md)
 - [x] **CORE-03.** Bổ sung phụ thuộc và vòng đời phiên vào sơ đồ kiến trúc - size M - [detail](docs/todo/CORE-03-document-architecture-lifecycle.md)

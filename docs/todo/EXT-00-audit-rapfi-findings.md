@@ -2,7 +2,7 @@
 id: EXT-00-audit-rapfi-findings
 type: todo
 size: M
-status: backlog
+status: active
 owner: claude
 created: 2026-11-23
 supersedes: []

@@ -2,7 +2,7 @@
 id: EXT-01-is-terminal-helper
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -24,7 +24,13 @@ ADR-01: a new type that is missed by one copy ends the search at its first line.
 Features `EXT-01-*` in `docs/features.json` (`harness-track EXT-01`).
 
 ## Evidence
-(fill in before marking done)
+2026-11-23. `isTerminal` added as a constexpr free function in `search_event.hpp`; the four copies
+(blocking_search, deadline_engine, katagomo_engine, gomocup_engine) now call it. `GtpEngine` left alone:
+it ends a search on the genmove reply (`finish()`), not by event type. `tests/live/rapfi_live_test.cpp`
+keeps its own copy (tests are not edited).
+- `ctest --preset default -R '^ext01_' --no-tests=error`: 1/1 passed.
+- Clean build with warnings as errors; `ctest --preset default`: 84/84 passed (live tests skipped, no binary
+  configured). check-core-deps, check-format, check-doc-comments, check-line-length, check-ctest-coverage: OK.
 
 ## Links
 `features/extensible-engine-commands/planning.md`

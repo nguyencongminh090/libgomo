@@ -167,3 +167,15 @@ TEST_CASE("cand1_compat: existing InfoEvent forms still compile and compare equa
     };
     CHECK(designated == positional);
 }
+
+TEST_CASE("ext01_is_terminal: only Info, Message and Unparsed keep a search running") {
+    CHECK_FALSE(isTerminal(InfoEvent{}));
+    CHECK_FALSE(isTerminal(MessageEvent{"hello"}));
+    CHECK_FALSE(isTerminal(UnparsedEvent{"???"}));
+    CHECK(isTerminal(BestMoveEvent{{7, 7}}));
+    CHECK(isTerminal(SwapEvent{}));
+    CHECK(isTerminal(PassEvent{}));
+    CHECK(isTerminal(ResignEvent{}));
+    CHECK(isTerminal(ErrorEvent{"boom"}));
+    static_assert(isTerminal(SearchEvent{SwapEvent{}}));
+}

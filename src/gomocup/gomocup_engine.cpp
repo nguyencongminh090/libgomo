@@ -117,10 +117,7 @@ void GomocupEngine::onLine(std::string_view line) {
                 event = ErrorEvent{"engine returned an illegal move: " + std::string{line}};
             }
         }
-        const bool terminal = !std::holds_alternative<InfoEvent>(event) &&
-                              !std::holds_alternative<MessageEvent>(event) &&
-                              !std::holds_alternative<UnparsedEvent>(event);
-        if (terminal) sink_ = nullptr;
+        if (isTerminal(event)) sink_ = nullptr;
     }
     sink->onEvent(event);
 }

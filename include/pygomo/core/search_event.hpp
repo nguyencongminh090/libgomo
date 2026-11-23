@@ -102,4 +102,13 @@ struct UnparsedEvent {
 using SearchEvent = std::variant<InfoEvent, BestMoveEvent, SwapEvent, PassEvent, ResignEvent,
                                  ErrorEvent, MessageEvent, UnparsedEvent>;
 
+/// Says whether `event` ends a search: Info, Message and Unparsed do not, every other type does.
+/// The one place that decides it, so a new event type cannot be classified differently by each
+/// adapter or decorator (ADR-01).
+[[nodiscard]] constexpr bool isTerminal(const SearchEvent& event) noexcept {
+    return !std::holds_alternative<InfoEvent>(event) &&
+           !std::holds_alternative<MessageEvent>(event) &&
+           !std::holds_alternative<UnparsedEvent>(event);
+}
+
 }  // namespace pygomo

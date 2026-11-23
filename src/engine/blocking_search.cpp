@@ -2,7 +2,6 @@
 
 #include <condition_variable>
 #include <mutex>
-#include <type_traits>
 
 namespace pygomo {
 namespace {
@@ -12,20 +11,14 @@ class CollectingSink final : public EventSink {
     void onEvent(const SearchEvent& event) override {
         std::lock_guard lock(mutex_);
         if (done_) return;
-        std::visit(
-            [&](const auto& e) {
-                using T = std::decay_t<decltype(e)>;
-                if constexpr (std::is_same_v<T, InfoEvent>) {
-                    outcome_.info.push_back(e);
-                } else if constexpr (std::is_same_v<T, MessageEvent> ||
-                                     std::is_same_v<T, UnparsedEvent>) {
-                    outcome_.other.push_back(e);
-                } else {
-                    outcome_.terminal = e;
-                    done_             = true;
-                }
-            },
-            event);
+        if (isTerminal(event)) {
+            outcome_.terminal = event;
+            done_             = true;
+        } else if (const auto* info = std::get_if<InfoEvent>(&event)) {
+            outcome_.info.push_back(*info);
+        } else {
+            outcome_.other.push_back(event);
+        }
         if (done_) cv_.notify_all();
     }
 

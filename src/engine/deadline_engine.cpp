@@ -68,9 +68,7 @@ std::expected<void, EngineError> DeadlineEngine::startSearch(const Position& pos
 void DeadlineEngine::Relay::onEvent(const SearchEvent& event) { owner_.onInnerEvent(event); }
 
 void DeadlineEngine::onInnerEvent(const SearchEvent& event) {
-    const bool terminal = !std::holds_alternative<InfoEvent>(event) &&
-                          !std::holds_alternative<MessageEvent>(event) &&
-                          !std::holds_alternative<UnparsedEvent>(event);
+    const bool       terminal = isTerminal(event);
     std::unique_lock lock(mutex_);
     if (detached_) {  // events of a search that timed out
         if (terminal) detached_ = false;

@@ -15,6 +15,7 @@ add_test(NAME port_contract COMMAND pygomo_core_tests "-tc=port_contract*")
 add_test(NAME cand1_defaults COMMAND pygomo_core_tests "-tc=cand1_defaults*")
 add_test(NAME cand1_equality COMMAND pygomo_core_tests "-tc=cand1_equality*")
 add_test(NAME cand1_compat COMMAND pygomo_core_tests "-tc=cand1_compat*")
+add_test(NAME ext01_is_terminal COMMAND pygomo_core_tests "-tc=ext01_is_terminal*")
 add_test(NAME core_tests COMMAND pygomo_core_tests)
 
 add_executable(pygomo_transport_tests
