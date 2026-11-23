@@ -12,21 +12,22 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. Planning `clang-format` is done (2026-11-23): FMT-01..04 all done. `.clang-format` is full style
-(sorted includes), `scripts/check-format.sh` runs as ctest `style_format`, `coding-style.md` §1 says clang-format owns layout
-and `/align` is retired. Measurements: AUD-06 (alignment-only), AUD-07 (full style). ctest 83/83 pass (live tests skipped).
+Planning `extensible-engine-commands` (approved): EXT-00 (audit AUD-08) and EXT-01 (`isTerminal`) done
+2026-11-23. ctest 84/84 pass (live tests skipped).
 
 ## Next step
-1. Plannings `detailed-search-analysis` and `code-style-normalization` are closed (2026-11-23,
-   all their todos done; frontmatter stays `approved`, the harness has no closed status).
-   No other todo is queued in this handoff; pick from `TODO.md`.
-   `agy -p` in `--mode accept-edits` edits files but cannot run shell commands headless;
-   `--dangerously-skip-permissions` is blocked here, so the orchestrator builds and tests.
+1. EXT-02 (`Value`, `CustomEvent`); then EXT-03/05/06 are independent of each other.
+2. Before EXT-10, read AUD-08 "Corrections to the planning": V3 dev clears `thinking` only after
+   printing the move, so `force` waiting for the terminal event is not enough on V3 (a command sent
+   right after can be dropped); V3 has no `YXANALZ` and ignores `INFO VCTHREAD`. Rapfi prints no
+   terminator for one-shot replies, so `Until` needs a predicate per command and silent commands
+   (INFO, YXBOARD, YXBLOCK) cannot use it. The planning is frozen; whether EXT-10 changes is an
+   owner decision.
 
 Doc skills in `.claude/skills/`: README files of `documentation` and `writing-clearly-and-concisely` were read in DOC-02 (nothing to adapt); the other copied skills still carry unread README.WARNING.md/README.md.
 Style normalization (planning code-style-normalization) is finished and closed (2026-11-23); formatting is now owned by clang-format (planning clang-format, closed).
 FMT-04 done (2026-11-23): ctest `style_format`, coding-style rule rewritten, `/align` retired. Planning `clang-format` has all its todos done.
-KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`); re-clone into the scratchpad when needed. Rapfi: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi` (binary `build/pbrain-rapfi`).
+KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`); re-clone into the scratchpad when needed. Rapfi: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi` (binary `build/pbrain-rapfi`). Rapfi V3 (Caro, WALL, Torus, Portal, RECTSTART): `.../Lab/Rapfi_V3_PTR/dev/rapfi/Rapfi` (not `stable`).
 
 ## Uncertain
 - DeadlineEngine (CORE-02): a progress callback that never returns also holds back the timeout

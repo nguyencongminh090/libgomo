@@ -13,9 +13,9 @@
 - [ ] **EXT-11.** ADR, developer guide and architecture for the extension points - size M - [detail](docs/todo/EXT-11-adr-guide-architecture.md)
 
 ## Active
-- [~] **EXT-00.** Audit: Rapfi extension findings (VC2, YXANALZ, WALL, Torus, Portal, Caro, BOARD, STOP) - size M - [detail](docs/todo/EXT-00-audit-rapfi-findings.md)
 
 ## Done
+- [x] **EXT-00.** Audit: Rapfi extension findings (VC2, YXANALZ, WALL, Torus, Portal, Caro, BOARD, STOP) - size M - [detail](docs/todo/EXT-00-audit-rapfi-findings.md)
 - [x] **EXT-01.** Core: isTerminal(SearchEvent) replaces four copies of the terminal test - size M - [detail](docs/todo/EXT-01-is-terminal-helper.md)
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
 - [x] **CORE-02.** Tuần tự hóa callback của DeadlineEngine khi hết hạn - size M - [detail](docs/todo/CORE-02-serialize-deadline-callbacks.md)

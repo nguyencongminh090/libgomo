@@ -1635,7 +1635,7 @@
         "test -f docs/audit/AUD-08-rapfi-extension-findings.md && node scripts/harness/harness-check.mjs"
       ],
       "checked_by": "test -f docs/audit/AUD-08-rapfi-extension-findings.md && node scripts/harness/harness-check.mjs",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-00-keywords",
@@ -1645,7 +1645,7 @@
         "for k in VCTHREAD YXANALZ \"RULE 8\" \"INFO WALL\" \"INFO TORUS\" YXPORTAL RECTSTART YXBOARD SWAP2BOARD YXSTOP ABOUT; do grep -q \"$k\" docs/audit/AUD-08-rapfi-extension-findings.md || exit 1; done"
       ],
       "checked_by": "for k in VCTHREAD YXANALZ \"RULE 8\" \"INFO WALL\" \"INFO TORUS\" YXPORTAL RECTSTART YXBOARD SWAP2BOARD YXSTOP ABOUT; do grep -q \"$k\" docs/audit/AUD-08-rapfi-extension-findings.md || exit 1; done",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-01-tests",

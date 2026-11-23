@@ -2,7 +2,7 @@
 id: EXT-00-audit-rapfi-findings
 type: todo
 size: M
-status: active
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -24,7 +24,13 @@ Rapfi paths are outside the repo (handoff lists them). Line numbers drift: name 
 Features `EXT-00-*` in `docs/features.json` (`harness-track EXT-00`).
 
 ## Evidence
-(fill in before marking done)
+2026-11-23. `docs/audit/AUD-08-rapfi-extension-findings.md`, read from Rapfi V2 `d14b636` and V3
+`Rapfi_V3_PTR/dev` (not a git repo; identified by mtime and sha256 in the audit; `stable` has no Caro or
+rect support). Until: Rapfi prints no terminator; replies are a fixed line count (ABOUT 1, YXSHOWINFO 3),
+`OK`/one `ERROR`, or nothing (INFO, YXBOARD, YXBLOCK). The audit lists corrections to the frozen
+planning (V3 has no YXANALZ and ignores VCTHREAD; V3 clears `thinking` after printing the move, so a
+command sent right after the terminal line can still be dropped; checked at V3 gomocup.cpp:123-133,1128).
+- harness-check: 0 findings. Keyword grep loop: no MISSING.
 
 ## Links
 `features/extensible-engine-commands/planning.md`
