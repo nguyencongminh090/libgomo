@@ -4,7 +4,7 @@
 - [ ] **EXT-11.** ADR, developer guide and architecture for the extension points - size M - [detail](docs/todo/EXT-11-adr-guide-architecture.md)
 
 ## Active
-- [ ] **EXT-10.** CommandPort: typed commands, completion modes and force - size M - [detail](docs/todo/EXT-10-command-port-force.md)
+- [~] **EXT-10.** CommandPort: typed commands, completion modes and force - size M - [detail](docs/todo/EXT-10-command-port-force.md)
 
 ## Done
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
