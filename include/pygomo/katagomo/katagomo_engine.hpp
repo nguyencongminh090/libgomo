@@ -41,7 +41,8 @@ class KataGomoEngine final : public EnginePort, private TransportListener {
     /// Sends the encoded lines, by default START, the rule, limit settings and BOARD..DONE.
     /// Returns Busy while a search runs, NotReady after close or TransportFailed on write failure.
     /// An encoding error is returned before any writes. An empty script returns Unsupported.
-    /// See encode::defaultKataGomoRequest for default limitations.
+    /// See encode::defaultKataGomoRequest for default limitations. A non-square board stays
+    /// Unsupported: `gom` mode only has START n (AUD-02).
     /// A failed write after the search already ended (its terminal event was delivered) is not
     /// an error: the call succeeds, so the caller sees one outcome.
     [[nodiscard]] std::expected<void, EngineError> startSearch(const Position& position,

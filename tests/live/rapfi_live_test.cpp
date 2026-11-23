@@ -35,6 +35,9 @@ const char* rapfiPath() { return std::getenv("PYGOMO_RAPFI"); }
         return;                                                                                    \
     }
 
+// Rapfi V3 binary from the environment, or null when the rectangular-board live test is off.
+const char* rapfiV3Path() { return std::getenv("PYGOMO_RAPFI_V3"); }
+
 // Black (7,7), White (8,7), Black (7,8): a small non-empty 15x15 start.
 Position threeMoves() {
     auto p = Position::create(15, 15);
@@ -257,4 +260,35 @@ TEST_CASE("gomo7_live: real Rapfi MultiPV search yields a rank-2 candidate") {
         }
     }
     REQUIRE(hasRank2);
+}
+
+TEST_CASE("ext09_live: Rapfi V3 plays on a 15x10 board after RECTSTART") {
+    if (!rapfiV3Path()) {
+        std::cout << "SKIPPED: PYGOMO_RAPFI_V3 not set\n";
+        return;
+    }
+    ProcessOptions o;
+    o.program = rapfiV3Path();
+    // Rapfi reads config.toml and its weights from the working directory, next to the binary.
+    o.workingDirectory = std::filesystem::path(o.program).parent_path().string();
+    ProcessTransport t(o);
+    GomocupEngine    engine(t);
+    REQUIRE(engine.open());
+    DeadlineEngine guarded(engine, DeadlineEngine::Options{5000ms});
+
+    auto pos = Position::create(15, 10);
+    REQUIRE(pos);
+    REQUIRE(pos->play({7, 4}));
+    REQUIRE(pos->play({8, 4}));
+    Limits lim;
+    lim.turnTime = 1000ms;
+    Terminal sink;
+    REQUIRE(guarded.startSearch(*pos, lim, sink));
+    REQUIRE(sink.wait(10s));
+    t.close();
+    std::lock_guard lock(sink.m);
+    REQUIRE(std::holds_alternative<BestMoveEvent>(sink.events.back()));
+    const Coord c = std::get<BestMoveEvent>(sink.events.back()).coord;
+    CHECK(pos->contains(c));
+    CHECK_FALSE(pos->occupied(c));
 }

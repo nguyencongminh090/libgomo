@@ -146,7 +146,6 @@ TEST_CASE("ext07_default: defaultGomocupRequest builds the script and refuses wh
                                 withMoves({}), Limits{}}));
     CHECK(refused(
         SearchRequest{Rules{}, withMoves({}, 15, 15, BoardLayout{.torus = true}), Limits{}}));
-    CHECK(refused(SearchRequest{Rules{}, withMoves({}, 15, 12), Limits{}}));
 }
 
 TEST_CASE("ext07_custom: a fake Rapfi encoder replaces the whole script") {

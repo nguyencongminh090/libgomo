@@ -826,3 +826,14 @@ TEST_CASE("ext08_gtp_refuse: rejected scripts send nothing and consume no ids") 
     REQUIRE_FALSE(closed);
     CHECK(closed.error() == EngineError::NotReady);
 }
+
+TEST_CASE("ext09_gtp: a 15x10 position sends boardsize 15 10 and formats vertices by height") {
+    Rig  r;
+    auto p = Position::create(15, 10);
+    REQUIRE(p);
+    REQUIRE(p->play({0, 0}));   // A10: top row
+    REQUIRE(p->play({14, 9}));  // O1: bottom right (columns skip I)
+    REQUIRE(r.e.startSearch(*p, {}, r.sink));
+    CHECK(r.t.lines() == Lines{"1 boardsize 15 10", "2 clear_board", "3 FREESTYLE", "4 play B A10",
+                               "5 play W P1", "6 genmove B"});
+}

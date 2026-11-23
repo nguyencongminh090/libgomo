@@ -18,10 +18,14 @@ namespace pygomo::encode {
 /// board and opening rule pair (Standard or Renju with a swap opening).
 [[nodiscard]] std::optional<int> gomocupRuleId(const Rules& rules);
 
-/// Builds the default Gomocup script: START n, INFO rule, INFO max_moves, timeout_turn,
-/// timeout_match, max_depth, max_node, then BEGIN on an empty board or a BOARD..DONE block.
-/// Errors: Unsupported for rules without a Gomocup rule id, non-empty rules.extensions,
-/// a non-default position layout or a non-square board.
+/// Builds the default Gomocup script: START n (RECTSTART w,h for a non-square board), INFO rule,
+/// INFO max_moves, timeout_turn, timeout_match, max_depth, max_node, then BEGIN on an empty board
+/// or a BOARD..DONE block.
+/// An engine without RECTSTART prints ERROR, which does not end a search (GOMO-04), so the
+/// search stays open until a DeadlineEngine fires. Rapfi's FLIPY_X coordinate mode swaps w and
+/// h; that mode is not handled here.
+/// Errors: Unsupported for rules without a Gomocup rule id, non-empty rules.extensions or a
+/// non-default position layout.
 [[nodiscard]] std::expected<std::vector<std::string>, EngineError> defaultGomocupRequest(
     const SearchRequest& request);
 
