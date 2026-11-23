@@ -1615,7 +1615,7 @@
         "scripts/check-format.sh && cmake --build --preset default && ctest --preset default"
       ],
       "checked_by": "scripts/check-format.sh && cmake --build --preset default && ctest --preset default",
-      "passes": false
+      "passes": true
     },
     {
       "id": "FMT-04-ctest",

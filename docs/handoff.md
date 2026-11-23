@@ -26,6 +26,7 @@ the summary-field meaning and the known limits; PDF rebuilt. All four todos of p
 
 Doc skills in `.claude/skills/`: README files of `documentation` and `writing-clearly-and-concisely` were read in DOC-02 (nothing to adapt); the other copied skills still carry unread README.WARNING.md/README.md.
 Style normalization (planning code-style-normalization) is finished and closed (2026-11-23). A `.clang-format` stays a separate planning.
+FMT-03 done (2026-11-23): full-style `.clang-format` (AUD-07), no fences needed. Next: FMT-04 (format check as ctest entry, rule rewrite).
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`); re-clone into the scratchpad when needed. Rapfi: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi` (binary `build/pbrain-rapfi`).
 
 ## Uncertain

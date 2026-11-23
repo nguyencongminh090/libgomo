@@ -2,7 +2,7 @@
 id: FMT-03-full-style-fences
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -22,6 +22,8 @@ planning: clang-format
 Features `FMT-03-*` in `docs/features.json` (`harness-track FMT-03`).
 
 ## Evidence
+- `docs/audit/AUD-07-clang-format-full-style.md`: plain LLVM 1322 lines vs 4 lines for the chosen config. No fence needed.
+- `scripts/check-format.sh` OK, build green, `ctest --preset default` 82/82 (skips are live-engine tests), `check-core-deps` OK.
 
 ## Links
 `features/clang-format/planning.md`

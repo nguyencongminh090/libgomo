@@ -1,6 +1,6 @@
-# Alignment-only config (planning clang-format, phase 1). Pinned: clang-format 21.1.8.
-# Based on LLVM, with the layout options below set to what the code already does,
-# so that only the three Align* options and the 100-column limit change anything.
+# Full-style config (planning clang-format, phase 2). Pinned: clang-format 21.1.8.
+# Based on LLVM, with layout options set to what the code already does (AUD-07: plain LLVM
+# defaults would rewrite ~1300 lines). Blocks that must stay as written use clang-format off/on.
 BasedOnStyle: LLVM
 Language: Cpp
 IndentWidth: 4
@@ -20,4 +20,5 @@ BinPackParameters: BinPack
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveDeclarations: Consecutive
 AlignTrailingComments: true
-SortIncludes: Never
+IncludeBlocks: Preserve
+SortIncludes: CaseSensitive
