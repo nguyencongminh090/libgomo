@@ -63,7 +63,7 @@ target_link_libraries(pygomo_gomocup PUBLIC pygomo::core pygomo::parse pygomo::t
 pygomo_enable_warnings(pygomo_gomocup)
 
 # GTP engine adapter (KataGomo Gomoku extensions).
-add_library(pygomo_gtp STATIC src/gtp/gtp_engine.cpp)
+add_library(pygomo_gtp STATIC src/gtp/gtp_engine.cpp src/gtp/gtp_encode.cpp)
 add_library(pygomo::gtp ALIAS pygomo_gtp)
 target_include_directories(pygomo_gtp PUBLIC include)
 target_compile_features(pygomo_gtp PUBLIC cxx_std_23)
@@ -71,7 +71,7 @@ target_link_libraries(pygomo_gtp PUBLIC pygomo::core pygomo::parse pygomo::trans
 pygomo_enable_warnings(pygomo_gtp)
 
 # KataGomo `gom` mode adapter.
-add_library(pygomo_katagomo STATIC src/katagomo/katagomo_engine.cpp)
+add_library(pygomo_katagomo STATIC src/katagomo/katagomo_engine.cpp src/katagomo/katagomo_encode.cpp)
 add_library(pygomo::katagomo ALIAS pygomo_katagomo)
 target_include_directories(pygomo_katagomo PUBLIC include)
 target_compile_features(pygomo_katagomo PUBLIC cxx_std_23)

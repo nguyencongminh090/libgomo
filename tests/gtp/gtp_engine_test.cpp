@@ -1,10 +1,12 @@
 #include <doctest.h>
 
+#include <chrono>
 #include <functional>
 #include <mutex>
 #include <string>
 #include <vector>
 
+#include "pygomo/gtp/gtp_encode.hpp"
 #include "pygomo/gtp/gtp_engine.hpp"
 
 using namespace pygomo;
@@ -669,4 +671,158 @@ TEST_CASE("ext05_gtp: rules with extensions are unsupported and write nothing") 
     REQUIRE_FALSE(result);
     CHECK(result.error() == EngineError::Unsupported);
     CHECK(r.t.lines().empty());
+}
+
+TEST_CASE("ext08_gtp_default: search writes the same commands with ids byte for byte") {
+    Rig        r;
+    const auto empty = Position::create(15, 15);
+    REQUIRE(empty);
+    REQUIRE(r.e.startSearch(*empty, {}, r.sink));
+    CHECK(r.t.lines() == Lines{"1 boardsize 15 15", "2 clear_board", "3 FREESTYLE", "4 genmove B"});
+    r.ackSetup(4);
+    r.t.reply("=4 H8");
+
+    r.e.setAnalyze(std::chrono::milliseconds{257});
+    REQUIRE(r.e.setRules(Rules{.board = BoardRule::Renju, .maxMoves = 100}));
+    const Limits limits{.turnTime = std::chrono::milliseconds{2505}, .maxNodes = 4000};
+    REQUIRE(r.e.startSearch(twoMoves(), limits, r.sink));
+    CHECK(r.t.lines() == Lines{"1 boardsize 15 15", "2 clear_board", "3 FREESTYLE", "4 genmove B",
+                               "5 boardsize 15 15", "6 clear_board", "7 RENJU", "8 maxmoves 100",
+                               "9 kata-set-param maxTime 2.505", "10 kata-set-param maxVisits 4000",
+                               "11 play B H8", "12 play W G7",
+                               "13 kata-genmove_analyze B interval 25"});
+}
+
+TEST_CASE("ext08_gtp_builder: the default builder emits id-free commands and refuses unsupported "
+          "requests") {
+    const auto position = Position::create(20, 10);
+    REQUIRE(position);
+    const auto plain = encode::defaultGtpRequest(SearchRequest{{}, *position, {}}, std::nullopt);
+    REQUIRE(plain);
+    CHECK(*plain == Lines{"boardsize 20 10", "clear_board", "FREESTYLE", "genmove B"});
+
+    const auto refused = [](const SearchRequest& request) {
+        const auto result = encode::defaultGtpRequest(request, std::nullopt);
+        return !result && result.error() == EngineError::Unsupported;
+    };
+    CHECK(refused(SearchRequest{Rules{.opening = OpeningRule::Swap1}, *position, {}}));
+    CHECK(refused(SearchRequest{Rules{.extensions = {{"custom-rule", true}}}, *position, {}}));
+    CHECK(refused(SearchRequest{{}, *position, Limits{.matchTime = std::chrono::milliseconds{0}}}));
+    CHECK(refused(SearchRequest{{}, *position, Limits{.maxDepth = 8}}));
+
+    auto wide = Position::create(Position::kMaxSide, 10);
+    REQUIRE(wide);
+    REQUIRE(wide->play({Position::kMaxSide - 1, 0}));
+    CHECK(refused(SearchRequest{{}, *wide, {}}));
+
+    const auto torus = Position::create(15, 15, BoardLayout{.torus = true});
+    REQUIRE(torus);
+    CHECK(refused(SearchRequest{{}, *torus, {}}));
+    Rig        r;
+    const auto rejected = r.e.startSearch(*torus, {}, r.sink);
+    REQUIRE_FALSE(rejected);
+    CHECK(rejected.error() == EngineError::Unsupported);
+    CHECK(r.t.lines().empty());
+}
+
+TEST_CASE("ext08_gtp_custom: the last command ends the search and earlier replies are setup") {
+    FakeTransport t;
+    GtpEngine     e{t, {}, [](const SearchRequest& request) -> EncodedRequest {
+                    if (!request.rules.extensions.contains("custom-rule") ||
+                        !request.position.layout().torus || !request.limits.maxDepth) {
+                        return std::unexpected(EngineError::Unsupported);
+                    }
+                    return Lines{"reset " + std::to_string(request.position.width()), "custom_rule",
+                                 "wrap_board",
+                                 "set_depth " + std::to_string(*request.limits.maxDepth),
+                                 "genmove B"};
+                }};
+    REQUIRE(e.open());
+    e.setAnalyze(std::chrono::milliseconds{100});
+    const Rules rules{.opening = OpeningRule::Swap1, .extensions = {{"custom-rule", true}}};
+    CHECK(e.supports(rules));
+    CHECK_FALSE(e.supports(Rules{.maxMoves = 0}));
+    REQUIRE(e.setRules(rules));
+
+    const auto position = Position::create(15, 15, BoardLayout{.torus = true});
+    REQUIRE(position);
+    const Limits limits{.maxDepth = 8};
+    Collect      sink;
+    REQUIRE(e.startSearch(*position, limits, sink));
+    CHECK(t.lines() ==
+          Lines{"1 reset 15", "2 custom_rule", "3 wrap_board", "4 set_depth 8", "5 genmove B"});
+    REQUIRE(e.sendRaw("name"));
+    for (const auto* reply : {"=1", "=2", "=3", "=4 D4"}) {
+        t.reply(reply);
+        CHECK(sink.events.empty());
+    }
+    t.reply("=5 H8");
+    CHECK(sink.events == std::vector<SearchEvent>{BestMoveEvent{Coord{7, 7}}});
+
+    Collect next;
+    REQUIRE(e.startSearch(*position, limits, next));
+    t.reply("= custom engine");
+    CHECK(next.events == std::vector<SearchEvent>{MessageEvent{"= custom engine"}});
+}
+
+TEST_CASE("ext08_gtp_analyze: a custom final command streams info and ends with play") {
+    FakeTransport t;
+    GtpEngine     e{t, {}, [](const SearchRequest&) -> EncodedRequest {
+                    return Lines{"clear_board", "kata-genmove_analyze B interval 5"};
+                }};
+    REQUIRE(e.open());
+    const auto position = Position::create(15, 15);
+    REQUIRE(position);
+    Collect sink;
+    REQUIRE(e.startSearch(*position, {}, sink));
+    CHECK(t.lines() == Lines{"1 clear_board", "2 kata-genmove_analyze B interval 5"});
+    t.reply("=1");
+    t.say("=2");
+    t.say("info move H8 visits 120 order 0 pv H8");
+    REQUIRE(sink.events.size() == 1);
+    const auto* info = std::get_if<InfoEvent>(&sink.events.front());
+    REQUIRE(info);
+    REQUIRE(info->candidates.size() == 1);
+    CHECK(info->candidates.front().visits == 120);
+    t.say("play H8");
+    CHECK(sink.events.size() == 1);
+    t.say("");
+    REQUIRE(sink.events.size() == 2);
+    CHECK(sink.events.back() == SearchEvent{BestMoveEvent{Coord{7, 7}}});
+}
+
+TEST_CASE("ext08_gtp_refuse: rejected scripts send nothing and consume no ids") {
+    FakeTransport t;
+    GtpEngine     e{t, {}, [](const SearchRequest& request) -> EncodedRequest {
+                    switch (request.limits.maxDepth.value_or(0)) {
+                    case 1: return std::unexpected(EngineError::TransportFailed);
+                    case 2: return Lines{};
+                    case 3: return Lines{" ", "genmove B"};
+                    case 4: return Lines{"\t# no reply", "genmove B"};
+                    default: return Lines{"genmove B"};
+                    }
+                }};
+    REQUIRE(e.open());
+    const auto position = Position::create(15, 15);
+    REQUIRE(position);
+    Collect sink;
+    for (int depth : {1, 2, 3, 4}) {
+        const auto result = e.startSearch(*position, Limits{.maxDepth = depth}, sink);
+        REQUIRE_FALSE(result);
+        CHECK(result.error() ==
+              (depth == 1 ? EngineError::TransportFailed : EngineError::Unsupported));
+        CHECK(t.lines().empty());
+        CHECK(sink.events.empty());
+    }
+
+    REQUIRE(e.startSearch(*position, {}, sink));
+    CHECK(t.lines() == Lines{"1 genmove B"});
+    const auto busy = e.startSearch(*position, Limits{.maxDepth = 1}, sink);
+    REQUIRE_FALSE(busy);
+    CHECK(busy.error() == EngineError::Busy);
+    t.reply("=1 H8");
+    t.closeNow();
+    const auto closed = e.startSearch(*position, Limits{.maxDepth = 1}, sink);
+    REQUIRE_FALSE(closed);
+    CHECK(closed.error() == EngineError::NotReady);
 }

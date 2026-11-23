@@ -1,11 +1,13 @@
 #include <doctest.h>
 
+#include <chrono>
 #include <cstdint>
 #include <functional>
 #include <mutex>
 #include <string>
 #include <vector>
 
+#include "pygomo/katagomo/katagomo_encode.hpp"
 #include "pygomo/katagomo/katagomo_engine.hpp"
 #include "pygomo/parse/gomocup_parser.hpp"
 
@@ -255,4 +257,116 @@ TEST_CASE("ext05_katagomo: rules with extensions are unsupported and write nothi
     REQUIRE_FALSE(result);
     CHECK(result.error() == EngineError::Unsupported);
     CHECK(r.t.lines().empty());
+}
+
+TEST_CASE("ext08_kata_default: search writes the same gom script byte for byte") {
+    Rig        empty;
+    const auto position = Position::create(15, 15);
+    REQUIRE(position);
+    Collect sink;
+    REQUIRE(empty.e.startSearch(*position, {}, sink));
+    CHECK(empty.t.lines() == Lines{"START 15", "FREESTYLE", "BOARD", "DONE"});
+
+    Rig game;
+    REQUIRE(game.e.setRules(Rules{.board = BoardRule::Standard, .maxMoves = 100}));
+    const Limits limits{.turnTime = std::chrono::milliseconds{2505}, .maxNodes = 4000};
+    REQUIRE(game.e.startSearch(threeMoves(), limits, sink));
+    CHECK(game.t.lines() == Lines{"START 15", "STANDARD", "maxmoves 100", "INFO timeout_turn 2505",
+                                  "kata-set-param maxVisits 4000", "BOARD", "7,7", "8,7", "7,8",
+                                  "DONE"});
+}
+
+TEST_CASE(
+    "ext08_kata_builder: the default builder emits gom lines and refuses unsupported requests") {
+    const auto position = Position::create(15, 15);
+    REQUIRE(position);
+    const auto encoded = encode::defaultKataGomoRequest(SearchRequest{{}, *position, {}});
+    REQUIRE(encoded);
+    CHECK(*encoded == Lines{"START 15", "FREESTYLE", "BOARD", "DONE"});
+
+    const auto refused = [](const SearchRequest& request) {
+        const auto result = encode::defaultKataGomoRequest(request);
+        return !result && result.error() == EngineError::Unsupported;
+    };
+    CHECK(refused(SearchRequest{Rules{.opening = OpeningRule::Swap2}, *position, {}}));
+    CHECK(refused(SearchRequest{Rules{.extensions = {{"custom-rule", true}}}, *position, {}}));
+    CHECK(refused(SearchRequest{{}, *position, Limits{.matchTime = std::chrono::milliseconds{0}}}));
+    CHECK(refused(SearchRequest{{}, *position, Limits{.maxDepth = 8}}));
+
+    const auto rectangle = Position::create(20, 10);
+    REQUIRE(rectangle);
+    CHECK(refused(SearchRequest{{}, *rectangle, {}}));
+
+    const auto torus = Position::create(15, 15, BoardLayout{.torus = true});
+    REQUIRE(torus);
+    CHECK(refused(SearchRequest{{}, *torus, {}}));
+    Rig        r;
+    Collect    sink;
+    const auto rejected = r.e.startSearch(*torus, {}, sink);
+    REQUIRE_FALSE(rejected);
+    CHECK(rejected.error() == EngineError::Unsupported);
+    CHECK(r.t.lines().empty());
+}
+
+TEST_CASE("ext08_kata_custom: an encoder replaces the entire script") {
+    FakeTransport  t;
+    KataGomoEngine e{t, {}, [](const SearchRequest& request) -> EncodedRequest {
+                         if (!request.rules.extensions.contains("custom-rule") ||
+                             !request.position.layout().torus || !request.limits.maxDepth) {
+                             return std::unexpected(EngineError::Unsupported);
+                         }
+                         return Lines{"SIZE " + std::to_string(request.position.width()) + " " +
+                                          std::to_string(request.position.height()),
+                                      "RULE custom", "TORUS",
+                                      "SEARCH " + std::to_string(*request.limits.maxDepth)};
+                     }};
+    REQUIRE(e.open());
+    const Rules rules{.opening = OpeningRule::Swap2, .extensions = {{"custom-rule", true}}};
+    CHECK(e.supports(rules));
+    CHECK_FALSE(e.supports(Rules{.maxMoves = 0}));
+    REQUIRE(e.setRules(rules));
+
+    const auto position = Position::create(20, 10, BoardLayout{.torus = true});
+    REQUIRE(position);
+    Collect sink;
+    REQUIRE(e.startSearch(*position, Limits{.maxDepth = 8}, sink));
+    CHECK(t.lines() == Lines{"SIZE 20 10", "RULE custom", "TORUS", "SEARCH 8"});
+    t.say("7,7");
+    CHECK(sink.get() == std::vector<SearchEvent>{BestMoveEvent{Coord{7, 7}}});
+}
+
+TEST_CASE("ext08_kata_refuse: an encoder error or empty script leaves the engine idle") {
+    FakeTransport  t;
+    KataGomoEngine e{t, {}, [](const SearchRequest& request) -> EncodedRequest {
+                         if (request.limits.maxDepth) {
+                             return std::unexpected(EngineError::TransportFailed);
+                         }
+                         if (request.limits.matchTime) return Lines{};
+                         return Lines{"SEARCH"};
+                     }};
+    REQUIRE(e.open());
+    const auto position = Position::create(15, 15);
+    REQUIRE(position);
+    Collect      sink;
+    const Limits depth{.maxDepth = 1};
+    const auto   failed = e.startSearch(*position, depth, sink);
+    REQUIRE_FALSE(failed);
+    CHECK(failed.error() == EngineError::TransportFailed);
+    const auto empty =
+        e.startSearch(*position, Limits{.matchTime = std::chrono::milliseconds{0}}, sink);
+    REQUIRE_FALSE(empty);
+    CHECK(empty.error() == EngineError::Unsupported);
+    CHECK(t.lines().empty());
+    CHECK(sink.get().empty());
+
+    REQUIRE(e.startSearch(*position, {}, sink));
+    CHECK(t.lines() == Lines{"SEARCH"});
+    const auto busy = e.startSearch(*position, depth, sink);
+    REQUIRE_FALSE(busy);
+    CHECK(busy.error() == EngineError::Busy);
+    t.say("7,7");
+    t.closeNow();
+    const auto closed = e.startSearch(*position, depth, sink);
+    REQUIRE_FALSE(closed);
+    CHECK(closed.error() == EngineError::NotReady);
 }

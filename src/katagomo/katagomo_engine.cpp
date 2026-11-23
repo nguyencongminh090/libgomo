@@ -4,25 +4,18 @@
 #include <utility>
 #include <vector>
 
+#include "pygomo/katagomo/katagomo_encode.hpp"
 #include "pygomo/parse/gomocup_parser.hpp"
 
 namespace pygomo {
-namespace {
 
-const char* ruleCommand(BoardRule r) {
-    switch (r) {
-    case BoardRule::Freestyle: return "FREESTYLE";
-    case BoardRule::Standard: return "STANDARD";
-    case BoardRule::Renju: return "RENJU";
-    }
-    return "FREESTYLE";
-}
-
-}  // namespace
-
-KataGomoEngine::KataGomoEngine(Transport& transport, parse::LineParser parser)
+KataGomoEngine::KataGomoEngine(Transport& transport, parse::LineParser parser,
+                               RequestEncoder encoder)
     : transport_(transport),
-      parser_(parser ? std::move(parser) : parse::LineParser{parse::parseGomocupLine}) {}
+      parser_(parser ? std::move(parser) : parse::LineParser{parse::parseGomocupLine}),
+      customEncoder_(static_cast<bool>(encoder)),
+      encoder_(customEncoder_ ? std::move(encoder)
+                              : RequestEncoder{encode::defaultKataGomoRequest}) {}
 
 std::expected<void, EngineError> KataGomoEngine::open() {
     if (!transport_.start(*this)) return std::unexpected(EngineError::NotReady);
@@ -30,8 +23,8 @@ std::expected<void, EngineError> KataGomoEngine::open() {
 }
 
 bool KataGomoEngine::supports(const Rules& rules) const {
-    if (!rules.extensions.empty()) return false;
-    return rules.opening == OpeningRule::FreeOpen && validate(rules).has_value();
+    return validate(rules).has_value() &&
+           (customEncoder_ || (rules.opening == OpeningRule::FreeOpen && rules.extensions.empty()));
 }
 
 std::expected<void, EngineError> KataGomoEngine::setRules(const Rules& rules) {
@@ -44,33 +37,17 @@ std::expected<void, EngineError> KataGomoEngine::setRules(const Rules& rules) {
 std::expected<void, EngineError> KataGomoEngine::startSearch(const Position& position,
                                                              const Limits&   limits,
                                                              EventSink&      sink) {
-    // Nothing is sent for a request the protocol cannot express.
-    if (limits.matchTime || limits.maxDepth) return std::unexpected(EngineError::Unsupported);
-    if (position.width() != position.height()) return std::unexpected(EngineError::Unsupported);
-
     std::vector<std::string> lines;
     std::uint64_t            id = 0;
     {
         std::lock_guard lock(mutex_);
         if (closed_) return std::unexpected(EngineError::NotReady);
         if (sink_) return std::unexpected(EngineError::Busy);
-        // START resets the board, so the settings follow it.
-        lines.push_back("START " + std::to_string(position.width()));
-        lines.push_back(ruleCommand(rules_.board));
-        if (rules_.maxMoves) lines.push_back("maxmoves " + std::to_string(*rules_.maxMoves));
-        if (limits.turnTime) {
-            lines.push_back("INFO timeout_turn " + std::to_string(limits.turnTime->count()));
-        }
-        if (limits.maxNodes) {
-            lines.push_back("kata-set-param maxVisits " + std::to_string(*limits.maxNodes));
-        }
-        // BOARD alternates colours from Black and ignores any third field; an empty list is the
-        // empty board.
-        lines.push_back("BOARD");
-        for (const Move& m : position.moves()) {
-            lines.push_back(std::to_string(m.coord.x) + "," + std::to_string(m.coord.y));
-        }
-        lines.push_back("DONE");
+        // Nothing is sent for a request the encoder cannot express.
+        auto encoded = encoder_(SearchRequest{rules_, position, limits});
+        if (!encoded) return std::unexpected(encoded.error());
+        if (encoded->empty()) return std::unexpected(EngineError::Unsupported);
+        lines     = std::move(*encoded);
         sink_     = &sink;
         position_ = position;
         id        = ++searchId_;

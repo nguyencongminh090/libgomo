@@ -2,27 +2,16 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <cstdint>
 #include <format>
 #include <utility>
 #include <variant>
 #include <vector>
 
+#include "pygomo/gtp/gtp_encode.hpp"
 #include "pygomo/parse/gtp_parser.hpp"
 
 namespace pygomo {
 namespace {
-
-const char* basicRule(BoardRule r) {
-    switch (r) {
-    case BoardRule::Freestyle: return "FREESTYLE";
-    case BoardRule::Standard: return "STANDARD";
-    case BoardRule::Renju: return "RENJU";
-    }
-    return nullptr;
-}
-
-const char* color(Side s) { return s == Side::Black ? "B" : "W"; }
 
 // True if the engine replies to `line`: GTP 2 (section 2.4) skips empty and comment lines.
 bool getsReply(std::string_view line) {
@@ -32,8 +21,11 @@ bool getsReply(std::string_view line) {
 
 }  // namespace
 
-GtpEngine::GtpEngine(Transport& transport, parse::LineParser parser)
-    : transport_(transport), parser_(std::move(parser)) {}
+GtpEngine::GtpEngine(Transport& transport, parse::LineParser parser, RequestEncoder encoder)
+    : transport_(transport), parser_(std::move(parser)), customEncoder_(static_cast<bool>(encoder)),
+      encoder_(customEncoder_ ? std::move(encoder) : RequestEncoder{[this](const SearchRequest& r) {
+          return encode::defaultGtpRequest(r, analyzeInterval_);
+      }}) {}
 
 std::expected<void, EngineError> GtpEngine::open() {
     if (!transport_.start(*this)) return std::unexpected(EngineError::NotReady);
@@ -41,8 +33,8 @@ std::expected<void, EngineError> GtpEngine::open() {
 }
 
 bool GtpEngine::supports(const Rules& rules) const {
-    if (!rules.extensions.empty()) return false;
-    return rules.opening == OpeningRule::FreeOpen && validate(rules).has_value();
+    return validate(rules).has_value() &&
+           (customEncoder_ || (rules.opening == OpeningRule::FreeOpen && rules.extensions.empty()));
 }
 
 std::expected<void, EngineError> GtpEngine::setRules(const Rules& rules) {
@@ -54,15 +46,6 @@ std::expected<void, EngineError> GtpEngine::setRules(const Rules& rules) {
 
 std::expected<void, EngineError> GtpEngine::startSearch(const Position& position,
                                                         const Limits& limits, EventSink& sink) {
-    // Nothing is sent for a request the protocol cannot express.
-    if (limits.matchTime || limits.maxDepth) return std::unexpected(EngineError::Unsupported);
-    std::vector<std::string> commands;
-    for (const Move& m : position.moves()) {
-        auto vertex = parse::formatGtpVertex(m.coord, position.width(), position.height());
-        if (!vertex) return std::unexpected(EngineError::Unsupported);
-        commands.push_back(std::format("play {} {}", color(m.side), *vertex));
-    }
-
     std::vector<std::string> lines;
     std::lock_guard          writeLock(writeMutex_);
     {
@@ -70,30 +53,16 @@ std::expected<void, EngineError> GtpEngine::startSearch(const Position& position
         if (closed_) return std::unexpected(EngineError::NotReady);
         if (sink_) return std::unexpected(EngineError::Busy);
 
-        std::vector<std::string> all;
-        all.push_back(std::format("boardsize {} {}", position.width(), position.height()));
-        all.push_back("clear_board");
-        all.push_back(basicRule(rules_.board));
-        if (rules_.maxMoves) all.push_back(std::format("maxmoves {}", *rules_.maxMoves));
-        if (limits.turnTime) {
-            const auto ms = limits.turnTime->count();
-            all.push_back(std::format("kata-set-param maxTime {}.{:03}", ms / 1000, ms % 1000));
-        }
-        if (limits.maxNodes) {
-            all.push_back(std::format("kata-set-param maxVisits {}", *limits.maxNodes));
-        }
-        for (auto& c : commands) all.push_back(std::move(c));
-        analyzing_ = analyzeInterval_.has_value();
-        if (analyzing_) {
-            const auto cs = std::max<std::int64_t>(1, analyzeInterval_->count() / 10);
-            all.push_back(std::format("kata-genmove_analyze {} interval {}",
-                                      color(position.sideToMove()), cs));
-        } else {
-            all.push_back(std::format("genmove {}", color(position.sideToMove())));
+        // Nothing is sent for a request the encoder cannot express.
+        auto commands = encoder_(SearchRequest{rules_, position, limits});
+        if (!commands) return std::unexpected(commands.error());
+        if (commands->empty() || !std::ranges::all_of(*commands, getsReply)) {
+            return std::unexpected(EngineError::Unsupported);
         }
 
-        firstId_ = nextId_;
-        for (auto& c : all) lines.push_back(std::format("{} {}", nextId_++, c));
+        analyzing_ = commands->back().starts_with("kata-genmove_analyze");
+        firstId_   = nextId_;
+        for (const auto& c : *commands) lines.push_back(std::format("{} {}", nextId_++, c));
         pending_.insert(pending_.end(), lines.size(), false);
         lastId_   = nextId_ - 1;
         sink_     = &sink;
