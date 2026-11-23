@@ -1,49 +1,19 @@
-# Coding style: column alignment and comments
+# Coding style: layout and comments
 
 Adapted for PyGomo (C++23) from SKILLS_TREE `rules/coding-standards/items/coding-style.md`. Naming and code structure: match
 the surrounding code (types `PascalCase`, functions `camelCase`, 4-space indent). Line limit: 100 columns.
-Never restyle a file you are only editing; the project-wide pass is its own task.
+Do not reformat code you are not changing; format only the files you touch.
 
-## 1. Column alignment: a separate format pass, not part of writing
+## 1. Layout: clang-format owns it
 
-While writing or editing:
-- Single space around `=` and before a trailing comment. No padding to line things up.
-- Do not touch the alignment of code you did not change. Later edits inside an aligned block are written unaligned.
+`.clang-format` (pinned clang-format 21.1.8, see `docs/audit/AUD-07-clang-format-full-style.md`) decides alignment, wrapping,
+spacing and include order. Do not align by hand and do not argue with the formatter.
 
-The align pass runs only when the user types `/align` (or names a task that is an align pass). Never start it on your own;
-when work is finished and verified, you may remind the user once that `/align` exists.
-
-1. Scope: the blocks containing lines changed in this task, or the files the user names.
-2. Align, inside a contiguous block of 2+ related lines:
-   - `=` of consecutive assignments: constants, config, and variable declarations or assignments
-     (`auto x = ...;`, `x = ...;`); compound operators (`+=`, `|=`) align on their `=`
-   - member types, member names and default initialisers in structs, classes and enums; consecutive declarations
-   - trailing comments (`///<` and `//`)
-   - arguments of a multi-line call or signature when each line is one record
-3. Do not align:
-   - across a blank line or an unrelated line (that starts a new block)
-   - past 100 columns
-   - prose or single statements
-4. Whitespace only: no renames, reordering or logic edits. `third_party/` is never touched.
-5. Rebuild and run `ctest --preset default` to confirm nothing else changed.
-6. Commit it alone (for example `style: align columns`) so whitespace noise stays out of logic diffs.
-
-Example:
-
-```cpp
-struct SearchOutcome {
-    std::vector<InfoEvent>   info{};      ///< Progress reports, in arrival order.
-    std::vector<SearchEvent> other{};     ///< Message and unparsed lines seen during the search.
-    SearchEvent              terminal{};  ///< BestMove, Swap, Pass or Error.
-};
-
-auto       deadline = clock.now() + limits.turnTime;
-const auto size     = board.size();
-moveCount          += 1;
-```
-
-The project has no `.clang-format` yet. Adding one (with `AlignConsecutiveAssignments`, `AlignConsecutiveDeclarations`,
-`AlignTrailingComments`) is a toolchain change: it needs a planning first.
+- Write code, then run `clang-format -i` on the files you changed (never `third_party/`, `tests/fixtures`).
+- `scripts/check-format.sh` (ctest entry `style_format`) fails on any file the formatter would change. Do not weaken it,
+  and do not add `// clang-format off` to make it pass without a reason in a comment.
+- Format a file in its own commit (`style: clang-format <area>`) when the change would bury a logic diff.
+- The old `/align` pass is retired: there is no hand alignment left to maintain.
 
 ## 2. Comments
 

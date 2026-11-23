@@ -163,3 +163,5 @@ add_test(NAME style_line_length
          COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-line-length.sh include src tests)
 add_test(NAME style_doc_comments
          COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-doc-comments.sh include)
+add_test(NAME style_format
+         COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-format.sh)

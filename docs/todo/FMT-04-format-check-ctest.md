@@ -2,7 +2,7 @@
 id: FMT-04-format-check-ctest
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -22,6 +22,7 @@ planning: clang-format
 Features `FMT-04-*` in `docs/features.json` (`harness-track FMT-04`).
 
 ## Evidence
+Added ctest `style_format` (tests/CMakeLists.txt) running `scripts/check-format.sh`; verified it fails when a bad line is appended to a source file and passes after restoring. Rule `coding-style.md` §1 rewritten (clang-format owns layout), `/align` command removed, guide updated.
 
 ## Links
 `features/clang-format/planning.md`

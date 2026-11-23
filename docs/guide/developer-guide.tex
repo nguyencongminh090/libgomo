@@ -158,7 +158,7 @@ third\_party/doctest/    & Vendored doctest 2.4.11 (never edited). \\
 scripts/                 & Architecture and style checks; \file{scripts/harness/} work tracker. \\
 docs/                    & Todos, audits, fix-log, handoff, templates, knowledge notes, this guide. \\
 features/<slug>/         & Planning documents for large (size~L) features. \\
-.claude/                 & Agent rules, the \code{/align} command, the reviewer agent, skills. \\
+.claude/                 & Agent rules, the reviewer agent, skills. \\
 CLAUDE.md, AGENTS.md     & Short instructions for contributors and coding agents. \\
 \bottomrule
 \end{tabularx}
@@ -1312,10 +1312,10 @@ The full rule is \file{.claude/rules/coding-style.md}. The essentials:
   \item In \file{src/}, comment the \emph{why}: a protocol quirk, a lock-ordering constraint, a
         workaround, with the spec section, audit or todo id when there is one. No commented-out
         code. TODOs have an owner: \code{TODO(owner): action}.
-  \item \textbf{Column alignment is a separate pass.} While writing, use single spaces and do not
-        line things up. Alignment is applied only by the \code{/align} command, over changed blocks,
-        and committed alone as \code{style: align columns}.
-  \item No \code{.clang-format} yet; adding one is a toolchain change and needs a planning.
+  \item \textbf{clang-format owns the layout.} Run \code{clang-format -i} on the files you change;
+        the pinned config \file{.clang-format} sets alignment, wrapping and include order. The
+        ctest entry \code{style\_format} (\file{scripts/check-format.sh}) fails on any file the
+        formatter would change.
 \end{itemize}
 
 %======================================================================

@@ -1625,7 +1625,7 @@
         "ctest --preset default -R format"
       ],
       "checked_by": "ctest --preset default -R format",
-      "passes": false
+      "passes": true
     }
   ]
 }
