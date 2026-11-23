@@ -1,7 +1,6 @@
 # TODO
 
 ## Backlog
-- [ ] **EXT-11.** ADR, developer guide and architecture for the extension points - size M - [detail](docs/todo/EXT-11-adr-guide-architecture.md)
 - [ ] **TSAN-01.** tsan preset fails to build on g++ 15 (-O2 -Werror false positives) - size M - [detail](docs/todo/TSAN-01-tsan-preset-werror-gcc15.md)
 
 ## Active
@@ -31,6 +30,7 @@
 - [x] **EXT-07.** GomocupEngine: RequestEncoder and pygomo::encode - size M - [detail](docs/todo/EXT-07-request-encoder-gomocup.md)
 - [x] **EXT-08.** GtpEngine and KataGomoEngine: RequestEncoder - size M - [detail](docs/todo/EXT-08-request-encoder-gtp-katagomo.md)
 - [x] **EXT-09.** Rectangular boards: RECTSTART in GomocupEngine - size M - [detail](docs/todo/EXT-09-rect-boards.md)
+- [x] **EXT-11.** ADR, developer guide and architecture for the extension points - size M - [detail](docs/todo/EXT-11-adr-guide-architecture.md)
 - [x] **FMT-01.** Install clang-format, add the alignment-only config, measure the diff - size M - [detail](docs/todo/FMT-01-install-config-measure.md)
 - [x] **FMT-02.** Apply clang-format once and add the format check script - size M - [detail](docs/todo/FMT-02-apply-format-check.md)
 - [x] **FMT-03.** Phase 2: full-style config with clang-format off fences - size M - [detail](docs/todo/FMT-03-full-style-fences.md)

@@ -12,33 +12,35 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Planning `extensible-engine-commands` (approved): EXT-00, 01, 02, 03 done 2026-11-23. ctest 88/88 pass
-(live tests skipped).
+Planning `extensible-engine-commands`: EXT-00..09 and EXT-11 done 2026-11-23 (ADR-02 written).
+EXT-10 is active: features EXT-10-tests and EXT-10-suite pass; EXT-10-tsan cannot pass because
+the tsan preset does not build on g++ 15 (TSAN-01, pre-existing since EXT-02). ctest 118/118.
 
 ## Next step
-1. EXT-05 and EXT-06 are independent; EXT-04 (GTP/KataGomo `LineParser`, uses `parse/line_parser.hpp`)
-   and EXT-07 follow. EXT-04 should also add a KataGomo `CustomEvent` test (`ext02_` prefix) since
-   EXT-02 could not reach `KataGomoEngine`.
-2. Before EXT-10, read AUD-08 "Corrections to the planning": V3 dev clears `thinking` only after
-   printing the move, so `force` waiting for the terminal event is not enough on V3 (a command sent
-   right after can be dropped); V3 has no `YXANALZ` and ignores `INFO VCTHREAD`. Rapfi prints no
-   terminator for one-shot replies, so `Until` needs a predicate per command and silent commands
-   (INFO, YXBOARD, YXBLOCK) cannot use it. The planning is frozen; whether EXT-10 changes is an
-   owner decision.
-
-Doc skills in `.claude/skills/`: README files of `documentation` and `writing-clearly-and-concisely` were read in DOC-02 (nothing to adapt); the other copied skills still carry unread README.WARNING.md/README.md.
-Style normalization (planning code-style-normalization) is finished and closed (2026-11-23); formatting is now owned by clang-format (planning clang-format, closed).
-FMT-04 done (2026-11-23): ctest `style_format`, coding-style rule rewritten, `/align` retired. Planning `clang-format` has all its todos done.
-KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`); re-clone into the scratchpad when needed. Rapfi: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi` (binary `build/pbrain-rapfi`). Rapfi V3 (Caro, WALL, Torus, Portal, RECTSTART): `.../Lab/Rapfi_V3_PTR/dev/rapfi/Rapfi` (not `stable`).
+1. Owner: decide TSAN-01 (targeted `-Wno-free-nonheap-object` / `-Wno-maybe-uninitialized`
+   on the tsan preset, or code change) and add its features. Then run EXT-10-tsan and close
+   EXT-10 and the planning. With `-DPYGOMO_WARNINGS_AS_ERRORS=OFF` tsan passes, no race.
+2. Live checks not yet done: Command/force against a real Rapfi V2 (YXANALZ) and V3.
+   V3 live: `PYGOMO_RAPFI_V3=.../Rapfi_V3_PTR/dev/rapfi/gomoku-portal-ui-distribute/pbrain-rapfi`
+   (ext09_live passes).
 
 ## Uncertain
+- EXT-10: Rapfi V3 may drop a command written right after its move (AUD-08); built as planned,
+  documented only (owner decision 2026-11-23). V2 YXANALZ with no valid move answers only ERROR,
+  which is not terminal: Busy until close (use Until). GTP CommandPort supports None only.
+- GomocupEngine now serializes writes (writeMutex_ before mutex_): stop(), sendRaw and execute
+  wait while another thread writes a script.
+- The illegal-move check does not reject a move on a blocked (WALL) cell; BoardLayout == is
+  order-sensitive.
+- Guide: mermaid class diagram in architecture.md not render-checked; ProcessTransport snippet of
+  guide section 7 not run.
 - DeadlineEngine (CORE-02): a progress callback that never returns also holds back the timeout
   error and the destructor; one that makes the wrapped engine deliver its terminal event on the
   same thread deadlocks (documented in the header, not guarded).
 - `dead1_serialization` assumes the watchdog reaches the timeout within a 250 ms window; 72
   parallel tsan runs passed, but a very loaded machine could still flake it.
-- `docs/design/architecture.md` links `deadline_engine.cpp#L67-L81` and
-  `gomocup_engine.cpp#L138`; re-check them when those files change.
+- `docs/design/architecture.md` links `deadline_engine.cpp#L78-L107` and
+  `gomocup_engine.cpp#L136-L152`; re-check them when those files change.
 - Guide pre-existing source lines over 100 columns (about 18) were left alone (no restyle outside changed text).
 - check-doc-comments.sh is a heuristic: it checks types, aliases, free functions and public methods, not data members or enumerators (those are reviewed by hand). Overrides need their own `///` line each; accepting one group comment for them in the script would loosen the rule, so it needs an owner decision.
 - GtpEngine::stop() is a no-op by protocol: docs/audit/AUD-02 (KataGomo reads stdin on one thread; genmove cannot be interrupted). Limits persist in the engine between searches.
@@ -53,4 +55,4 @@ KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhz
 - DeadlineEngine: an engine that never answers after a timeout stays Busy; the caller must close it (docs/audit/AUD-03). The Gomocup timeout path ran against a real Rapfi (frozen with SIGSTOP, DEAD-04); GTP and KataGomo only against fake transports.
 
 ## Blockers
-None.
+TSAN-01 blocks closing EXT-10 (owner decision).

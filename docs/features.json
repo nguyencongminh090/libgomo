@@ -1885,7 +1885,7 @@
         "node scripts/harness/harness-check.mjs"
       ],
       "checked_by": "node scripts/harness/harness-check.mjs",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-11-suite",
@@ -1895,7 +1895,7 @@
         "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
       ],
       "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
-      "passes": false
+      "passes": true
     }
   ]
 }

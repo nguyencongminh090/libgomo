@@ -2,7 +2,7 @@
 id: EXT-11-adr-guide-architecture
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -24,7 +24,7 @@ The ADR is immutable: write it last, when the code is settled. Re-check the line
 Features `EXT-11-*` in `docs/features.json` (`harness-track EXT-11`).
 
 ## Evidence
-(fill in before marking done)
+2026-11-23, Sonnet subagent. harness-check 0 errors; full suite 118/118 on master. ADR-02-extensible-engine-commands; guide section 7 (example compiled with project flags and run over a fake transport; the ProcessTransport wiring snippet not run); PDF rebuilt (29 pages); architecture.md, drawio and PNG updated; links fixed (gomocup_engine.cpp#L136-L152, deadline_engine.cpp#L78-L107). Mermaid diagram not render-checked (no chrome-headless-shell). Guide example uses BOARD with walls as x,y,3 (a block clears INFO WALL, AUD-08).
 
 ## Links
 `features/extensible-engine-commands/planning.md`
