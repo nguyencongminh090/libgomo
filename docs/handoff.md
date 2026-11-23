@@ -12,22 +12,22 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-CORE-08 moved the public C++ headers to `include/gomo/` and the namespace to `gomo` under the
-approved [libgomo rename plan](../features/rename-libgomo/planning.md). The fresh default
-build passed all 119 CTest entries with Rapfi V2 and V3. The consumer, dependency, and style
-checks passed. CORE-08 is active pending acceptance-file approval.
-LIVE-01 done: `ext10_live` (5 cases, V2 and V3 force) in tests/live; run with
-PYGOMO_RAPFI_V2 and PYGOMO_RAPFI_V3, skipped without them.
+CORE-09 migrated CMake to `libgomo`, `gomo_*`, and `gomo::` and moved the warning, fixture,
+and live settings to `GOMO_*`. The standalone consumer and both fresh suites passed. The
+first TSAN run timed out on the V3 `ABOUT` response in `ext10_live`; the full rerun passed.
+All seven live entries ran with Rapfi V2 and V3 and skipped with the new settings unset.
+CORE-08 moved the C++ namespace and public headers to `gomo` and is active pending
+acceptance-file approval.
 
 ## Next step
-Close `CORE-08` after the acceptance-file edits are approved and checked, then proceed to
-`CORE-09` for CMake and test names and `CORE-10` for consumer documentation.
+Close `CORE-08` and `CORE-09` once their acceptance-file edits are approved and checked, then
+continue `CORE-10` for consumer documentation.
 
 ## Uncertain
 - LIVE-01: YXANALZ asserts one of the two listed moves (spike saw only 9,9; 6,6 also appears).
   V3 stable and the AUD-08 drop race are not covered.
 - TSAN-01: the same g++ 15 warnings also break any other -O2 build with
-  PYGOMO_WARNINGS_AS_ERRORS=ON (e.g. a Release preset); only the tsan preset was changed.
+  GOMO_WARNINGS_AS_ERRORS=ON (e.g. a Release preset); only the tsan preset was changed.
   No GCC bug id was verified; recheck the two -Wno-error flags after a GCC upgrade.
 - EXT-10: Rapfi V3 may drop a command written right after its move (AUD-08); built as planned,
   documented only (owner decision 2026-11-23). V2 YXANALZ with no valid move answers only ERROR,
@@ -59,6 +59,6 @@ Close `CORE-08` after the acceptance-file edits are approved and checked, then p
 - DeadlineEngine: an engine that never answers after a timeout stays Busy; the caller must close it (docs/audit/AUD-03). The Gomocup timeout path ran against a real Rapfi (frozen with SIGSTOP, DEAD-04); GTP and KataGomo only against fake transports.
 
 ## Blockers
-CORE-08 needs owner approval for its acceptance entries and the seven style-check header
-path updates in `docs/features.json`. CORE-09 and CORE-10 have their own acceptance edits
-listed in the migration plan.
+CORE-08 needs owner approval for its acceptance entries and the seven style-check header path
+updates in `docs/features.json`. CORE-09 needs owner approval for its acceptance entries and
+the warning and Rapfi name updates in that file.

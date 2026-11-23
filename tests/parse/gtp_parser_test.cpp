@@ -12,7 +12,7 @@ using namespace gomo::parse;
 namespace {
 
 std::string fixtureLine(const std::string& name) {
-    std::ifstream in(std::string{PYGOMO_GTP_FIXTURE_DIR} + "/" + name);
+    std::ifstream in(std::string{GOMO_GTP_FIXTURE_DIR} + "/" + name);
     REQUIRE(in.good());
     std::string line;
     while (std::getline(in, line))

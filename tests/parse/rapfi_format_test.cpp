@@ -88,7 +88,7 @@ TEST_CASE("gomo2_parse: the UCI-like form and non-info messages are unchanged") 
 }
 
 TEST_CASE("gomo2_fixtures: real Rapfi transcripts lose no line and record their origin") {
-    const std::string dir   = PYGOMO_FIXTURE_DIR;
+    const std::string dir   = GOMO_FIXTURE_DIR;
     int               files = 0;
     for (const char* name :
          {"rapfi-brief-default", "rapfi-normal-partial", "rapfi-ucilike-partial"}) {
@@ -327,7 +327,7 @@ TEST_CASE("gomo7_forms: unranked lines keep candidates empty and unrecognised st
 }
 
 TEST_CASE("gomo7_fixture: real Rapfi nbest capture keeps ranks 1..3 and summary rules") {
-    const std::string path = std::string{PYGOMO_FIXTURE_DIR} + "/rapfi-nbest-normal.txt";
+    const std::string path = std::string{GOMO_FIXTURE_DIR} + "/rapfi-nbest-normal.txt";
     std::ifstream     in(path);
     REQUIRE_MESSAGE(in.good(), path);
 

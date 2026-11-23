@@ -9,7 +9,7 @@
       "binaryDir": "${sourceDir}/build/default",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "PYGOMO_WARNINGS_AS_ERRORS": "ON"
+        "GOMO_WARNINGS_AS_ERRORS": "ON"
       }
     },
     {

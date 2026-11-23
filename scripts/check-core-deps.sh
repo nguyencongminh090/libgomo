@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Proves two module-architecture constraints. Exit 0 = clean, 1 = violation(s) printed.
 #
-#  1. pygomo_core includes no process, stream, thread or protocol-name header.
+#  1. gomo_core includes no process, stream, thread or protocol-name header.
 #  2. The transport port headers (include/gomo/transport/) mention no protocol or engine name:
 #     the port must stay protocol-blind.
 set -euo pipefail

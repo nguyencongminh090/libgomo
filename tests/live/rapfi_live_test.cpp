@@ -1,5 +1,5 @@
-// Live tests against a real Rapfi. Set PYGOMO_RAPFI to the pbrain-rapfi executable; without it
-// every test prints SKIPPED (ctest treats that as skipped, not passed).
+// Live tests against real Rapfi binaries. Set GOMO_RAPFI for general searches,
+// GOMO_RAPFI_V2 for V2 force, and GOMO_RAPFI_V3 for V3 force and rectangular boards.
 #include <doctest.h>
 
 #include <signal.h>
@@ -26,17 +26,17 @@ using namespace std::chrono_literals;
 namespace {
 
 // Path of the engine binary from the environment, or null when the live tests are off.
-const char* rapfiPath() { return std::getenv("PYGOMO_RAPFI"); }
+const char* rapfiPath() { return std::getenv("GOMO_RAPFI"); }
 
 // Skips the current test case when no engine binary is configured.
 #define REQUIRE_RAPFI()                                                                            \
     if (!rapfiPath()) {                                                                            \
-        std::cout << "SKIPPED: PYGOMO_RAPFI not set\n";                                            \
+        std::cout << "SKIPPED: GOMO_RAPFI not set\n";                                              \
         return;                                                                                    \
     }
 
 // Rapfi V3 binary from the environment, or null when the rectangular-board live test is off.
-const char* rapfiV3Path() { return std::getenv("PYGOMO_RAPFI_V3"); }
+const char* rapfiV3Path() { return std::getenv("GOMO_RAPFI_V3"); }
 
 // Black (7,7), White (8,7), Black (7,8): a small non-empty 15x15 start.
 Position threeMoves() {
@@ -100,7 +100,7 @@ struct RawListener final : TransportListener {
     bool                    done    = false;
 };
 
-// Launch options for the engine named by PYGOMO_RAPFI.
+// Launch options for the engine named by GOMO_RAPFI.
 ProcessOptions rapfi() {
     ProcessOptions o;
     o.program = rapfiPath();
@@ -266,7 +266,7 @@ TEST_CASE("gomo7_live: real Rapfi MultiPV search yields a rank-2 candidate") {
 
 TEST_CASE("ext09_live: Rapfi V3 plays on a 15x10 board after RECTSTART") {
     if (!rapfiV3Path()) {
-        std::cout << "SKIPPED: PYGOMO_RAPFI_V3 not set\n";
+        std::cout << "SKIPPED: GOMO_RAPFI_V3 not set\n";
         return;
     }
     ProcessOptions o;
@@ -301,7 +301,7 @@ namespace {
 enum class Gen { V2, V3 };
 
 const char* forcePath(Gen g) {
-    return std::getenv(g == Gen::V2 ? "PYGOMO_RAPFI_V2" : "PYGOMO_RAPFI_V3");
+    return std::getenv(g == Gen::V2 ? "GOMO_RAPFI_V2" : "GOMO_RAPFI_V3");
 }
 
 // A force case: the command to force over a 60 s search and how its completion is expressed.
@@ -396,26 +396,26 @@ void runForce(Gen gen, const ForceCase& c, bool expectAnalzMove, int rounds) {
 }  // namespace
 
 TEST_CASE("ext10_live: V2 force over a search with a BOARD search command") {
-    REQUIRE_FORCE(Gen::V2, "PYGOMO_RAPFI_V2");
+    REQUIRE_FORCE(Gen::V2, "GOMO_RAPFI_V2");
     runForce(Gen::V2, kBoardSearch, false, 3);
 }
 
 TEST_CASE("ext10_live: V2 force over a search with an Until ABOUT command") {
-    REQUIRE_FORCE(Gen::V2, "PYGOMO_RAPFI_V2");
+    REQUIRE_FORCE(Gen::V2, "GOMO_RAPFI_V2");
     runForce(Gen::V2, kAboutUntil, false, 3);
 }
 
 TEST_CASE("ext10_live: V2 force over a search with YXANALZ answers a whitelisted move") {
-    REQUIRE_FORCE(Gen::V2, "PYGOMO_RAPFI_V2");
+    REQUIRE_FORCE(Gen::V2, "GOMO_RAPFI_V2");
     runForce(Gen::V2, kAnalz, true, 3);
 }
 
 TEST_CASE("ext10_live: V3 force over a search with a BOARD search command") {
-    REQUIRE_FORCE(Gen::V3, "PYGOMO_RAPFI_V3");
+    REQUIRE_FORCE(Gen::V3, "GOMO_RAPFI_V3");
     runForce(Gen::V3, kBoardSearch, false, 3);
 }
 
 TEST_CASE("ext10_live: V3 force over a search with an Until ABOUT command") {
-    REQUIRE_FORCE(Gen::V3, "PYGOMO_RAPFI_V3");
+    REQUIRE_FORCE(Gen::V3, "GOMO_RAPFI_V3");
     runForce(Gen::V3, kAboutUntil, false, 3);
 }

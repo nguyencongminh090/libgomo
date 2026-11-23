@@ -126,7 +126,7 @@ TEST_CASE("proc_exit: exit code is reported") {
 
 TEST_CASE("proc_spawnfail: a missing executable is an error with no listener call") {
     ProcessOptions o;
-    o.program = "/nonexistent/pygomo-engine";
+    o.program = "/nonexistent/gomo-engine";
     ProcessTransport t(o);
     Recorder         r;
     auto             s = t.start(r);
