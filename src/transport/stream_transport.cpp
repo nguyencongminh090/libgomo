@@ -42,7 +42,7 @@ void StreamTransport::close() { finish(CloseReason::Requested); }
 
 void StreamTransport::readLoop() {
     std::string line;
-    char ch{};
+    char        ch{};
     while (in_.get(ch)) {
         if (closed_.load()) return;
         if (ch == '\n') {

@@ -29,10 +29,10 @@ namespace {
 const char* rapfiPath() { return std::getenv("PYGOMO_RAPFI"); }
 
 // Skips the current test case when no engine binary is configured.
-#define REQUIRE_RAPFI()                                  \
-    if (!rapfiPath()) {                                  \
-        std::cout << "SKIPPED: PYGOMO_RAPFI not set\n";  \
-        return;                                          \
+#define REQUIRE_RAPFI()                                                                            \
+    if (!rapfiPath()) {                                                                            \
+        std::cout << "SKIPPED: PYGOMO_RAPFI not set\n";                                            \
+        return;                                                                                    \
     }
 
 // Black (7,7), White (8,7), Black (7,8): a small non-empty 15x15 start.
@@ -69,7 +69,7 @@ struct Terminal final : EventSink {
 // Collects parsed events from raw transport lines and wakes wait() on BestMove or close.
 struct RawListener final : TransportListener {
     void onLine(std::string_view line) override {
-        auto ev = parse::parseGomocupLine(line);
+        auto            ev = parse::parseGomocupLine(line);
         std::lock_guard lock(m);
         if (auto* info = std::get_if<InfoEvent>(&ev)) {
             infos.push_back(*info);
@@ -109,7 +109,7 @@ pid_t childPid() {
         const std::string name = entry.path().filename().string();
         if (name.empty() || name.find_first_not_of("0123456789") != std::string::npos) continue;
         std::ifstream stat(entry.path() / "stat");
-        std::string line;
+        std::string   line;
         if (!std::getline(stat, line)) continue;
         const auto close = line.rfind(')');  // the name in parentheses may contain spaces
         if (close == std::string::npos) continue;
@@ -129,7 +129,7 @@ pid_t childPid() {
 TEST_CASE("gomo2_live: a real search returns a legal move and info") {
     REQUIRE_RAPFI();
     ProcessTransport t(rapfi());
-    GomocupEngine engine(t);
+    GomocupEngine    engine(t);
     REQUIRE(engine.open());
     Limits lim;
     lim.turnTime = 1000ms;
@@ -147,12 +147,12 @@ TEST_CASE("gomo2_live: a real search returns a legal move and info") {
 TEST_CASE("gomo2_stop: stop() during a long search still yields a move") {
     REQUIRE_RAPFI();
     ProcessTransport t(rapfi());
-    GomocupEngine engine(t);
+    GomocupEngine    engine(t);
     REQUIRE(engine.open());
     Limits lim;
     lim.turnTime = 60'000ms;
     Terminal sink;
-    auto pos = threeMoves();
+    auto     pos = threeMoves();
     REQUIRE(engine.startSearch(pos, lim, sink));
     std::this_thread::sleep_for(500ms);
     engine.stop();
@@ -171,7 +171,7 @@ TEST_CASE("gomo2_stop: stop() during a long search still yields a move") {
 TEST_CASE("gomo2_close: closing mid-search gives one error event and no process") {
     REQUIRE_RAPFI();
     ProcessTransport t(rapfi());
-    GomocupEngine engine(t);
+    GomocupEngine    engine(t);
     REQUIRE(engine.open());
     Limits lim;
     lim.turnTime = 60'000ms;
@@ -182,7 +182,7 @@ TEST_CASE("gomo2_close: closing mid-search gives one error event and no process"
     REQUIRE(sink.wait(3s));
     {
         std::lock_guard lock(sink.m);
-        int errors = 0;
+        int             errors = 0;
         for (auto& e : sink.events) errors += std::holds_alternative<ErrorEvent>(e);
         CHECK(errors == 1);
     }
@@ -193,16 +193,16 @@ TEST_CASE("gomo2_deadline: a frozen engine times out, its late move is dropped, 
           "then it is usable again") {
     REQUIRE_RAPFI();
     ProcessTransport t(rapfi());
-    GomocupEngine engine(t);
+    GomocupEngine    engine(t);
     REQUIRE(engine.open());
     DeadlineEngine guarded(engine, DeadlineEngine::Options{300ms});
-    const pid_t child = childPid();
+    const pid_t    child = childPid();
     REQUIRE(child > 0);
 
     Limits lim;
     lim.turnTime = 200ms;
     Terminal first;
-    auto pos = threeMoves();
+    auto     pos = threeMoves();
     REQUIRE(guarded.startSearch(pos, lim, first));
     REQUIRE(kill(child, SIGSTOP) == 0);  // frozen: reads nothing, answers nothing
     const bool timedOut = first.wait(5s);
@@ -242,8 +242,8 @@ TEST_CASE("gomo7_live: real Rapfi MultiPV search yields a rank-2 candidate") {
     ProcessTransport t(rapfi());
     REQUIRE(t.start(listener));
     // YXSHOWINFO switches Rapfi from brief to normal mode so ranked lines are printed.
-    for (const char* cmd : {"START 15", "YXSHOWINFO", "INFO timeout_turn 1000", "YXBOARD",
-                            "7,7,1", "8,8,2", "DONE", "YXNBEST 3"}) {
+    for (const char* cmd : {"START 15", "YXSHOWINFO", "INFO timeout_turn 1000", "YXBOARD", "7,7,1",
+                            "8,8,2", "DONE", "YXNBEST 3"}) {
         REQUIRE(t.writeLine(cmd));
     }
     const bool finished = listener.wait(10s);

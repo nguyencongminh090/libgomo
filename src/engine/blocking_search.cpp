@@ -8,7 +8,7 @@ namespace pygomo {
 namespace {
 
 class CollectingSink final : public EventSink {
-public:
+  public:
     void onEvent(const SearchEvent& event) override {
         std::lock_guard lock(mutex_);
         if (done_) return;
@@ -35,17 +35,17 @@ public:
         return std::move(outcome_);
     }
 
-private:
-    std::mutex mutex_;
+  private:
+    std::mutex              mutex_;
     std::condition_variable cv_;
-    SearchOutcome outcome_{};
-    bool done_ = false;
+    SearchOutcome           outcome_{};
+    bool                    done_ = false;
 };
 
 }  // namespace
 
-std::expected<SearchOutcome, EngineError> search(
-    EnginePort& engine, const Position& position, const Limits& limits) {
+std::expected<SearchOutcome, EngineError> search(EnginePort& engine, const Position& position,
+                                                 const Limits& limits) {
     CollectingSink sink;
     if (auto started = engine.startSearch(position, limits, sink); !started) {
         return std::unexpected(started.error());

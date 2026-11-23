@@ -79,9 +79,9 @@ TEST_CASE("gomo2_parse: the UCI-like form and non-info messages are unchanged") 
     CHECK(info(u)->depth == 2);
     CHECK(info(u)->elapsed == 1ms);
     CHECK(info(u)->principalVariation == std::vector<Coord>{{4, 4}, {1, 1}});
-    for (const char* l : {"MESSAGE OptiTime 873ms | MaxTime 970ms", "MESSAGE Load config from x",
-                          "MESSAGE Speed fast | Depth x", "MESSAGE Bestline",
-                          "MESSAGE Depth | | "}) {
+    for (const char* l :
+         {"MESSAGE OptiTime 873ms | MaxTime 970ms", "MESSAGE Load config from x",
+          "MESSAGE Speed fast | Depth x", "MESSAGE Bestline", "MESSAGE Depth | | "}) {
         INFO(l);
         CHECK(std::holds_alternative<MessageEvent>(parseGomocupLine(l)));
     }
@@ -97,9 +97,12 @@ TEST_CASE("gomo2_fixtures: real Rapfi transcripts lose no line and record their 
         ++files;
         std::string line;
         std::string header;
-        int engineLines = 0, infos = 0, moves = 0;
+        int         engineLines = 0, infos = 0, moves = 0;
         while (std::getline(in, line)) {
-            if (!line.empty() && line[0] == '#') { header += line + "\n"; continue; }
+            if (!line.empty() && line[0] == '#') {
+                header += line + "\n";
+                continue;
+            }
             ++engineLines;
             auto e = parseGomocupLine(line);
             if (auto* u = std::get_if<UnparsedEvent>(&e)) CHECK(u->line == line);
@@ -178,8 +181,7 @@ TEST_CASE("gomo7_forms: all four Rapfi ranked forms map candidate and summary fi
     CHECK(info(n2)->candidates[0].principalVariation == std::vector<Coord>{{4, 4}, {1, 1}});
 
     // Form 2: normal MCTS `(N) v (W w, D d, S s) | V n | SD sd | pv`.
-    auto m1 = parseGomocupLine(
-        "MESSAGE (1) 34 (W 50.00, D 10.00, S 0.10) | V 1K | SD 12 | E5 B2");
+    auto m1 = parseGomocupLine("MESSAGE (1) 34 (W 50.00, D 10.00, S 0.10) | V 1K | SD 12 | E5 B2");
     REQUIRE(info(m1));
     CHECK_FALSE(info(m1)->nodes);
     CHECK_FALSE(info(m1)->depth);
@@ -196,8 +198,7 @@ TEST_CASE("gomo7_forms: all four Rapfi ranked forms map candidate and summary fi
     CHECK(*info(m1)->candidates[0].drawrate == doctest::Approx(0.1));
     CHECK(info(m1)->candidates[0].principalVariation == std::vector<Coord>{{4, 4}, {1, 1}});
 
-    auto m2 = parseGomocupLine(
-        "MESSAGE (2) -12 (W 45.25, D 5.50, S 0.20) | V 2.5M | SD 8 | H8");
+    auto m2 = parseGomocupLine("MESSAGE (2) -12 (W 45.25, D 5.50, S 0.20) | V 2.5M | SD 8 | H8");
     REQUIRE(info(m2));
     CHECK_FALSE(info(m2)->nodes);
     CHECK_FALSE(info(m2)->score);
@@ -214,8 +215,8 @@ TEST_CASE("gomo7_forms: all four Rapfi ranked forms map candidate and summary fi
     CHECK(info(m2)->candidates[0].principalVariation == std::vector<Coord>{{7, 7}});
 
     // Form 3: UCI-like AB `depth d-s multipv N ev v n ... tm t pv ...`.
-    auto u1 = parseGomocupLine(
-        "MESSAGE depth 10-14 multipv 1 ev -34 n 1.25M n/ms 800 tm 900 pv 7,7 8,8");
+    auto u1 =
+        parseGomocupLine("MESSAGE depth 10-14 multipv 1 ev -34 n 1.25M n/ms 800 tm 900 pv 7,7 8,8");
     REQUIRE(info(u1));
     CHECK(info(u1)->depth == 10);
     CHECK(info(u1)->nodes == 1'250'000);
@@ -229,8 +230,8 @@ TEST_CASE("gomo7_forms: all four Rapfi ranked forms map candidate and summary fi
     CHECK_FALSE(info(u1)->candidates[0].visits);
     CHECK(info(u1)->candidates[0].principalVariation == std::vector<Coord>{{7, 7}, {8, 8}});
 
-    auto u2 = parseGomocupLine(
-        "MESSAGE depth 10-14 multipv 2 ev 12 n 1.25M n/ms 800 tm 900 pv E5 B2");
+    auto u2 =
+        parseGomocupLine("MESSAGE depth 10-14 multipv 2 ev 12 n 1.25M n/ms 800 tm 900 pv E5 B2");
     REQUIRE(info(u2));
     CHECK(info(u2)->depth == 10);
     CHECK(info(u2)->nodes == 1'250'000);
@@ -244,9 +245,9 @@ TEST_CASE("gomo7_forms: all four Rapfi ranked forms map candidate and summary fi
     CHECK(info(u2)->candidates[0].principalVariation == std::vector<Coord>{{4, 4}, {1, 1}});
 
     // Form 4: UCI-like realtime/MCTS carrying both candidate `v` and total `n`.
-    auto r1 = parseGomocupLine(
-        "MESSAGE multipv 1 ev 42 w 61.25 d 12.50 stdev 0.15 v 1.5K seldepth 14 "
-        "n 2.4M tm 500 prior 0.30 pv H8 G8");
+    auto r1 =
+        parseGomocupLine("MESSAGE multipv 1 ev 42 w 61.25 d 12.50 stdev 0.15 v 1.5K seldepth 14 "
+                         "n 2.4M tm 500 prior 0.30 pv H8 G8");
     REQUIRE(info(r1));
     CHECK(info(r1)->nodes == 2'400'000);
     CHECK(info(r1)->elapsed == 500ms);
@@ -263,9 +264,9 @@ TEST_CASE("gomo7_forms: all four Rapfi ranked forms map candidate and summary fi
     CHECK(*info(r1)->candidates[0].drawrate == doctest::Approx(0.125));
     CHECK(info(r1)->candidates[0].principalVariation == std::vector<Coord>{{7, 7}, {6, 7}});
 
-    auto r2 = parseGomocupLine(
-        "MESSAGE multipv 2 ev -10 w 40.00 d 20.00 stdev 0.20 v 500 seldepth 10 "
-        "n 2.4M prior 0.10 pv 1,1 2,2");
+    auto r2 =
+        parseGomocupLine("MESSAGE multipv 2 ev -10 w 40.00 d 20.00 stdev 0.20 v 500 seldepth 10 "
+                         "n 2.4M prior 0.10 pv 1,1 2,2");
     REQUIRE(info(r2));
     CHECK(info(r2)->nodes == 2'400'000);
     CHECK_FALSE(info(r2)->score);
@@ -288,8 +289,8 @@ TEST_CASE("gomo7_forms: all four Rapfi ranked forms map candidate and summary fi
     CHECK_FALSE(info(badRate1)->candidates[0].winrate);
     CHECK_FALSE(info(badRate1)->candidates[0].drawrate);
 
-    auto badRate2 = parseGomocupLine(
-        "MESSAGE (1) 0 (W 120.00, D -2.00, S 0.10) | V 10 | SD 5 | H8");
+    auto badRate2 =
+        parseGomocupLine("MESSAGE (1) 0 (W 120.00, D -2.00, S 0.10) | V 10 | SD 5 | H8");
     REQUIRE(info(badRate2));
     REQUIRE(info(badRate2)->candidates.size() == 1);
     CHECK(info(badRate2)->candidates[0].visits == 10);
@@ -298,27 +299,21 @@ TEST_CASE("gomo7_forms: all four Rapfi ranked forms map candidate and summary fi
 }
 
 TEST_CASE("gomo7_forms: unranked lines keep candidates empty and unrecognised stay raw") {
-    for (const char* line : {
-             "MESSAGE depth 2-3 ev 0 n 73 n/ms 73 tm 1 pv E5 B2",
-             "MESSAGE Bestline H7 J9",
-             "MESSAGE Speed 12K | Visit 100 | Time 3ms",
-             "MESSAGE Speed 333K | Depth 5-6 | Eval -67 | Node 373 | Time 1ms",
-             "MESSAGE Depth 4-5 | Eval 0 | Time 1ms | E5 B2"}) {
+    for (const char* line : {"MESSAGE depth 2-3 ev 0 n 73 n/ms 73 tm 1 pv E5 B2",
+                             "MESSAGE Bestline H7 J9", "MESSAGE Speed 12K | Visit 100 | Time 3ms",
+                             "MESSAGE Speed 333K | Depth 5-6 | Eval -67 | Node 373 | Time 1ms",
+                             "MESSAGE Depth 4-5 | Eval 0 | Time 1ms | E5 B2"}) {
         INFO(line);
         auto e = parseGomocupLine(line);
         REQUIRE(info(e));
         CHECK(info(e)->candidates.empty());
     }
 
-    for (const char* line : {
-             "MESSAGE (0) 34 | 5-6 | E5",
-             "MESSAGE (x) 34 | 5-6 | E5",
-             "MESSAGE (1) bad | nope",
-             "MESSAGE multipv 0 ev 7 pv 1,1",
-             "MESSAGE multipv x ev 7 pv 1,1",
-             "MESSAGE multipv 1 unknown foo",
-             "MESSAGE Visits 100 Winrate 50%",
-             "MESSAGE OptiTime 1773ms | MaxTime 1970ms"}) {
+    for (const char* line :
+         {"MESSAGE (0) 34 | 5-6 | E5", "MESSAGE (x) 34 | 5-6 | E5", "MESSAGE (1) bad | nope",
+          "MESSAGE multipv 0 ev 7 pv 1,1", "MESSAGE multipv x ev 7 pv 1,1",
+          "MESSAGE multipv 1 unknown foo", "MESSAGE Visits 100 Winrate 50%",
+          "MESSAGE OptiTime 1773ms | MaxTime 1970ms"}) {
         INFO(line);
         CHECK(std::holds_alternative<MessageEvent>(parseGomocupLine(line)));
     }

@@ -13,7 +13,7 @@ namespace {
 
 /// Records what the adapter writes; the test plays the engine by calling say().
 class FakeTransport final : public Transport {
-public:
+  public:
     std::expected<void, TransportError> start(TransportListener& l) override {
         listener = &l;
         return {};
@@ -26,23 +26,32 @@ public:
         if (failWrites) return std::unexpected(TransportError::Closed);
         return {};
     }
-    void close() override {}
-    void say(std::string_view l) { listener->onLine(l); }
-    void closeNow() { listener->onClosed(CloseReason::Eof); }
-    std::vector<std::string> lines() { std::lock_guard lock(m); return written; }
+    void                     close() override {}
+    void                     say(std::string_view l) { listener->onLine(l); }
+    void                     closeNow() { listener->onClosed(CloseReason::Eof); }
+    std::vector<std::string> lines() {
+        std::lock_guard lock(m);
+        return written;
+    }
 
     std::mutex                              m;
     std::vector<std::string>                written;
-    TransportListener*                      listener   = nullptr;
+    TransportListener*                      listener = nullptr;
     std::function<void(const std::string&)> onWrite;
     // set by onWrite to fail that write and every later one
-    bool                                    failWrites = false;
+    bool failWrites = false;
 };
 
 struct Collect final : EventSink {
-    void onEvent(const SearchEvent& e) override { std::lock_guard l(m); events.push_back(e); }
-    std::vector<SearchEvent> get() { std::lock_guard l(m); return events; }
-    std::mutex m;
+    void onEvent(const SearchEvent& e) override {
+        std::lock_guard l(m);
+        events.push_back(e);
+    }
+    std::vector<SearchEvent> get() {
+        std::lock_guard l(m);
+        return events;
+    }
+    std::mutex               m;
     std::vector<SearchEvent> events;
 };
 
@@ -56,7 +65,7 @@ Position threeMoves() {
 }
 
 struct Rig {
-    FakeTransport t;
+    FakeTransport  t;
     KataGomoEngine e{t};
     Rig() { REQUIRE(e.open()); }
 };
@@ -66,13 +75,13 @@ using Lines = std::vector<std::string>;
 }  // namespace
 
 TEST_CASE("kata_sequence: START, rule, BOARD with plain x,y, DONE") {
-    Rig r;
+    Rig     r;
     Collect sink;
     REQUIRE(r.e.startSearch(threeMoves(), Limits{}, sink));
     CHECK(r.t.lines() == Lines{"START 15", "FREESTYLE", "BOARD", "7,7", "8,7", "7,8", "DONE"});
     CHECK(r.e.startSearch(threeMoves(), Limits{}, sink).error() == EngineError::Busy);
 
-    Rig e;
+    Rig  e;
     auto empty = Position::create(15, 15);
     REQUIRE(empty);
     REQUIRE(e.e.startSearch(*empty, Limits{}, sink));
@@ -80,7 +89,7 @@ TEST_CASE("kata_sequence: START, rule, BOARD with plain x,y, DONE") {
 }
 
 TEST_CASE("kata_rules: rule commands; swap openings are Unsupported and write nothing") {
-    Rig r;
+    Rig     r;
     Collect sink;
     CHECK(r.e.setRules(Rules{BoardRule::Renju, OpeningRule::FreeOpen, 200}));
     REQUIRE(r.e.startSearch(threeMoves(), Limits{}, sink));
@@ -97,17 +106,17 @@ TEST_CASE("kata_rules: rule commands; swap openings are Unsupported and write no
 }
 
 TEST_CASE("kata_limits: turn time and nodes are sent; depth and match time are Unsupported") {
-    Rig r;
+    Rig     r;
     Collect sink;
-    Limits lim;
+    Limits  lim;
     lim.turnTime = std::chrono::milliseconds{5000};
     lim.maxNodes = 1000;
     REQUIRE(r.e.startSearch(threeMoves(), lim, sink));
-    CHECK(r.t.lines() ==
-          Lines{"START 15", "FREESTYLE", "INFO timeout_turn 5000", "kata-set-param maxVisits 1000",
-                "BOARD", "7,7", "8,7", "7,8", "DONE"});
+    CHECK(r.t.lines() == Lines{"START 15", "FREESTYLE", "INFO timeout_turn 5000",
+                               "kata-set-param maxVisits 1000", "BOARD", "7,7", "8,7", "7,8",
+                               "DONE"});
 
-    Rig u;
+    Rig    u;
     Limits depth;
     depth.maxDepth = 5;
     Limits match;
@@ -118,7 +127,7 @@ TEST_CASE("kata_limits: turn time and nodes are sent; depth and match time are U
 }
 
 TEST_CASE("kata_events: OK dropped, MESSAGE unparsed, x,y best move, ERROR terminal") {
-    Rig r;
+    Rig     r;
     Collect sink;
     REQUIRE(r.e.startSearch(threeMoves(), Limits{}, sink));
     r.t.say("OK");
@@ -140,7 +149,7 @@ TEST_CASE("kata_events: OK dropped, MESSAGE unparsed, x,y best move, ERROR termi
 }
 
 TEST_CASE("port3_kata: a close during startSearch gives one outcome, not event plus error") {
-    Rig r;
+    Rig     r;
     Collect sink;
     r.t.onWrite = [&](const std::string& l) {
         if (l != "BOARD") return;
@@ -153,7 +162,7 @@ TEST_CASE("port3_kata: a close during startSearch gives one outcome, not event p
 }
 
 TEST_CASE("port3_kata: a failed write while the search is live is refused with no event") {
-    Rig r;
+    Rig     r;
     Collect sink;
     r.t.onWrite = [&](const std::string& l) { r.t.failWrites = l == "BOARD"; };
     CHECK(r.e.startSearch(threeMoves(), Limits{}, sink).error() == EngineError::TransportFailed);

@@ -22,7 +22,7 @@ enum class OpeningRule {
 
 /// Why a Rules value is invalid.
 enum class RulesError {
-    InvalidMaxMoves ///< maxMoves is set but not positive.
+    InvalidMaxMoves  ///< maxMoves is set but not positive.
 };
 
 /// The rules of one game, as the caller asks for them. Whether an engine can play them is

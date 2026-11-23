@@ -15,9 +15,9 @@ namespace pygomo {
 struct Score {
     /// What `value` measures.
     enum class Kind {
-        Eval,     ///< A heuristic evaluation; higher is better for the side to move.
-        MateIn,   ///< The side to move wins in `value` moves.
-        MatedIn   ///< The side to move loses in `value` moves.
+        Eval,    ///< A heuristic evaluation; higher is better for the side to move.
+        MateIn,  ///< The side to move wins in `value` moves.
+        MatedIn  ///< The side to move loses in `value` moves.
     };
 
     Kind kind{Kind::Eval};  ///< How to read `value`.
@@ -28,13 +28,13 @@ struct Score {
 
 /// One candidate move reported during a search (e.g. a ranked line or an analysis entry).
 struct Candidate {
-    std::optional<int>          rank{};     ///< 1 = best; empty when the engine prints no rank.
-    std::optional<Coord>        move{};     ///< Candidate move; empty for pass or when not sent.
-    std::optional<Score>        score{};    ///< Evaluation of this move.
-    std::optional<std::int64_t> visits{};   ///< Visits or nodes spent on this move only.
-    std::optional<double>       winrate{};  ///< 0..1, perspective as reported by the engine.
-    std::optional<double>       drawrate{}; ///< 0..1; empty when the engine reports none.
-    std::vector<Coord>          principalVariation{}; ///< Line from this move, first move first.
+    std::optional<int>          rank{};      ///< 1 = best; empty when the engine prints no rank.
+    std::optional<Coord>        move{};      ///< Candidate move; empty for pass or when not sent.
+    std::optional<Score>        score{};     ///< Evaluation of this move.
+    std::optional<std::int64_t> visits{};    ///< Visits or nodes spent on this move only.
+    std::optional<double>       winrate{};   ///< 0..1, perspective as reported by the engine.
+    std::optional<double>       drawrate{};  ///< 0..1; empty when the engine reports none.
+    std::vector<Coord>          principalVariation{};  ///< Line from this move, first move first.
 
     bool operator==(const Candidate&) const = default;
 };
@@ -43,19 +43,19 @@ struct Candidate {
 /// `nodes` is the search total (per-move visits live on `Candidate::visits`); `score` and
 /// `principalVariation` come only from an unranked line or the rank-1 candidate.
 struct InfoEvent {
-    std::optional<int>          depth{};  ///< Search depth reached, in plies.
-    std::optional<std::int64_t> nodes{};  ///< Nodes searched so far.
-    std::optional<Score>        score{};  ///< Evaluation of the best line.
-    std::optional<std::chrono::milliseconds> elapsed{}; ///< Time since the search started.
-    std::vector<Coord> principalVariation{}; ///< Best line, first move first; empty if not sent.
-    std::vector<Candidate> candidates{}; ///< Candidate moves in this report; empty if none.
+    std::optional<int>                       depth{};    ///< Search depth reached, in plies.
+    std::optional<std::int64_t>              nodes{};    ///< Nodes searched so far.
+    std::optional<Score>                     score{};    ///< Evaluation of the best line.
+    std::optional<std::chrono::milliseconds> elapsed{};  ///< Time since the search started.
+    std::vector<Coord> principalVariation{};  ///< Best line, first move first; empty if not sent.
+    std::vector<Candidate> candidates{};      ///< Candidate moves in this report; empty if none.
 
     bool operator==(const InfoEvent&) const = default;
 };
 
 /// The engine's chosen move. Terminal.
 struct BestMoveEvent {
-    Coord coord{}; ///< Where the engine plays.
+    Coord coord{};  ///< Where the engine plays.
 
     constexpr bool operator==(const BestMoveEvent&) const = default;
 };
@@ -73,7 +73,7 @@ struct PassEvent {
 /// The search failed: the engine reported a fatal error, went away, or did not answer in time.
 /// Terminal.
 struct ErrorEvent {
-    std::string message{}; ///< Human-readable reason; not meant to be parsed.
+    std::string message{};  ///< Human-readable reason; not meant to be parsed.
 
     bool operator==(const ErrorEvent&) const = default;
 };
@@ -86,14 +86,14 @@ struct ResignEvent {
 /// Free text the engine sent on purpose (e.g. Gomocup `MESSAGE <text>` that is not an info shape).
 /// Not terminal; the text is kept raw.
 struct MessageEvent {
-    std::string text{}; ///< The text after a `MESSAGE ` prefix, else the whole line.
+    std::string text{};  ///< The text after a `MESSAGE ` prefix, else the whole line.
 
     bool operator==(const MessageEvent&) const = default;
 };
 
 /// A line the parser did not understand at all. Kept so nothing an engine says is silently lost.
 struct UnparsedEvent {
-    std::string line{}; ///< The whole line, without the line ending.
+    std::string line{};  ///< The whole line, without the line ending.
 
     bool operator==(const UnparsedEvent&) const = default;
 };

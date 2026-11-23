@@ -10,14 +10,12 @@ namespace {
 std::optional<int> ruleId(const Rules& r) {
     if (r.opening == OpeningRule::FreeOpen) {
         switch (r.board) {
-            case BoardRule::Freestyle: return 0;
-            case BoardRule::Standard: return 1;
-            case BoardRule::Renju: return 4;
+        case BoardRule::Freestyle: return 0;
+        case BoardRule::Standard: return 1;
+        case BoardRule::Renju: return 4;
         }
     }
-    if (r.board == BoardRule::Freestyle) {
-        return r.opening == OpeningRule::Swap1 ? 5 : 6;
-    }
+    if (r.board == BoardRule::Freestyle) { return r.opening == OpeningRule::Swap1 ? 5 : 6; }
     return std::nullopt;
 }
 
@@ -41,8 +39,8 @@ std::expected<void, EngineError> GomocupEngine::setRules(const Rules& rules) {
     return {};
 }
 
-std::expected<void, EngineError> GomocupEngine::startSearch(
-    const Position& position, const Limits& limits, EventSink& sink) {
+std::expected<void, EngineError> GomocupEngine::startSearch(const Position& position,
+                                                            const Limits& limits, EventSink& sink) {
     if (position.width() != position.height()) return std::unexpected(EngineError::Unsupported);
 
     std::vector<std::string> lines;

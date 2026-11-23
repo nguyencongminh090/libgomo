@@ -22,23 +22,22 @@ namespace {
 // the process-wide disposition being touched. discardPending() consumes the signal our own
 // failed write raised (it is thread-directed), before the old mask is restored.
 class ScopedSigpipeBlock {
-public:
+  public:
     ScopedSigpipeBlock() {
         sigemptyset(&set_);
         sigaddset(&set_, SIGPIPE);
         pthread_sigmask(SIG_BLOCK, &set_, &old_);
     }
     ~ScopedSigpipeBlock() { pthread_sigmask(SIG_SETMASK, &old_, nullptr); }
-    ScopedSigpipeBlock(const ScopedSigpipeBlock&) = delete;
+    ScopedSigpipeBlock(const ScopedSigpipeBlock&)            = delete;
     ScopedSigpipeBlock& operator=(const ScopedSigpipeBlock&) = delete;
 
     void discardPending() {
         timespec none{0, 0};
-        while (::sigtimedwait(&set_, nullptr, &none) < 0 && errno == EINTR) {
-        }
+        while (::sigtimedwait(&set_, nullptr, &none) < 0 && errno == EINTR) {}
     }
 
-private:
+  private:
     sigset_t set_{};
     sigset_t old_{};
 };
@@ -63,9 +62,12 @@ std::expected<void, TransportError> ProcessTransport::start(TransportListener& l
     if (started_.exchange(true)) return std::unexpected(TransportError::AlreadyStarted);
     if (requested_) return std::unexpected(TransportError::Closed);
 
-    int in[2] = {-1, -1}, out[2] = {-1, -1}, wake[2] = {-1, -1};
+    int  in[2] = {-1, -1}, out[2] = {-1, -1}, wake[2] = {-1, -1};
     auto cleanup = [&] {
-        for (int* p : {in, out, wake}) { closeFd(p[0]); closeFd(p[1]); }
+        for (int* p : {in, out, wake}) {
+            closeFd(p[0]);
+            closeFd(p[1]);
+        }
     };
     if (::pipe2(in, O_CLOEXEC) != 0 || ::pipe2(out, O_CLOEXEC) != 0 ||
         ::pipe2(wake, O_CLOEXEC) != 0) {
@@ -74,7 +76,7 @@ std::expected<void, TransportError> ProcessTransport::start(TransportListener& l
     }
 
     posix_spawn_file_actions_t fa;
-    posix_spawnattr_t attr;
+    posix_spawnattr_t          attr;
     posix_spawn_file_actions_init(&fa);
     posix_spawnattr_init(&attr);
     posix_spawn_file_actions_adddup2(&fa, in[0], 0);
@@ -131,8 +133,8 @@ std::expected<void, TransportError> ProcessTransport::writeLine(std::string_view
     std::lock_guard lock(writeMutex_);
     if (requested_ || stdinFd_ < 0) return std::unexpected(TransportError::Closed);
     ScopedSigpipeBlock noSigpipe;
-    const char* p    = data.data();
-    std::size_t left = data.size();
+    const char*        p    = data.data();
+    std::size_t        left = data.size();
     while (left > 0) {
         ssize_t n = ::write(stdinFd_, p, left);
         if (n < 0) {
@@ -140,7 +142,7 @@ std::expected<void, TransportError> ProcessTransport::writeLine(std::string_view
             if (errno == EPIPE) noSigpipe.discardPending();
             return std::unexpected(TransportError::IoError);
         }
-        p    += n;
+        p += n;
         left -= static_cast<std::size_t>(n);
     }
     return {};
@@ -152,10 +154,13 @@ void ProcessTransport::close() {
     }
     if (!started_) return;
     char b = 1;
-    if (wakeWrite_ >= 0) { ssize_t r = ::write(wakeWrite_, &b, 1); (void)r; }
+    if (wakeWrite_ >= 0) {
+        ssize_t r = ::write(wakeWrite_, &b, 1);
+        (void)r;
+    }
     if (reader_.joinable() && reader_.get_id() != std::this_thread::get_id()) {
         static std::mutex joinMutex;
-        std::lock_guard lock(joinMutex);
+        std::lock_guard   lock(joinMutex);
         if (reader_.joinable()) reader_.join();
     }
 }
@@ -167,7 +172,7 @@ std::optional<int> ProcessTransport::exitStatus() const noexcept {
 
 CloseReason ProcessTransport::pump() {
     std::string pending;
-    char buf[4096];
+    char        buf[4096];
     while (true) {
         if (requested_) return CloseReason::Requested;
         pollfd fds[2] = {{stdoutFd_, POLLIN, 0}, {wakeRead_, POLLIN, 0}};
@@ -243,7 +248,7 @@ void ProcessTransport::terminateChild() {
     }
     // The child ended (or is about to), its group may still hold processes: end them too.
     ::kill(-pid_, SIGKILL);
-    int status = 0;
+    int   status = 0;
     pid_t r;
     while ((r = ::waitpid(pid_, &status, 0)) < 0 && errno == EINTR) {}
     if (r == pid_) {

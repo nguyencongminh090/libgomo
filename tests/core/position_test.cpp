@@ -17,8 +17,12 @@ TEST_CASE("Position::create accepts square and rectangular boards") {
 }
 
 TEST_CASE("Position::create rejects sizes outside 1..kMaxSide") {
-    for (auto [w, h] : {std::pair{0, 15}, {15, 0}, {-1, 15}, {15, -3},
-                        {Position::kMaxSide + 1, 15}, {15, Position::kMaxSide + 1}}) {
+    for (auto [w, h] : {std::pair{0, 15},
+                        {15, 0},
+                        {-1, 15},
+                        {15, -3},
+                        {Position::kMaxSide + 1, 15},
+                        {15, Position::kMaxSide + 1}}) {
         auto p = Position::create(w, h);
         REQUIRE_FALSE(p.has_value());
         CHECK(p.error() == PositionError::InvalidBoardSize);

@@ -10,9 +10,9 @@ namespace {
 
 const char* ruleCommand(BoardRule r) {
     switch (r) {
-        case BoardRule::Freestyle: return "FREESTYLE";
-        case BoardRule::Standard: return "STANDARD";
-        case BoardRule::Renju: return "RENJU";
+    case BoardRule::Freestyle: return "FREESTYLE";
+    case BoardRule::Standard: return "STANDARD";
+    case BoardRule::Renju: return "RENJU";
     }
     return "FREESTYLE";
 }
@@ -37,8 +37,9 @@ std::expected<void, EngineError> KataGomoEngine::setRules(const Rules& rules) {
     return {};
 }
 
-std::expected<void, EngineError> KataGomoEngine::startSearch(
-    const Position& position, const Limits& limits, EventSink& sink) {
+std::expected<void, EngineError> KataGomoEngine::startSearch(const Position& position,
+                                                             const Limits&   limits,
+                                                             EventSink&      sink) {
     // Nothing is sent for a request the protocol cannot express.
     if (limits.matchTime || limits.maxDepth) return std::unexpected(EngineError::Unsupported);
     if (position.width() != position.height()) return std::unexpected(EngineError::Unsupported);

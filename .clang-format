@@ -20,3 +20,4 @@ BinPackParameters: BinPack
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveDeclarations: Consecutive
 AlignTrailingComments: true
+SortIncludes: Never

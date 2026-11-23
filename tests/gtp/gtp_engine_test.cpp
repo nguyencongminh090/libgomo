@@ -14,7 +14,7 @@ namespace {
 /// Records what the adapter writes; the test plays the engine by calling say()/closeNow().
 /// Reply shapes mirror KataGomo Gom2026 cpp/command/gtp.cpp (source-derived, no real engine).
 class FakeTransport final : public Transport {
-public:
+  public:
     std::expected<void, TransportError> start(TransportListener& l) override {
         listener = &l;
         return {};
@@ -30,19 +30,25 @@ public:
     void close() override {}
     void say(std::string_view l) { listener->onLine(l); }
     /// One complete reply: header line, then the blank terminator.
-    void reply(std::string_view header) { say(header); say(""); }
-    void closeNow() { listener->onClosed(CloseReason::Eof); }
-    std::vector<std::string> lines() { std::lock_guard lock(m); return written; }
+    void reply(std::string_view header) {
+        say(header);
+        say("");
+    }
+    void                     closeNow() { listener->onClosed(CloseReason::Eof); }
+    std::vector<std::string> lines() {
+        std::lock_guard lock(m);
+        return written;
+    }
 
     std::mutex                              m;
     std::vector<std::string>                written;
-    TransportListener*                      listener   = nullptr;
+    TransportListener*                      listener = nullptr;
     std::function<void(const std::string&)> onWrite;  // runs under the lock, after recording
     bool                                    failWrites = false;
 };
 
 struct Collect final : EventSink {
-    void onEvent(const SearchEvent& e) override { events.push_back(e); }
+    void                     onEvent(const SearchEvent& e) override { events.push_back(e); }
     std::vector<SearchEvent> events;
 };
 
@@ -56,8 +62,8 @@ Position twoMoves(int w = 15, int h = 15) {
 
 struct Rig {
     FakeTransport t;
-    GtpEngine e{t};
-    Collect sink;
+    GtpEngine     e{t};
+    Collect       sink;
     Rig() { REQUIRE(e.open()); }
     /// Answers every setup command of the first search with "=<id>" and returns the genmove id.
     int ackSetup(int lastId) {
@@ -78,7 +84,7 @@ TEST_CASE("gtp2_sequence: boardsize, clear_board, rule, plays, genmove with ids"
 }
 
 TEST_CASE("gtp2_sequence: an empty board asks the first side to move; ids keep growing") {
-    Rig r;
+    Rig  r;
     auto empty = Position::create(15, 15);
     REQUIRE(empty);
     REQUIRE(r.e.startSearch(*empty, {}, r.sink));
@@ -159,7 +165,7 @@ TEST_CASE("gtp2_result: replies with body lines, banners and stale ids") {
 }
 
 TEST_CASE("gtp2_rules: supported rules and limits become commands") {
-    Rig r;
+    Rig   r;
     Rules renju;
     renju.board    = BoardRule::Renju;
     renju.maxMoves = 100;
@@ -177,7 +183,7 @@ TEST_CASE("gtp2_rules: supported rules and limits become commands") {
 }
 
 TEST_CASE("gtp2_rules: what the protocol cannot say is Unsupported and nothing is sent") {
-    Rig r;
+    Rig   r;
     Rules swap;
     swap.opening = OpeningRule::Swap1;
     CHECK_FALSE(r.e.supports(swap));
@@ -193,7 +199,7 @@ TEST_CASE("gtp2_rules: what the protocol cannot say is Unsupported and nothing i
 }
 
 TEST_CASE("gtp2_rules: a rectangular board") {
-    Rig r;
+    Rig  r;
     auto p = Position::create(20, 10);
     REQUIRE(p);
     REQUIRE(p->play({19, 0}));  // U10 (columns skip I)
@@ -233,8 +239,8 @@ TEST_CASE("gtp2_lifecycle: a new search after an error ignores the old search's 
     r.t.reply("?1 unacceptable size");
     REQUIRE(r.sink.events.size() == 1);
     REQUIRE(r.e.startSearch(twoMoves(), {}, r.sink));  // ids 7..12
-    r.t.reply("=2");   // late reply of the first search
-    r.t.reply("=6 A1");  // late genmove reply of the first search
+    r.t.reply("=2");                                   // late reply of the first search
+    r.t.reply("=6 A1");                                // late genmove reply of the first search
     CHECK(r.sink.events.size() == 1);
     for (int id = 7; id < 12; ++id) r.t.reply("=" + std::to_string(id));
     r.t.reply("=12 H9");
@@ -242,9 +248,8 @@ TEST_CASE("gtp2_lifecycle: a new search after an error ignores the old search's 
     CHECK(r.sink.events[1] == SearchEvent{BestMoveEvent{Coord{7, 6}}});
 }
 
-TEST_CASE(
-    "gtp3_sequence: analyze mode sends kata-genmove_analyze with an interval; "
-    "default stays genmove") {
+TEST_CASE("gtp3_sequence: analyze mode sends kata-genmove_analyze with an interval; "
+          "default stays genmove") {
     Rig r;
     r.e.setAnalyze(std::chrono::milliseconds{500});
     Limits lim;
@@ -258,9 +263,8 @@ TEST_CASE(
     CHECK(d.t.lines().back() == "6 genmove B");
 }
 
-TEST_CASE(
-    "gtp3_stream: info lines become InfoEvents while the reply is open, "
-    "then play X ends it") {
+TEST_CASE("gtp3_stream: info lines become InfoEvents while the reply is open, "
+          "then play X ends it") {
     Rig r;
     r.e.setAnalyze(std::chrono::milliseconds{500});
     REQUIRE(r.e.startSearch(twoMoves(), Limits{}, r.sink));
@@ -325,7 +329,7 @@ TEST_CASE("gtp4_message: text outside a reply during a search is a MessageEvent"
         const int id = r.ackSetup(6);
         r.t.reply("=" + std::to_string(id) + " K10");
         CHECK(r.sink.events == std::vector<SearchEvent>{MessageEvent{"Loaded model, 8 threads"},
-                                                       BestMoveEvent{Coord{9, 5}}});
+                                                        BestMoveEvent{Coord{9, 5}}});
         r.t.say("late text");  // the search ended: dropped
         CHECK(r.sink.events.size() == 2);
     }
@@ -354,9 +358,9 @@ TEST_CASE("gtp5_text: free text starting with = or ? is a MessageEvent, not a re
     r.t.say("");
     const int id = r.ackSetup(6);
     r.t.reply("=" + std::to_string(id) + " K10");
-    CHECK(r.sink.events ==
-          std::vector<SearchEvent>{MessageEvent{"=== Loaded ==="}, MessageEvent{"??x"},
-                                   BestMoveEvent{Coord{9, 5}}});
+    CHECK(r.sink.events == std::vector<SearchEvent>{MessageEvent{"=== Loaded ==="},
+                                                    MessageEvent{"??x"},
+                                                    BestMoveEvent{Coord{9, 5}}});
 }
 
 TEST_CASE("gtp6_raw: the reply to a raw command sent before a search does not end the search") {
@@ -366,8 +370,7 @@ TEST_CASE("gtp6_raw: the reply to a raw command sent before a search does not en
     r.t.reply("=");  // the raw command's reply comes before the search's own replies
     const int id = r.ackSetup(6);
     r.t.reply("=" + std::to_string(id) + " K10");
-    CHECK(r.sink.events ==
-          std::vector<SearchEvent>{MessageEvent{"="}, BestMoveEvent{Coord{9, 5}}});
+    CHECK(r.sink.events == std::vector<SearchEvent>{MessageEvent{"="}, BestMoveEvent{Coord{9, 5}}});
 }
 
 TEST_CASE("gtp6_raw: raw replies read during a search are MessageEvents, also a ? reply") {
@@ -381,8 +384,8 @@ TEST_CASE("gtp6_raw: raw replies read during a search are MessageEvents, also a 
     const int id = r.ackSetup(6);
     r.t.reply("=" + std::to_string(id) + " K10");
     CHECK(r.sink.events == std::vector<SearchEvent>{MessageEvent{"= ok"},
-                                                   MessageEvent{"? unknown command"},
-                                                   BestMoveEvent{Coord{9, 5}}});
+                                                    MessageEvent{"? unknown command"},
+                                                    BestMoveEvent{Coord{9, 5}}});
 }
 
 TEST_CASE("gtp6_raw: a raw command sent during setup does not hide an id-less setup failure") {

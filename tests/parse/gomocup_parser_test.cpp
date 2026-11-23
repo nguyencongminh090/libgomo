@@ -11,8 +11,7 @@ using pygomo::parse::parseGomocupLine;
 
 namespace {
 // Line shapes follow Rapfi command/gomocup.cpp, search/searchoutput.cpp, core/iohelper.cpp.
-template <class T>
-const T* as(const SearchEvent& e) { return std::get_if<T>(&e); }
+template <class T> const T* as(const SearchEvent& e) { return std::get_if<T>(&e); }
 }  // namespace
 
 TEST_CASE("parse_messages: ERROR becomes ErrorEvent, MESSAGE text MessageEvent, rest Unparsed") {
@@ -36,8 +35,8 @@ TEST_CASE("parse_move: x,y and SWAP; malformed coordinates are Unparsed") {
     CHECK(*as<BestMoveEvent>(parseGomocupLine("7,7")) == BestMoveEvent{{7, 7}});
     CHECK(*as<BestMoveEvent>(parseGomocupLine("0,14\r")) == BestMoveEvent{{0, 14}});
     CHECK(as<SwapEvent>(parseGomocupLine("SWAP")));
-    for (const char* l : {"-1,3", "3,-1", "a,b", "3,", ",3", "3,4,5", "+3,4", "99999999999,1",
-                          "7,7 8,8", "3, 4"}) {
+    for (const char* l :
+         {"-1,3", "3,-1", "a,b", "3,", ",3", "3,4,5", "+3,4", "99999999999,1", "7,7 8,8", "3, 4"}) {
         INFO(l);
         CHECK(as<UnparsedEvent>(parseGomocupLine(l)));
     }

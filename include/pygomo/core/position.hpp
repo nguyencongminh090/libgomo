@@ -18,7 +18,7 @@ enum class PositionError {
 /// A board of any rectangular size plus the ordered moves played on it.
 /// Black moves first; the side to move alternates with each move.
 class Position {
-public:
+  public:
     /// Largest accepted width or height. A sanity bound, not a protocol limit.
     static constexpr int kMaxSide = 1024;
 
@@ -46,7 +46,7 @@ public:
     /// Equal when the sizes match and the same moves were played in the same order.
     [[nodiscard]] bool operator==(const Position& other) const noexcept;
 
-private:
+  private:
     Position(int width, int height);
 
     [[nodiscard]] std::size_t index(Coord c) const noexcept;

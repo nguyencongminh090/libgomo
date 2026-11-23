@@ -19,7 +19,8 @@ struct SearchOutcome {
 /// Blocks the calling thread until the terminal event arrives, so it never returns for an
 /// engine that never answers; wrap that engine in DeadlineEngine first. Must not be called
 /// from the thread that delivers the engine's events.
-[[nodiscard]] std::expected<SearchOutcome, EngineError> search(
-    EnginePort& engine, const Position& position, const Limits& limits);
+[[nodiscard]] std::expected<SearchOutcome, EngineError> search(EnginePort&     engine,
+                                                               const Position& position,
+                                                               const Limits&   limits);
 
 }  // namespace pygomo

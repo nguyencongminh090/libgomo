@@ -13,7 +13,7 @@ namespace pygomo::parse {
 /// First line of a GTP response: `=<id> body` or `?<id> body`. Later body lines and the blank
 /// terminator belong to the adapter. Every parser here is pure and total: it never throws.
 struct GtpResponseHeader {
-    bool ok{};                ///< `=` is true, `?` is false.
+    bool               ok{};  ///< `=` is true, `?` is false.
     std::optional<int> id{};  ///< The command id echoed by the engine, if any.
     std::string body{};       ///< Rest of the line, one leading space and trailing blanks removed.
 

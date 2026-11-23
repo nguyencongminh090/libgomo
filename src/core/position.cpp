@@ -5,8 +5,7 @@
 namespace pygomo {
 
 Position::Position(int width, int height)
-    : width_(width),
-      height_(height),
+    : width_(width), height_(height),
       occupied_(static_cast<std::size_t>(width) * static_cast<std::size_t>(height), false) {}
 
 std::expected<Position, PositionError> Position::create(int width, int height) {
@@ -29,9 +28,7 @@ std::size_t Position::index(Coord c) const noexcept {
            static_cast<std::size_t>(c.x);
 }
 
-bool Position::occupied(Coord c) const noexcept {
-    return contains(c) && occupied_[index(c)];
-}
+bool Position::occupied(Coord c) const noexcept { return contains(c) && occupied_[index(c)]; }
 
 std::expected<void, PositionError> Position::play(Coord c) {
     if (!contains(c)) return std::unexpected(PositionError::OutOfBounds);

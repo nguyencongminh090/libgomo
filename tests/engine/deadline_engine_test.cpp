@@ -18,11 +18,11 @@ namespace {
 
 /// An engine the test plays: it stays busy until the test answers, like the real adapters.
 class FakePort final : public EnginePort {
-public:
-    bool supports(const Rules&) const override { return true; }
+  public:
+    bool                             supports(const Rules&) const override { return true; }
     std::expected<void, EngineError> setRules(const Rules&) override { return {}; }
-    std::expected<void, EngineError> startSearch(
-        const Position&, const Limits&, EventSink& s) override {
+    std::expected<void, EngineError> startSearch(const Position&, const Limits&,
+                                                 EventSink& s) override {
         std::lock_guard l(m);
         if (failNext) return std::unexpected(EngineError::TransportFailed);
         if (sink) return std::unexpected(EngineError::Busy);
@@ -30,7 +30,7 @@ public:
         ++starts;
         return {};
     }
-    void stop() override { ++stops; }
+    void                             stop() override { ++stops; }
     std::expected<void, EngineError> sendRaw(std::string_view) override { return {}; }
 
     /// The engine says something; a terminal event releases the sink first, as the adapters do.
@@ -44,17 +44,23 @@ public:
         if (s) s->onEvent(e);
     }
 
-    std::mutex m;
-    EventSink* sink     = nullptr;
-    bool       failNext = false;
+    std::mutex       m;
+    EventSink*       sink     = nullptr;
+    bool             failNext = false;
     std::atomic<int> stops{0};
-    int starts = 0;
+    int              starts = 0;
 };
 
 struct Collect final : EventSink {
-    void onEvent(const SearchEvent& e) override { std::lock_guard l(m); events.push_back(e); }
-    std::vector<SearchEvent> get() { std::lock_guard l(m); return events; }
-    std::mutex m;
+    void onEvent(const SearchEvent& e) override {
+        std::lock_guard l(m);
+        events.push_back(e);
+    }
+    std::vector<SearchEvent> get() {
+        std::lock_guard l(m);
+        return events;
+    }
+    std::mutex               m;
     std::vector<SearchEvent> events;
 };
 
@@ -83,12 +89,11 @@ const SearchEvent kMove = BestMoveEvent{{8, 8}};
 
 }  // namespace
 
-TEST_CASE(
-    "dead1_timeout: stop at turnTime+grace, ErrorEvent after another grace, "
-    "Busy until the late answer") {
-    FakePort port;
+TEST_CASE("dead1_timeout: stop at turnTime+grace, ErrorEvent after another grace, "
+          "Busy until the late answer") {
+    FakePort       port;
     DeadlineEngine eng{port, DeadlineEngine::Options{30ms}};
-    Collect a;
+    Collect        a;
     REQUIRE(eng.startSearch(pos(), turn(20ms), a));
     port.say(MessageEvent{"warming up"}, false);
     REQUIRE(waitFor(a, 2));
@@ -110,9 +115,9 @@ TEST_CASE(
 }
 
 TEST_CASE("dead1_intime: an answer before or after stop() ends the search normally") {
-    FakePort port;
+    FakePort       port;
     DeadlineEngine eng{port, DeadlineEngine::Options{200ms}};
-    Collect a;
+    Collect        a;
     REQUIRE(eng.startSearch(pos(), turn(10ms), a));
     port.say(kMove, true);
     std::this_thread::sleep_for(400ms);
@@ -129,12 +134,11 @@ TEST_CASE("dead1_intime: an answer before or after stop() ends the search normal
     CHECK(std::holds_alternative<BestMoveEvent>(b.get()[0]));
 }
 
-TEST_CASE(
-    "dead1_nodeadline: no deadline without turnTime or with 0; "
-    "an error from the engine passes through") {
-    FakePort port;
+TEST_CASE("dead1_nodeadline: no deadline without turnTime or with 0; "
+          "an error from the engine passes through") {
+    FakePort       port;
     DeadlineEngine eng{port, DeadlineEngine::Options{10ms}};
-    Collect a;
+    Collect        a;
     REQUIRE(eng.startSearch(pos(), Limits{}, a));
     std::this_thread::sleep_for(150ms);
     CHECK(a.get().empty());
@@ -158,18 +162,17 @@ TEST_CASE(
     CHECK(eng.startSearch(pos(), Limits{}, busy));
 }
 
-TEST_CASE(
-    "dead1_callback: the sink may call startSearch from the timeout callback "
-    "and from a terminal event") {
-    FakePort port;
+TEST_CASE("dead1_callback: the sink may call startSearch from the timeout callback "
+          "and from a terminal event") {
+    FakePort       port;
     DeadlineEngine eng{port, DeadlineEngine::Options{10ms}};
     struct Again final : EventSink {
-        DeadlineEngine* eng{};
-        Collect* next{};
-        std::atomic<int> calls{0};
+        DeadlineEngine*   eng{};
+        Collect*          next{};
+        std::atomic<int>  calls{0};
         std::atomic<bool> busy{false};
         std::atomic<bool> started{false};
-        void onEvent(const SearchEvent& e) override {
+        void              onEvent(const SearchEvent& e) override {
             ++calls;
             auto r = eng->startSearch(pos(), Limits{}, *next);
             if (std::holds_alternative<ErrorEvent>(e)) busy = !r && r.error() == EngineError::Busy;
@@ -208,12 +211,12 @@ TEST_CASE("dead1_serialization: the timeout waits for an active info callback to
         std::promise<void> timeoutDelivered;
         Collect            events;
     } first;
-    Collect next;
-    FakePort port;
+    Collect        next;
+    FakePort       port;
     DeadlineEngine eng{port, DeadlineEngine::Options{10ms}};
-    auto infoStarted = first.infoStarted.get_future();
-    auto timeout = first.timeoutDelivered.get_future();
-    const auto position = pos();
+    auto           infoStarted = first.infoStarted.get_future();
+    auto           timeout     = first.timeoutDelivered.get_future();
+    const auto     position    = pos();
 
     bool answerWhileBlocked = false;
     SUBCASE("late answer before timeout delivery") { answerWhileBlocked = true; }
@@ -221,22 +224,22 @@ TEST_CASE("dead1_serialization: the timeout waits for an active info callback to
 
     REQUIRE(eng.startSearch(position, turn(100ms), first));
     std::jthread adapter([&] { port.say(InfoEvent{}, false); });
-    const bool infoEntered = infoStarted.wait_for(2s) == std::future_status::ready;
-    const bool timedOutWhileBlocked = timeout.wait_for(250ms) == std::future_status::ready;
-    const bool stopRequested = port.stops == 1;
-    bool busyWhilePending   = false;
-    bool lateAnswerReturned = false;
+    const bool   infoEntered          = infoStarted.wait_for(2s) == std::future_status::ready;
+    const bool   timedOutWhileBlocked = timeout.wait_for(250ms) == std::future_status::ready;
+    const bool   stopRequested        = port.stops == 1;
+    bool         busyWhilePending     = false;
+    bool         lateAnswerReturned   = false;
     std::jthread lateAnswer;
     if (answerWhileBlocked) {
         std::promise<void> returned;
-        auto answer = returned.get_future();
-        lateAnswer = std::jthread([&port, returned = std::move(returned)]() mutable {
+        auto               answer = returned.get_future();
+        lateAnswer                = std::jthread([&port, returned = std::move(returned)]() mutable {
             port.say(kMove, true);
             returned.set_value();
         });
-        lateAnswerReturned = answer.wait_for(2s) == std::future_status::ready;
-        auto retry = eng.startSearch(position, Limits{}, next);
-        busyWhilePending = !retry && retry.error() == EngineError::Busy;
+        lateAnswerReturned        = answer.wait_for(2s) == std::future_status::ready;
+        auto retry                = eng.startSearch(position, Limits{}, next);
+        busyWhilePending          = !retry && retry.error() == EngineError::Busy;
     }
     first.releaseInfo.count_down();
     adapter.join();
@@ -275,11 +278,11 @@ namespace {
 /// sink and then refuses, as an adapter whose transport closes between installing the sink and
 /// writing the request. The next `refuseAfter` calls refuse plainly; later calls start normally.
 class EndsThenRefuses final : public EnginePort {
-public:
-    bool supports(const Rules&) const override { return true; }
+  public:
+    bool                             supports(const Rules&) const override { return true; }
     std::expected<void, EngineError> setRules(const Rules&) override { return {}; }
-    std::expected<void, EngineError> startSearch(
-        const Position&, const Limits&, EventSink& s) override {
+    std::expected<void, EngineError> startSearch(const Position&, const Limits&,
+                                                 EventSink& s) override {
         if (calls++ == 0) {
             s.onEvent(ErrorEvent{"engine connection closed"});
             return std::unexpected(EngineError::TransportFailed);
@@ -291,7 +294,7 @@ public:
         sink = &s;
         return {};
     }
-    void stop() override {}
+    void                             stop() override {}
     std::expected<void, EngineError> sendRaw(std::string_view) override { return {}; }
 
     int        refuseAfter = 0;

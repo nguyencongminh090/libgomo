@@ -19,7 +19,7 @@ namespace pygomo {
 /// and sends no move leaves it open until close(). The engine has no deadline of its own: wrap
 /// it in DeadlineEngine (pygomo/engine/deadline_engine.hpp) to get one.
 class GomocupEngine final : public EnginePort, private TransportListener {
-public:
+  public:
     /// Binds the engine to `transport`; nothing is read or sent until open().
     explicit GomocupEngine(Transport& transport);
 
@@ -36,14 +36,15 @@ public:
     /// connection closed, TransportFailed when a line cannot be written.
     /// A failed write after the search already ended (its terminal event was delivered) is not
     /// an error: the call succeeds, so the caller sees one outcome.
-    [[nodiscard]] std::expected<void, EngineError> startSearch(
-        const Position& position, const Limits& limits, EventSink& sink) override;
+    [[nodiscard]] std::expected<void, EngineError> startSearch(const Position& position,
+                                                               const Limits&   limits,
+                                                               EventSink&      sink) override;
     /// Sends YXSTOP if a search runs; the engine is expected to answer with a move, which ends it.
     void stop() override;
     /// Writes the line to the engine. Errors: TransportFailed.
     [[nodiscard]] std::expected<void, EngineError> sendRaw(std::string_view line) override;
 
-private:
+  private:
     void onLine(std::string_view line) override;
     void onClosed(CloseReason reason) override;
 
@@ -54,7 +55,7 @@ private:
     EventSink*              sink_{nullptr};  // non-null while a search runs
     std::optional<Position> position_;
     // counts started searches, so a failed start clears only its own
-    std::uint64_t           searchId_{0};
+    std::uint64_t searchId_{0};
 };
 
 }  // namespace pygomo

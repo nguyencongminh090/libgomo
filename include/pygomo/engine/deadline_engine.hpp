@@ -29,7 +29,7 @@ namespace pygomo {
 /// callback that never returns also holds back the timeout error (and the destructor), and one
 /// that makes the wrapped engine deliver its terminal event on the same thread deadlocks.
 class DeadlineEngine final : public EnginePort {
-public:
+  public:
     /// Tuning for the deadline.
     struct Options {
         /// Slack on top of turnTime, and again after stop().
@@ -42,7 +42,7 @@ public:
     DeadlineEngine(EnginePort& inner, Options options);
     /// Stops and joins the watchdog thread; delivers no further event.
     ~DeadlineEngine() override;
-    DeadlineEngine(const DeadlineEngine&) = delete;
+    DeadlineEngine(const DeadlineEngine&)            = delete;
     DeadlineEngine& operator=(const DeadlineEngine&) = delete;
 
     /// Asks the wrapped engine.
@@ -51,20 +51,21 @@ public:
     [[nodiscard]] std::expected<void, EngineError> setRules(const Rules& rules) override;
     /// Starts the wrapped engine's search under a deadline. Returns Busy while a search runs or
     /// while a timed-out one waits for callbacks or still owes its answer.
-    [[nodiscard]] std::expected<void, EngineError> startSearch(
-        const Position& position, const Limits& limits, EventSink& sink) override;
+    [[nodiscard]] std::expected<void, EngineError> startSearch(const Position& position,
+                                                               const Limits&   limits,
+                                                               EventSink&      sink) override;
     /// Forwards to the wrapped engine's stop().
     void stop() override;
     /// Forwards to the wrapped engine; its errors pass through.
     [[nodiscard]] std::expected<void, EngineError> sendRaw(std::string_view line) override;
 
-private:
+  private:
     class Relay final : public EventSink {
-    public:
+      public:
         explicit Relay(DeadlineEngine& owner) : owner_(owner) {}
         void onEvent(const SearchEvent& event) override;
 
-    private:
+      private:
         DeadlineEngine& owner_;
     };
 
@@ -80,15 +81,15 @@ private:
     std::mutex              mutex_;
     std::condition_variable cv_;
     std::thread             watchdog_;
-    bool          quit_{false};
-    EventSink*    sink_{nullptr};    // the caller's sink while a search runs
-    bool          detached_{false};  // a search timed out and the engine has not answered it yet
+    bool                    quit_{false};
+    EventSink*              sink_{nullptr};  // the caller's sink while a search runs
+    bool detached_{false};  // a search timed out and the engine has not answered it yet
     // A terminal event is claimed, waiting for progress callbacks.
-    bool          terminalPending_{false};
+    bool terminalPending_{false};
     // Progress callbacks running outside the mutex.
-    std::size_t   progressCallbacks_{0};
-    bool          stopSent_{false};
-    std::uint64_t searchId_{0};
+    std::size_t                      progressCallbacks_{0};
+    bool                             stopSent_{false};
+    std::uint64_t                    searchId_{0};
     std::optional<Clock::time_point> deadline_;
 };
 

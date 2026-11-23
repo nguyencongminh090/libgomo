@@ -133,9 +133,9 @@ TEST_CASE("gtp_analyze: kata-analyze fixture") {
     CHECK_FALSE(info->score);
     CHECK_FALSE(info->depth);
     REQUIRE(info->principalVariation.size() == 3);
-    CHECK(info->principalVariation[0] == Coord{7, 7});   // H8
-    CHECK(info->principalVariation[1] == Coord{6, 8});   // G7
-    CHECK(info->principalVariation[2] == Coord{8, 6});   // J9
+    CHECK(info->principalVariation[0] == Coord{7, 7});  // H8
+    CHECK(info->principalVariation[1] == Coord{6, 8});  // G7
+    CHECK(info->principalVariation[2] == Coord{8, 6});  // J9
 }
 
 TEST_CASE("gtp_analyze: lz-analyze fixture") {
@@ -165,10 +165,10 @@ TEST_CASE("gtp_analyze: PV stops at pass; bad lines stay unparsed") {
 }
 
 TEST_CASE("gtp_total: no input makes a parser throw or read out of bounds") {
-    std::mt19937 rng(12345);
+    std::mt19937      rng(12345);
     const std::string alphabet = "=?()0123456789,ABCabcIiJjzZ-+ \t\r\n#infomvspvisitspass";
     std::uniform_int_distribution<std::size_t> pick(0, alphabet.size() - 1);
-    std::uniform_int_distribution<int> len(0, 80);
+    std::uniform_int_distribution<int>         len(0, 80);
     for (int round = 0; round < 3000; ++round) {
         std::string s;
         for (int n = len(rng); n > 0; --n) s += alphabet[pick(rng)];
@@ -199,8 +199,7 @@ TEST_CASE("gtp_header: a marker glued to other text is not a header") {
 
 TEST_CASE("gtp7_probe: single entry and two entries produce different InfoEvents") {
     const std::string_view oneLine = "info move H8 visits 120 pv H8";
-    const std::string_view twoLine =
-        "info move H8 visits 120 pv H8 info move G8 visits 50 pv G8";
+    const std::string_view twoLine = "info move H8 visits 120 pv H8 info move G8 visits 50 pv G8";
 
     auto  e1  = parseGtpAnalyzeLine(oneLine, 15, 15);
     auto  e2  = parseGtpAnalyzeLine(twoLine, 15, 15);
@@ -333,11 +332,10 @@ TEST_CASE("gtp7_candidates: move pass, skipped keys, pvEdgeVisits and winrate bo
     CHECK_FALSE(c.score);
     CHECK(c.principalVariation == std::vector<Coord>{{7, 7}});
 
-    for (std::string_view outOfRange : {
-             "info move H8 visits 10 utility 0.1 winrate 1.05 pv H8",
-             "info move H8 visits 10 utility 0.1 winrate -0.01 pv H8",
-             "info move H8 visits 10 winrate 10001 pv H8",
-             "info move H8 visits 10 winrate -1 pv H8"}) {
+    for (std::string_view outOfRange : {"info move H8 visits 10 utility 0.1 winrate 1.05 pv H8",
+                                        "info move H8 visits 10 utility 0.1 winrate -0.01 pv H8",
+                                        "info move H8 visits 10 winrate 10001 pv H8",
+                                        "info move H8 visits 10 winrate -1 pv H8"}) {
         INFO(outOfRange);
         auto  ev = parseGtpAnalyzeLine(outOfRange, 15, 15);
         auto* in = std::get_if<InfoEvent>(&ev);
@@ -347,8 +345,7 @@ TEST_CASE("gtp7_candidates: move pass, skipped keys, pvEdgeVisits and winrate bo
     }
 
     auto bounds = parseGtpAnalyzeLine(
-        "info move H8 visits 10 winrate 0 pv H8 info move G8 visits 5 winrate 10000 pv G8",
-        15, 15);
+        "info move H8 visits 10 winrate 0 pv H8 info move G8 visits 5 winrate 10000 pv G8", 15, 15);
     auto* bi = std::get_if<InfoEvent>(&bounds);
     REQUIRE(bi);
     REQUIRE(bi->candidates.size() == 2);
@@ -387,15 +384,11 @@ TEST_CASE("gtp7_robust: broken later entry keeps earlier candidates and stops re
 }
 
 TEST_CASE("gtp7_robust: broken first entry and non-info lines give UnparsedEvent") {
-    for (std::string_view bad : {
-             "",
-             "not an info line",
-             "info",
-             "info move Z99 visits 10 pv H8 info move G8 visits 5 pv G8",
-             "info move H8 visits bad pv H8 info move G8 visits 5 pv G8",
-             "info move H8 order -1 pv H8",
-             "info move H8 winrate nope pv H8",
-             "info move H8 visits -3 pv H8"}) {
+    for (std::string_view bad : {"", "not an info line", "info",
+                                 "info move Z99 visits 10 pv H8 info move G8 visits 5 pv G8",
+                                 "info move H8 visits bad pv H8 info move G8 visits 5 pv G8",
+                                 "info move H8 order -1 pv H8", "info move H8 winrate nope pv H8",
+                                 "info move H8 visits -3 pv H8"}) {
         INFO(bad);
         auto  e  = parseGtpAnalyzeLine(bad, 15, 15);
         auto* un = std::get_if<UnparsedEvent>(&e);

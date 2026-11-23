@@ -11,7 +11,7 @@ namespace {
 
 struct RecordingSink final : EventSink {
     std::vector<SearchEvent> events;
-    void onEvent(const SearchEvent& e) override { events.push_back(e); }
+    void                     onEvent(const SearchEvent& e) override { events.push_back(e); }
 };
 
 struct FakeEngine final : EnginePort {
@@ -27,7 +27,7 @@ struct FakeEngine final : EnginePort {
         sink    = &s;
         return {};
     }
-    void stop() override { stopped = true; }
+    void                             stop() override { stopped = true; }
     std::expected<void, EngineError> sendRaw(std::string_view l) override {
         raw.emplace_back(l);
         return {};
@@ -42,7 +42,7 @@ struct FakeEngine final : EnginePort {
 
 TEST_CASE("port_sink: events arrive in order") {
     RecordingSink sink;
-    EventSink& s = sink;
+    EventSink&    s = sink;
     s.onEvent(InfoEvent{});
     s.onEvent(BestMoveEvent{{1, 2}});
     s.onEvent(SwapEvent{});
@@ -59,7 +59,7 @@ TEST_CASE("port_sink: events arrive in order") {
 }
 
 TEST_CASE("port_contract: a fake adapter is driven through the interface") {
-    FakeEngine fake;
+    FakeEngine  fake;
     EnginePort& engine = fake;
     auto        pos    = Position::create(15, 15);
     REQUIRE(pos);

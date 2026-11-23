@@ -25,7 +25,7 @@ enum class TransportError {
 /// Receives what the peer sends. Implementations call it from their own reader thread,
 /// never concurrently with themselves, and never after onClosed.
 class TransportListener {
-public:
+  public:
     virtual ~TransportListener() = default;
 
     /// One received line, without its terminator. May be empty.
@@ -38,7 +38,7 @@ public:
 /// A line-oriented, full-duplex text channel to a peer (an engine). It knows nothing about
 /// what the lines mean; a parser sits on top.
 class Transport {
-public:
+  public:
     virtual ~Transport() = default;
 
     /// Begins delivering received lines to `listener`, which must outlive the transport.

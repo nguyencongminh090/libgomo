@@ -14,13 +14,13 @@ namespace {
 // which is the point (every consumer must decide what to do with a new event).
 std::string describe(const SearchEvent& e) {
     struct Visitor {
-        std::string operator()(const InfoEvent&) const     { return "info"; }
+        std::string operator()(const InfoEvent&) const { return "info"; }
         std::string operator()(const BestMoveEvent&) const { return "bestmove"; }
-        std::string operator()(const SwapEvent&) const     { return "swap"; }
-        std::string operator()(const PassEvent&) const     { return "pass"; }
-        std::string operator()(const ResignEvent&) const   { return "resign"; }
-        std::string operator()(const ErrorEvent&) const    { return "error"; }
-        std::string operator()(const MessageEvent&) const  { return "message"; }
+        std::string operator()(const SwapEvent&) const { return "swap"; }
+        std::string operator()(const PassEvent&) const { return "pass"; }
+        std::string operator()(const ResignEvent&) const { return "resign"; }
+        std::string operator()(const ErrorEvent&) const { return "error"; }
+        std::string operator()(const MessageEvent&) const { return "message"; }
         std::string operator()(const UnparsedEvent&) const { return "unparsed"; }
     };
     return std::visit(Visitor{}, e);

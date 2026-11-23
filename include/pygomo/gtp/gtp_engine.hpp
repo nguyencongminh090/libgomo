@@ -23,7 +23,7 @@ namespace pygomo {
 /// during `genmove` is only read after the move is chosen. Searches end by the limits given to
 /// startSearch.
 class GtpEngine final : public EnginePort, private TransportListener {
-public:
+  public:
     /// Binds the engine to `transport`; nothing is read or sent until open().
     explicit GtpEngine(Transport& transport);
 
@@ -47,8 +47,9 @@ public:
     /// NotReady after the connection closed, TransportFailed when a line cannot be written.
     /// A failed write after the search already ended (its terminal event was delivered) is not
     /// an error: the call succeeds, so the caller sees one outcome.
-    [[nodiscard]] std::expected<void, EngineError> startSearch(
-        const Position& position, const Limits& limits, EventSink& sink) override;
+    [[nodiscard]] std::expected<void, EngineError> startSearch(const Position& position,
+                                                               const Limits&   limits,
+                                                               EventSink&      sink) override;
     /// Does nothing: a running `genmove` cannot be interrupted (see the class comment).
     void stop() override;
     /// Writes the line to the engine as is. GTP answers in order, so its reply is known by its
@@ -56,7 +57,7 @@ public:
     /// TransportFailed.
     [[nodiscard]] std::expected<void, EngineError> sendRaw(std::string_view line) override;
 
-private:
+  private:
     void onLine(std::string_view line) override;
     void onClosed(CloseReason reason) override;
 
@@ -71,15 +72,15 @@ private:
     bool                    closed_{false};
     EventSink*              sink_{nullptr};  // non-null while a search runs
     std::optional<Position> position_;
-    int nextId_{1};
+    int                     nextId_{1};
     int firstId_{0};  // ids of the running search: [firstId_, lastId_]; lastId_ is the genmove
     int lastId_{0};
     std::optional<std::chrono::milliseconds> analyzeInterval_{};  // setting for the next search
-    bool analyzing_{false};                                       // the running search uses analyze
+    bool                                     analyzing_{false};   // the running search uses analyze
     // Unanswered commands in write order, true for a raw one (AUD-04). writeMutex_ is taken
     // before mutex_ and held over a queue push and its write, so the queue matches the wire.
     std::deque<bool> pending_{};
-    std::mutex writeMutex_;
+    std::mutex       writeMutex_;
 
     // Reply framing: a header line, then body lines, ended by a blank line.
     bool               inReply_{false};

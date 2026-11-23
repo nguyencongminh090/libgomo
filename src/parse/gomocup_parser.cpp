@@ -68,11 +68,11 @@ std::optional<std::int64_t> toCount(std::string_view s) {
     double scale = 1;
     if (!s.empty()) {
         switch (s.back()) {
-            case 'K': scale = 1e3; break;
-            case 'M': scale = 1e6; break;
-            case 'G': scale = 1e9; break;
-            case 'T': scale = 1e12; break;
-            default: break;
+        case 'K': scale = 1e3; break;
+        case 'M': scale = 1e6; break;
+        case 'G': scale = 1e9; break;
+        case 'T': scale = 1e12; break;
+        default: break;
         }
         if (scale != 1) s.remove_suffix(1);
     }
@@ -99,7 +99,9 @@ std::optional<Score> toScore(std::string_view s) {
 std::optional<std::chrono::milliseconds> toDuration(std::string_view s) {
     std::int64_t unit = 0;
     for (auto [suffix, ms] : {std::pair<std::string_view, std::int64_t>{"ms", 1},
-                              {"min", 60'000}, {"s", 1000}, {"h", 3'600'000}}) {
+                              {"min", 60'000},
+                              {"s", 1000},
+                              {"h", 3'600'000}}) {
         if (s.size() > suffix.size() && s.substr(s.size() - suffix.size()) == suffix) {
             unit = ms;
             s.remove_suffix(suffix.size());
@@ -188,7 +190,7 @@ std::optional<InfoEvent> parseNormalInfo(std::string_view text) {
     if (startsWith(text, pondering)) text.remove_prefix(pondering.size());
 
     InfoEvent info;
-    bool any = false;
+    bool      any = false;
     if (startsWith(text, "Bestline ")) {
         info.principalVariation = toPath(split(text.substr(9)), 0);
         if (info.principalVariation.empty()) return std::nullopt;
@@ -222,8 +224,8 @@ std::optional<InfoEvent> parseNormalInfo(std::string_view text) {
             }
             if (parseParenRates(fields[0], tok[0].size(), cand)) any = true;
         } else if (rank && f == 1 && tok.size() == 1 &&
-                   tok[0].find(',') == std::string_view::npos &&
-                   tok[0].front() >= '0' && tok[0].front() <= '9') {
+                   tok[0].find(',') == std::string_view::npos && tok[0].front() >= '0' &&
+                   tok[0].front() <= '9') {
             if (auto d = toNonNegative(tok[0].substr(0, tok[0].find('-')))) {
                 info.depth = d;
                 any        = true;
@@ -240,14 +242,20 @@ std::optional<InfoEvent> parseNormalInfo(std::string_view text) {
                 any = true;
             }
         } else if ((tok[0] == "Node" || tok[0] == "Visit") && tok.size() >= 2) {
-            if (auto n = toCount(tok[1])) { info.nodes = n; any = true; }
+            if (auto n = toCount(tok[1])) {
+                info.nodes = n;
+                any        = true;
+            }
         } else if (rank && tok[0] == "V" && tok.size() >= 2) {
             if (auto v = toCount(tok[1])) {
                 cand.visits = v;
                 any         = true;
             }
         } else if (tok[0] == "Time" && tok.size() >= 2) {
-            if (auto t = toDuration(tok[1])) { info.elapsed = t; any = true; }
+            if (auto t = toDuration(tok[1])) {
+                info.elapsed = t;
+                any          = true;
+            }
         } else if (auto pv = toPath(tok, 0); !pv.empty() && pv.size() == tok.size()) {
             if (rank) {
                 cand.move               = pv.front();
@@ -277,7 +285,7 @@ std::optional<InfoEvent> parseInfo(std::string_view text) {
     auto tok = split(text);
     if (tok.empty() || (tok[0] != "depth" && tok[0] != "multipv")) return std::nullopt;
 
-    InfoEvent info;
+    InfoEvent                   info;
     std::optional<int>          rank;
     std::optional<Score>        score;
     std::optional<std::int64_t> visits;
@@ -341,7 +349,7 @@ std::optional<InfoEvent> parseInfo(std::string_view text) {
 
 SearchEvent parseGomocupLine(std::string_view rawLine) {
     const std::string_view line = trim(rawLine);
-    const auto unparsed = [&] { return SearchEvent{UnparsedEvent{std::string{rawLine}}}; };
+    const auto unparsed         = [&] { return SearchEvent{UnparsedEvent{std::string{rawLine}}}; };
 
     if (line == "SWAP") return SwapEvent{};
     if (startsWith(line, "ERROR")) {

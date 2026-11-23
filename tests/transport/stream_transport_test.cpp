@@ -21,7 +21,7 @@ namespace {
 /// An input stream that blocks like a pipe: the reader waits until data is fed or the
 /// "peer" finishes.
 class PipeBuf : public std::streambuf {
-public:
+  public:
     void feed(std::string data) {
         {
             std::scoped_lock lock(mutex_);
@@ -38,7 +38,7 @@ public:
         cv_.notify_all();
     }
 
-protected:
+  protected:
     int_type underflow() override {
         std::unique_lock lock(mutex_);
         cv_.wait(lock, [this] { return !pending_.empty() || done_; });
@@ -49,16 +49,16 @@ protected:
         return traits_type::to_int_type(current_[0]);
     }
 
-private:
-    std::mutex mutex_;
+  private:
+    std::mutex              mutex_;
     std::condition_variable cv_;
-    std::string pending_;
-    std::string current_;
-    bool done_{false};
+    std::string             pending_;
+    std::string             current_;
+    bool                    done_{false};
 };
 
 class Recorder final : public TransportListener {
-public:
+  public:
     void onLine(std::string_view line) override {
         std::scoped_lock lock(mutex_);
         lines_.emplace_back(line);
@@ -91,12 +91,12 @@ public:
         return eventsAfterClose_;
     }
 
-private:
-    std::mutex mutex_;
-    std::condition_variable cv_;
+  private:
+    std::mutex               mutex_;
+    std::condition_variable  cv_;
     std::vector<std::string> lines_;
     std::vector<CloseReason> closed_;
-    int eventsAfterClose_{0};
+    int                      eventsAfterClose_{0};
 };
 
 }  // namespace
@@ -104,8 +104,8 @@ private:
 TEST_CASE("transport_lines: CRLF stripped, empty lines kept, final line without newline kept") {
     std::istringstream in(std::string("a\r\nb\n\nlast"));
     std::ostringstream out;
-    Recorder rec;
-    StreamTransport transport(in, out);
+    Recorder           rec;
+    StreamTransport    transport(in, out);
 
     REQUIRE(transport.start(rec).has_value());
     REQUIRE(rec.waitClosed());
@@ -117,8 +117,8 @@ TEST_CASE("transport_lines: CRLF stripped, empty lines kept, final line without 
 TEST_CASE("transport_lines: input ending with a newline adds no extra empty line") {
     std::istringstream in("one\ntwo\n");
     std::ostringstream out;
-    Recorder rec;
-    StreamTransport transport(in, out);
+    Recorder           rec;
+    StreamTransport    transport(in, out);
 
     REQUIRE(transport.start(rec).has_value());
     REQUIRE(rec.waitClosed());
@@ -129,10 +129,10 @@ TEST_CASE("transport_write: concurrent writers never interleave lines") {
     constexpr int kThreads   = 8;
     constexpr int kPerThread = 100;
 
-    PipeBuf pipe;
-    std::istream in(&pipe);
+    PipeBuf            pipe;
+    std::istream       in(&pipe);
     std::ostringstream out;
-    Recorder rec;
+    Recorder           rec;
     {
         StreamTransport transport(in, out);
         REQUIRE(transport.start(rec).has_value());
@@ -159,10 +159,10 @@ TEST_CASE("transport_write: concurrent writers never interleave lines") {
         }
     }
 
-    std::istringstream written(out.str());
+    std::istringstream    written(out.str());
     std::set<std::string> seen;
-    std::string line;
-    int count = 0;
+    std::string           line;
+    int                   count = 0;
     while (std::getline(written, line)) {
         ++count;
         seen.insert(line);
@@ -172,10 +172,10 @@ TEST_CASE("transport_write: concurrent writers never interleave lines") {
 }
 
 TEST_CASE("transport_close: close ends writing, notifies once and silences the listener") {
-    PipeBuf pipe;
-    std::istream in(&pipe);
+    PipeBuf            pipe;
+    std::istream       in(&pipe);
     std::ostringstream out;
-    Recorder rec;
+    Recorder           rec;
     {
         StreamTransport transport(in, out);
         REQUIRE(transport.start(rec).has_value());
@@ -205,8 +205,8 @@ TEST_CASE("transport_close: close ends writing, notifies once and silences the l
 TEST_CASE("transport_limit: a line over the limit ends the transport") {
     std::istringstream in("ok\n123456789\nafter\n");
     std::ostringstream out;
-    Recorder rec;
-    StreamTransport transport(in, out, StreamTransportOptions{.maxLineLength = 8});
+    Recorder           rec;
+    StreamTransport    transport(in, out, StreamTransportOptions{.maxLineLength = 8});
 
     REQUIRE(transport.start(rec).has_value());
     REQUIRE(rec.waitClosed());
@@ -218,8 +218,8 @@ TEST_CASE("transport_limit: a line over the limit ends the transport") {
 TEST_CASE("transport_limit: a line exactly at the limit is accepted") {
     std::istringstream in("12345678\n");
     std::ostringstream out;
-    Recorder rec;
-    StreamTransport transport(in, out, StreamTransportOptions{.maxLineLength = 8});
+    Recorder           rec;
+    StreamTransport    transport(in, out, StreamTransportOptions{.maxLineLength = 8});
 
     REQUIRE(transport.start(rec).has_value());
     REQUIRE(rec.waitClosed());
@@ -230,10 +230,10 @@ TEST_CASE("transport_limit: a line exactly at the limit is accepted") {
 
 TEST_CASE("transport_misc: write before start and double start are rejected") {
     // The pipe stays open, so the transport is still running when start() is called again.
-    PipeBuf pipe;
-    std::istream in(&pipe);
+    PipeBuf            pipe;
+    std::istream       in(&pipe);
     std::ostringstream out;
-    Recorder rec;
+    Recorder           rec;
     {
         StreamTransport transport(in, out);
 
@@ -254,8 +254,8 @@ TEST_CASE("transport_misc: write before start and double start are rejected") {
 TEST_CASE("transport_misc: start after the transport ended reports Closed") {
     std::istringstream in("");
     std::ostringstream out;
-    Recorder rec;
-    StreamTransport transport(in, out);
+    Recorder           rec;
+    StreamTransport    transport(in, out);
 
     transport.close();
     auto r = transport.start(rec);
@@ -264,10 +264,10 @@ TEST_CASE("transport_misc: start after the transport ended reports Closed") {
 }
 
 TEST_CASE("transport_misc: a line with an embedded newline is refused, nothing is written") {
-    PipeBuf pipe;
-    std::istream in(&pipe);
+    PipeBuf            pipe;
+    std::istream       in(&pipe);
     std::ostringstream out;
-    Recorder rec;
+    Recorder           rec;
     {
         StreamTransport transport(in, out);
         REQUIRE(transport.start(rec).has_value());
@@ -283,8 +283,8 @@ TEST_CASE("transport_misc: a line with an embedded newline is refused, nothing i
 }
 
 TEST_CASE("transport_misc: a failed output stream reports IoError") {
-    PipeBuf pipe;
-    std::istream in(&pipe);
+    PipeBuf            pipe;
+    std::istream       in(&pipe);
     std::ostringstream out;
     out.setstate(std::ios::failbit);
     Recorder rec;
@@ -303,11 +303,11 @@ TEST_CASE("transport_misc: a failed output stream reports IoError") {
 
 TEST_CASE("transport_misc: a listener may call writeLine from onLine") {
     struct Echo final : TransportListener {
-        Transport* transport{};
-        std::mutex mutex;
+        Transport*              transport{};
+        std::mutex              mutex;
         std::condition_variable cv;
-        bool closed{false};
-        void onLine(std::string_view line) override {
+        bool                    closed{false};
+        void                    onLine(std::string_view line) override {
             CHECK(transport->writeLine(std::string("echo ") + std::string(line)).has_value());
         }
         void onClosed(CloseReason) override {
@@ -321,8 +321,8 @@ TEST_CASE("transport_misc: a listener may call writeLine from onLine") {
 
     std::istringstream in("hi\n");
     std::ostringstream out;
-    Echo echo;
-    StreamTransport transport(in, out);
+    Echo               echo;
+    StreamTransport    transport(in, out);
     echo.transport = &transport;
 
     REQUIRE(transport.start(echo).has_value());

@@ -9,16 +9,18 @@ using namespace pygomo;
 namespace {
 
 struct ScriptedEngine final : EnginePort {
-    bool threaded = false;
+    bool        threaded = false;
     std::thread worker;
-    ~ScriptedEngine() override { if (worker.joinable()) worker.join(); }
+    ~ScriptedEngine() override {
+        if (worker.joinable()) worker.join();
+    }
 
-    bool supports(const Rules&) const override { return true; }
+    bool                             supports(const Rules&) const override { return true; }
     std::expected<void, EngineError> setRules(const Rules&) override { return {}; }
-    std::expected<void, EngineError> startSearch(
-        const Position&, const Limits&, EventSink& s) override {
+    std::expected<void, EngineError> startSearch(const Position&, const Limits&,
+                                                 EventSink& s) override {
         const bool late = !threaded;
-        auto emit = [&s, late] {
+        auto       emit = [&s, late] {
             InfoEvent i;
             i.depth = 3;
             s.onEvent(i);
@@ -30,23 +32,24 @@ struct ScriptedEngine final : EnginePort {
             // returns, its sink is destroyed, so a worker thread must not touch it (PORT-02).
             if (late) s.onEvent(InfoEvent{});
         };
-        if (threaded) worker = std::thread(emit); else emit();
+        if (threaded) worker = std::thread(emit);
+        else emit();
         return {};
     }
-    void stop() override {}
+    void                             stop() override {}
     std::expected<void, EngineError> sendRaw(std::string_view) override { return {}; }
 };
 
 struct RefusingEngine final : EnginePort {
-    bool supports(const Rules&) const override { return false; }
+    bool                             supports(const Rules&) const override { return false; }
     std::expected<void, EngineError> setRules(const Rules&) override {
         return std::unexpected(EngineError::Unsupported);
     }
-    std::expected<void, EngineError> startSearch(
-        const Position&, const Limits&, EventSink&) override {
+    std::expected<void, EngineError> startSearch(const Position&, const Limits&,
+                                                 EventSink&) override {
         return std::unexpected(EngineError::NotReady);
     }
-    void stop() override {}
+    void                             stop() override {}
     std::expected<void, EngineError> sendRaw(std::string_view) override { return {}; }
 };
 
@@ -71,7 +74,7 @@ TEST_CASE("port_blocking: returns best move and collected info, sync and threade
 
 TEST_CASE("port_blocking: a start error is returned, not waited on") {
     RefusingEngine engine;
-    auto pos = Position::create(15, 15);
+    auto           pos = Position::create(15, 15);
     REQUIRE(pos);
     auto r = search(engine, *pos, Limits{});
     REQUIRE_FALSE(r);

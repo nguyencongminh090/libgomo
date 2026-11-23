@@ -33,8 +33,9 @@ std::expected<void, EngineError> DeadlineEngine::sendRaw(std::string_view line) 
 
 void DeadlineEngine::stop() { inner_.stop(); }
 
-std::expected<void, EngineError> DeadlineEngine::startSearch(
-    const Position& position, const Limits& limits, EventSink& sink) {
+std::expected<void, EngineError> DeadlineEngine::startSearch(const Position& position,
+                                                             const Limits&   limits,
+                                                             EventSink&      sink) {
     std::uint64_t id = 0;
     {
         std::lock_guard lock(mutex_);
@@ -119,8 +120,8 @@ void DeadlineEngine::watchdog() {
         }
         const auto at = *deadline_;
         const auto id = searchId_;
-        const bool changed = cv_.wait_until(
-            lock, at, [&] { return quit_ || searchId_ != id || deadline_ != at; });
+        const bool changed =
+            cv_.wait_until(lock, at, [&] { return quit_ || searchId_ != id || deadline_ != at; });
         if (changed) continue;
 
         if (!stopSent_) {

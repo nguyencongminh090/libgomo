@@ -18,7 +18,7 @@ using namespace std::chrono_literals;
 namespace {
 
 class FakeTransport final : public Transport {
-public:
+  public:
     std::expected<void, TransportError> start(TransportListener& l) override {
         listener = &l;
         return {};
@@ -30,18 +30,30 @@ public:
     }
     void close() override {}
     void say(std::string_view l) { listener->onLine(l); }
-    void reply(std::string_view header) { say(header); say(""); }  // GTP: header + blank terminator
-    std::vector<std::string> lines() { std::lock_guard lock(m); return written; }
+    void reply(std::string_view header) {
+        say(header);
+        say("");
+    }  // GTP: header + blank terminator
+    std::vector<std::string> lines() {
+        std::lock_guard lock(m);
+        return written;
+    }
 
-    std::mutex m;
+    std::mutex               m;
     std::vector<std::string> written;
-    TransportListener* listener = nullptr;
+    TransportListener*       listener = nullptr;
 };
 
 struct Collect final : EventSink {
-    void onEvent(const SearchEvent& e) override { std::lock_guard l(m); events.push_back(e); }
-    std::vector<SearchEvent> get() { std::lock_guard l(m); return events; }
-    std::mutex m;
+    void onEvent(const SearchEvent& e) override {
+        std::lock_guard l(m);
+        events.push_back(e);
+    }
+    std::vector<SearchEvent> get() {
+        std::lock_guard l(m);
+        return events;
+    }
+    std::mutex               m;
     std::vector<SearchEvent> events;
 };
 
@@ -71,11 +83,10 @@ std::string errorOf(const SearchEvent& e) { return std::get<ErrorEvent>(e).messa
 
 }  // namespace
 
-TEST_CASE(
-    "dead2_gtp: a silent engine times out; the late genmove reply is dropped, "
-    "the next search works") {
+TEST_CASE("dead2_gtp: a silent engine times out; the late genmove reply is dropped, "
+          "the next search works") {
     FakeTransport t;
-    GtpEngine gtp{t};
+    GtpEngine     gtp{t};
     REQUIRE(gtp.open());
     DeadlineEngine eng{gtp, DeadlineEngine::Options{20ms}};
     gtp.stop();  // a no-op, but the decorator calls it too
@@ -103,10 +114,10 @@ TEST_CASE(
 
 TEST_CASE("dead2_gtp: a reply in time is delivered and no deadline event follows") {
     FakeTransport t;
-    GtpEngine gtp{t};
+    GtpEngine     gtp{t};
     REQUIRE(gtp.open());
     DeadlineEngine eng{gtp, DeadlineEngine::Options{20ms}};
-    Collect a;
+    Collect        a;
     REQUIRE(eng.startSearch(twoMoves(), turn(20ms), a));
     for (int id = 1; id < 7; ++id) t.reply("=" + std::to_string(id));
     t.reply("=7 J9");
@@ -115,10 +126,9 @@ TEST_CASE("dead2_gtp: a reply in time is delivered and no deadline event follows
     CHECK(std::holds_alternative<BestMoveEvent>(a.get()[0]));
 }
 
-TEST_CASE(
-    "dead2_kata: a silent engine times out; the late move is dropped, "
-    "the next search works") {
-    FakeTransport t;
+TEST_CASE("dead2_kata: a silent engine times out; the late move is dropped, "
+          "the next search works") {
+    FakeTransport  t;
     KataGomoEngine kata{t};
     REQUIRE(kata.open());
     DeadlineEngine eng{kata, DeadlineEngine::Options{20ms}};
@@ -143,11 +153,11 @@ TEST_CASE(
 }
 
 TEST_CASE("dead2_kata: an engine that answers in time gets no timeout event") {
-    FakeTransport t;
+    FakeTransport  t;
     KataGomoEngine kata{t};
     REQUIRE(kata.open());
     DeadlineEngine eng{kata, DeadlineEngine::Options{20ms}};
-    Collect a;
+    Collect        a;
     REQUIRE(eng.startSearch(twoMoves(), turn(20ms), a));
     t.say("OK");
     t.say("9,9");

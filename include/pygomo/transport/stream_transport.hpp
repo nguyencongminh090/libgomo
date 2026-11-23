@@ -32,14 +32,14 @@ struct StreamTransportOptions {
 /// itself. The listener may call writeLine and close. start() must return before close() is
 /// called from another thread.
 class StreamTransport final : public Transport {
-public:
+  public:
     /// Binds the two streams; they must outlive the transport. Reads nothing until start().
     StreamTransport(std::istream& in, std::ostream& out, StreamTransportOptions options = {});
     /// Closes the transport, then joins the reader thread; blocks until the input reaches end
     /// of input or fails (see the class comment).
     ~StreamTransport() override;
 
-    StreamTransport(const StreamTransport&) = delete;
+    StreamTransport(const StreamTransport&)            = delete;
     StreamTransport& operator=(const StreamTransport&) = delete;
 
     /// Starts the reader thread. Fails with AlreadyStarted, or Closed after close().
@@ -49,7 +49,7 @@ public:
     /// Stops writing and silences the listener at once; does not wait for the reader thread.
     void close() override;
 
-private:
+  private:
     void readLoop();
     void deliverLine(std::string_view line);
     void finish(CloseReason reason);

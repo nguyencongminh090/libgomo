@@ -13,9 +13,9 @@ namespace {
 
 const char* basicRule(BoardRule r) {
     switch (r) {
-        case BoardRule::Freestyle: return "FREESTYLE";
-        case BoardRule::Standard: return "STANDARD";
-        case BoardRule::Renju: return "RENJU";
+    case BoardRule::Freestyle: return "FREESTYLE";
+    case BoardRule::Standard: return "STANDARD";
+    case BoardRule::Renju: return "RENJU";
     }
     return nullptr;
 }
@@ -48,8 +48,8 @@ std::expected<void, EngineError> GtpEngine::setRules(const Rules& rules) {
     return {};
 }
 
-std::expected<void, EngineError> GtpEngine::startSearch(
-    const Position& position, const Limits& limits, EventSink& sink) {
+std::expected<void, EngineError> GtpEngine::startSearch(const Position& position,
+                                                        const Limits& limits, EventSink& sink) {
     // Nothing is sent for a request the protocol cannot express.
     if (limits.matchTime || limits.maxDepth) return std::unexpected(EngineError::Unsupported);
     std::vector<std::string> commands;
@@ -60,7 +60,7 @@ std::expected<void, EngineError> GtpEngine::startSearch(
     }
 
     std::vector<std::string> lines;
-    std::lock_guard writeLock(writeMutex_);
+    std::lock_guard          writeLock(writeMutex_);
     {
         std::lock_guard lock(mutex_);
         if (closed_) return std::unexpected(EngineError::NotReady);
@@ -122,7 +122,7 @@ void GtpEngine::stop() {}  // See the class comment: a running genmove cannot be
 
 std::expected<void, EngineError> GtpEngine::sendRaw(std::string_view line) {
     const std::size_t replies = getsReply(line) ? 1 : 0;
-    std::lock_guard writeLock(writeMutex_);
+    std::lock_guard   writeLock(writeMutex_);
     {
         // Queued before the write: the reply may be read before writeLine returns.
         std::lock_guard lock(mutex_);
@@ -130,7 +130,7 @@ std::expected<void, EngineError> GtpEngine::sendRaw(std::string_view line) {
     }
     if (!transport_.writeLine(line)) {
         std::lock_guard lock(mutex_);
-        const auto unwritten = std::min(replies, pending_.size());
+        const auto      unwritten = std::min(replies, pending_.size());
         pending_.erase(pending_.end() - static_cast<std::ptrdiff_t>(unwritten), pending_.end());
         return std::unexpected(EngineError::TransportFailed);
     }
@@ -149,7 +149,7 @@ void GtpEngine::onReply(bool ok, std::optional<int> id, const std::string& text,
         std::string header = ok ? "=" : "?";
         if (id) header += std::to_string(*id);
         deliver = sink_;
-        event = MessageEvent{text.empty() ? header : header + " " + text};
+        event   = MessageEvent{text.empty() ? header : header + " " + text};
         return;
     }
     if (!sink_) return;  // late reply of a search that already ended
@@ -182,7 +182,7 @@ void GtpEngine::onReply(bool ok, std::optional<int> id, const std::string& text,
 }
 
 void GtpEngine::onLine(std::string_view line) {
-    EventSink* deliver = nullptr;
+    EventSink*                 deliver = nullptr;
     std::optional<SearchEvent> event;
     {
         std::lock_guard lock(mutex_);
@@ -222,8 +222,8 @@ void GtpEngine::onClosed(CloseReason) {
         std::lock_guard lock(mutex_);
         closed_ = true;
         pending_.clear();
-        sink    = sink_;
-        sink_   = nullptr;
+        sink  = sink_;
+        sink_ = nullptr;
     }
     if (sink) sink->onEvent(ErrorEvent{"engine connection closed"});
 }

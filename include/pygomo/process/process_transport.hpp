@@ -15,11 +15,11 @@ namespace pygomo {
 
 /// How to launch the child for ProcessTransport.
 struct ProcessOptions {
-    std::string program;                 ///< Looked up in PATH when it has no '/'.
-    std::vector<std::string> args{};     ///< Arguments after the program name.
-    std::string workingDirectory{};      ///< Empty: inherit.
-    bool mergeStderr{false};             ///< false: the child's stderr goes to /dev/null.
-    std::size_t maxLineLength{1U << 20}; ///< Longer lines end the transport with LineTooLong.
+    std::string              program;             ///< Looked up in PATH when it has no '/'.
+    std::vector<std::string> args{};              ///< Arguments after the program name.
+    std::string              workingDirectory{};  ///< Empty: inherit.
+    bool                     mergeStderr{false};  ///< false: the child's stderr goes to /dev/null.
+    std::size_t maxLineLength{1U << 20};  ///< Longer lines end the transport with LineTooLong.
     /// After stdin is closed the child gets this long to exit, then SIGTERM, then this long
     /// again, then SIGKILL.
     std::chrono::milliseconds grace{400};
@@ -41,13 +41,13 @@ struct ProcessOptions {
 /// die with it. A process that calls setsid leaves the group and survives. SIGPIPE is blocked only
 /// on the thread inside writeLine, the process-wide disposition is not changed.
 class ProcessTransport final : public Transport {
-public:
+  public:
     /// Stores the options; nothing is spawned until start().
     explicit ProcessTransport(ProcessOptions options);
     /// Closes the transport and joins the reader thread, so it waits for the child to be reaped.
     ~ProcessTransport() override;
 
-    ProcessTransport(const ProcessTransport&) = delete;
+    ProcessTransport(const ProcessTransport&)            = delete;
     ProcessTransport& operator=(const ProcessTransport&) = delete;
 
     /// Spawns the child and starts the reader thread. Fails with AlreadyStarted, Closed (close()
@@ -63,9 +63,9 @@ public:
     /// Exit code of the child, or -N if it was killed by signal N. Empty until it has been reaped.
     [[nodiscard]] std::optional<int> exitStatus() const noexcept;
 
-private:
-    void readLoop();
-    void terminateChild();
+  private:
+    void        readLoop();
+    void        terminateChild();
     CloseReason pump();
 
     ProcessOptions     options_;

@@ -22,7 +22,7 @@ std::string_view trimRight(std::string_view s) {
 
 std::vector<std::string_view> tokens(std::string_view s) {
     std::vector<std::string_view> out;
-    std::size_t i = 0;
+    std::size_t                   i = 0;
     while (i < s.size()) {
         while (i < s.size() && isBlank(s[i])) ++i;
         std::size_t start = i;
@@ -41,8 +41,7 @@ bool equalsIgnoreCase(std::string_view a, std::string_view b) {
     return true;
 }
 
-template <class T>
-std::optional<T> toNumber(std::string_view s) {
+template <class T> std::optional<T> toNumber(std::string_view s) {
     T v{};
     auto [p, ec] = std::from_chars(s.data(), s.data() + s.size(), v);
     if (s.empty() || ec != std::errc{} || p != s.data() + s.size()) return std::nullopt;
@@ -63,14 +62,13 @@ bool onBoard(Coord c, int width, int height) {
 }
 
 bool isSkippedAnalyzeKey(std::string_view w) {
-    return w == "scoreMean" || w == "scoreStdev" || w == "scoreLead" ||
-           w == "prior" || w == "lcb" || w == "utilityLcb" ||
-           w == "weight" || w == "isSymmetryOf";
+    return w == "scoreMean" || w == "scoreStdev" || w == "scoreLead" || w == "prior" ||
+           w == "lcb" || w == "utilityLcb" || w == "weight" || w == "isSymmetryOf";
 }
 
 // Parses one `info` entry (tokens after `info`, before the next `info`); nullopt if malformed.
-std::optional<Candidate> parseGtpAnalyzeEntry(
-    std::span<const std::string_view> entry, int width, int height) {
+std::optional<Candidate> parseGtpAnalyzeEntry(std::span<const std::string_view> entry, int width,
+                                              int height) {
     Candidate             cand;
     bool                  sawField   = false;
     bool                  hasUtility = false;
@@ -220,13 +218,13 @@ SearchEvent parseGtpAnalyzeLine(std::string_view line, int width, int height) {
     auto words    = tokens(line);
     if (words.empty() || words.front() != "info") return unparsed();
 
-    InfoEvent info;
+    InfoEvent   info;
     std::size_t pos = 0;
     while (pos < words.size()) {
         std::size_t next = pos + 1;
         while (next < words.size() && words[next] != "info") ++next;
         std::span<const std::string_view> entry(words.data() + pos + 1, next - pos - 1);
-        auto cand = parseGtpAnalyzeEntry(entry, width, height);
+        auto                              cand = parseGtpAnalyzeEntry(entry, width, height);
         if (!cand) {
             if (info.candidates.empty()) return unparsed();
             break;

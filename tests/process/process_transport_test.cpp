@@ -40,8 +40,8 @@ struct Recorder final : TransportListener {
         std::unique_lock lock(m);
         return cv.wait_for(lock, t, [&] { return lines.size() >= n; });
     }
-    std::mutex m;
-    std::condition_variable cv;
+    std::mutex               m;
+    std::condition_variable  cv;
     std::vector<std::string> lines;
     std::vector<CloseReason> reasons;
 };
@@ -57,7 +57,7 @@ ProcessOptions sh(const std::string& script) {
 
 TEST_CASE("proc_lines: CRLF, empty line and final line without newline") {
     ProcessTransport t(sh("printf 'a\\r\\nb\\n\\nlast'"));
-    Recorder r;
+    Recorder         r;
     REQUIRE(t.start(r));
     REQUIRE(r.waitClosed());
     CHECK(r.lines == std::vector<std::string>{"a", "b", "", "last"});
@@ -68,9 +68,9 @@ TEST_CASE("proc_roundtrip: 8 threads x 100 lines through cat") {
     ProcessOptions o;
     o.program = "cat";
     ProcessTransport t(o);
-    Recorder r;
+    Recorder         r;
     REQUIRE(t.start(r));
-    std::atomic<int> writeFailures{0};
+    std::atomic<int>         writeFailures{0};
     std::vector<std::thread> ws;
     for (int w = 0; w < 8; ++w) {
         ws.emplace_back([&, w] {
@@ -100,7 +100,7 @@ TEST_CASE("proc_roundtrip: 8 threads x 100 lines through cat") {
 
 TEST_CASE("proc_close: a blocked child is ended and reaped, later writes fail") {
     ProcessTransport t(sh("exec sleep 60"));
-    Recorder r;
+    Recorder         r;
     REQUIRE(t.start(r));
     auto begin = std::chrono::steady_clock::now();
     t.close();
@@ -117,7 +117,7 @@ TEST_CASE("proc_close: a blocked child is ended and reaped, later writes fail") 
 
 TEST_CASE("proc_exit: exit code is reported") {
     ProcessTransport t(sh("exit 3"));
-    Recorder r;
+    Recorder         r;
     REQUIRE(t.start(r));
     REQUIRE(r.waitClosed());
     CHECK(r.reasons == std::vector<CloseReason>{CloseReason::Eof});
@@ -128,8 +128,8 @@ TEST_CASE("proc_spawnfail: a missing executable is an error with no listener cal
     ProcessOptions o;
     o.program = "/nonexistent/pygomo-engine";
     ProcessTransport t(o);
-    Recorder r;
-    auto s = t.start(r);
+    Recorder         r;
+    auto             s = t.start(r);
     REQUIRE_FALSE(s);
     std::this_thread::sleep_for(50ms);
     CHECK(r.lines.empty());
@@ -139,9 +139,9 @@ TEST_CASE("proc_spawnfail: a missing executable is an error with no listener cal
 TEST_CASE("proc_limit: an over-long line ends the transport and the child") {
     ProcessOptions o = sh("printf 'ok\\n'; head -c 100 /dev/zero | tr '\\0' x; printf '\\n'; "
                           "exec sleep 60");
-    o.maxLineLength = 16;
+    o.maxLineLength  = 16;
     ProcessTransport t(o);
-    Recorder r;
+    Recorder         r;
     REQUIRE(t.start(r));
     REQUIRE(r.waitClosed());
     CHECK(r.reasons == std::vector<CloseReason>{CloseReason::LineTooLong});
@@ -154,7 +154,7 @@ namespace {
 // A zombie still answers kill(pid, 0), so read the state from /proc.
 bool running(long pid) {
     std::ifstream f("/proc/" + std::to_string(pid) + "/stat");
-    std::string line;
+    std::string   line;
     if (!std::getline(f, line)) return false;
     auto rp = line.rfind(')');
     return rp != std::string::npos && rp + 2 < line.size() && line[rp + 2] != 'Z';
@@ -164,7 +164,7 @@ bool running(long pid) {
 
 TEST_CASE("proc_group: close() also ends grandchildren of the child") {
     ProcessTransport t(sh("sleep 60 & echo $!; wait"));
-    Recorder r;
+    Recorder         r;
     REQUIRE(t.start(r));
     REQUIRE(r.waitLines(1));
     long grandchild = std::stol(r.lines.front());
@@ -181,7 +181,7 @@ TEST_CASE("proc_group: close() also ends grandchildren of the child") {
 
 TEST_CASE("proc_orphan: close() ends grandchildren of a child that exited by itself") {
     ProcessTransport t(sh("sleep 60 & echo $!; exit 0"));
-    Recorder r;
+    Recorder         r;
     REQUIRE(t.start(r));
     REQUIRE(r.waitLines(1));
     long grandchild = std::stol(r.lines.front());
@@ -198,7 +198,7 @@ TEST_CASE("proc_orphan: close() ends grandchildren of a child that exited by its
 
 TEST_CASE("proc_sigpipe: writing to a child that closed stdin gives IoError, not a signal") {
     ProcessTransport t(sh("exec 0<&-; sleep 5"));
-    Recorder r;
+    Recorder         r;
     REQUIRE(t.start(r));
     std::optional<TransportError> err;
     for (int i = 0; i < 200 && !err; ++i) {
@@ -212,11 +212,11 @@ TEST_CASE("proc_sigpipe: writing to a child that closed stdin gives IoError, not
 }
 
 TEST_CASE("proc_nohandler: the process-wide SIGPIPE disposition is left alone") {
-    struct sigaction before {}, after {};
+    struct sigaction before{}, after{};
     REQUIRE(::sigaction(SIGPIPE, nullptr, &before) == 0);
     {
         ProcessTransport t(sh("exit 0"));
-        Recorder r;
+        Recorder         r;
         REQUIRE(t.start(r));
         REQUIRE(r.waitClosed());
         t.close();

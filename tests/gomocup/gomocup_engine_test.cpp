@@ -18,7 +18,7 @@ namespace {
 
 /// Records what the adapter writes; the test plays the engine by calling say()/closeNow().
 class FakeTransport final : public Transport {
-public:
+  public:
     std::expected<void, TransportError> start(TransportListener& l) override {
         listener = &l;
         return {};
@@ -35,20 +35,29 @@ public:
     void say(std::string_view l) { listener->onLine(l); }
     void closeNow() { listener->onClosed(CloseReason::Eof); }
 
-    std::vector<std::string> lines() { std::lock_guard lock(m); return written; }
+    std::vector<std::string> lines() {
+        std::lock_guard lock(m);
+        return written;
+    }
 
     std::mutex                              m;
     std::vector<std::string>                written;
     std::function<void(const std::string&)> onWrite;
-    TransportListener*                      listener   = nullptr;
+    TransportListener*                      listener = nullptr;
     // set by onWrite to fail that write and every later one
-    bool                                    failWrites = false;
+    bool failWrites = false;
 };
 
 struct Collect final : EventSink {
-    void onEvent(const SearchEvent& e) override { std::lock_guard l(m); events.push_back(e); }
-    std::vector<SearchEvent> get() { std::lock_guard l(m); return events; }
-    std::mutex m;
+    void onEvent(const SearchEvent& e) override {
+        std::lock_guard l(m);
+        events.push_back(e);
+    }
+    std::vector<SearchEvent> get() {
+        std::lock_guard l(m);
+        return events;
+    }
+    std::mutex               m;
     std::vector<SearchEvent> events;
 };
 
@@ -69,11 +78,10 @@ struct Rig {
 
 /// The engine behind a DeadlineEngine, which owns the deadline since DEAD-03.
 struct DeadlineRig {
-    FakeTransport t;
-    GomocupEngine g{t};
+    FakeTransport  t;
+    GomocupEngine  g{t};
     DeadlineEngine e;
-    explicit DeadlineRig(std::chrono::milliseconds grace)
-        : e(g, DeadlineEngine::Options{grace}) {
+    explicit DeadlineRig(std::chrono::milliseconds grace) : e(g, DeadlineEngine::Options{grace}) {
         REQUIRE(g.open());
     }
 };
@@ -83,22 +91,21 @@ using Lines = std::vector<std::string>;
 }  // namespace
 
 TEST_CASE("gomo_sequence: START, INFO, BOARD with owner flags, DONE") {
-    Rig r;
+    Rig     r;
     Collect sink;
-    Limits lim;
+    Limits  lim;
     lim.turnTime = std::chrono::milliseconds{5000};
     lim.maxDepth = 12;
     REQUIRE(r.e.startSearch(threeMoves(), lim, sink));
     // Three moves played, so White is to move: White's stone (8,7) is flag 1.
-    CHECK(r.t.lines() ==
-          Lines{"START 15", "INFO rule 0", "INFO timeout_turn 5000", "INFO max_depth 12", "BOARD",
-                "7,7,2", "8,7,1", "7,8,2", "DONE"});
+    CHECK(r.t.lines() == Lines{"START 15", "INFO rule 0", "INFO timeout_turn 5000",
+                               "INFO max_depth 12", "BOARD", "7,7,2", "8,7,1", "7,8,2", "DONE"});
 }
 
 TEST_CASE("gomo_sequence: an empty board uses BEGIN; second search while running is Busy") {
-    Rig r;
+    Rig     r;
     Collect sink;
-    auto empty = Position::create(15, 15);
+    auto    empty = Position::create(15, 15);
     REQUIRE(empty);
     REQUIRE(r.e.startSearch(*empty, Limits{}, sink));
     CHECK(r.t.lines().back() == "BEGIN");
@@ -106,7 +113,7 @@ TEST_CASE("gomo_sequence: an empty board uses BEGIN; second search while running
 }
 
 TEST_CASE("gomo_rules: mapping, unsupported combinations write nothing") {
-    Rig r;
+    Rig     r;
     Collect sink;
     CHECK(r.e.setRules(Rules{BoardRule::Renju, OpeningRule::FreeOpen, 200}));
     REQUIRE(r.e.startSearch(threeMoves(), Limits{}, sink));
@@ -121,7 +128,7 @@ TEST_CASE("gomo_rules: mapping, unsupported combinations write nothing") {
     CHECK(bad.error() == EngineError::Unsupported);
     CHECK(u.t.lines().empty());
 
-    Rig s;
+    Rig     s;
     Collect sink2;
     CHECK(s.e.setRules(Rules{BoardRule::Freestyle, OpeningRule::Swap2, std::nullopt}));
     REQUIRE(s.e.startSearch(threeMoves(), Limits{}, sink2));
@@ -129,7 +136,7 @@ TEST_CASE("gomo_rules: mapping, unsupported combinations write nothing") {
 }
 
 TEST_CASE("gomo_events: info then best move; swap; illegal move") {
-    Rig r;
+    Rig     r;
     Collect sink;
     REQUIRE(r.e.startSearch(threeMoves(), Limits{}, sink));
     r.t.say("OK");
@@ -157,7 +164,7 @@ TEST_CASE("gomo_events: info then best move; swap; illegal move") {
 }
 
 TEST_CASE("gomo_stop: YXSTOP is sent and the following move is delivered") {
-    Rig r;
+    Rig     r;
     Collect sink;
     r.e.stop();  // no search: nothing written
     CHECK(r.t.lines().empty());
@@ -170,7 +177,7 @@ TEST_CASE("gomo_stop: YXSTOP is sent and the following move is delivered") {
 }
 
 TEST_CASE("gomo_closed: one error event, no hang, later search is NotReady") {
-    Rig r;
+    Rig     r;
     Collect sink;
     REQUIRE(r.e.startSearch(threeMoves(), Limits{}, sink));
     r.t.closeNow();
@@ -178,7 +185,7 @@ TEST_CASE("gomo_closed: one error event, no hang, later search is NotReady") {
     CHECK(std::holds_alternative<ErrorEvent>(sink.get()[0]));
     CHECK(r.e.startSearch(threeMoves(), Limits{}, sink).error() == EngineError::NotReady);
 
-    Rig b;
+    Rig         b;
     std::thread closer;
     b.t.onWrite = [&](const std::string& l) {
         if (l == "DONE") closer = std::thread([&] { b.t.closeNow(); });
@@ -190,14 +197,14 @@ TEST_CASE("gomo_closed: one error event, no hang, later search is NotReady") {
 }
 
 TEST_CASE("gomo_rect: a non-square board is Unsupported and writes nothing") {
-    Rig r;
+    Rig     r;
     Collect sink;
     CHECK(r.e.startSearch(threeMoves(15, 12), Limits{}, sink).error() == EngineError::Unsupported);
     CHECK(r.t.lines().empty());
 }
 
 TEST_CASE("gomo_warning: an ERROR line during a search does not end it") {
-    Rig r;
+    Rig     r;
     Collect sink;
     REQUIRE(r.e.startSearch(threeMoves(), Limits{}, sink));
     r.t.say("ERROR Unknown rule id: 9. Rule is reset to freestyle...");
@@ -244,11 +251,10 @@ bool waitFor(Collect& s, std::size_t n) {
 
 }  // namespace
 
-TEST_CASE(
-    "gomo_deadline: no move after turnTime+grace -> YXSTOP, "
-    "then ErrorEvent, engine reusable") {
+TEST_CASE("gomo_deadline: no move after turnTime+grace -> YXSTOP, "
+          "then ErrorEvent, engine reusable") {
     DeadlineRig r{30ms};
-    Collect sink;
+    Collect     sink;
     REQUIRE(r.e.startSearch(threeMoves(), turn(20ms), sink));
     r.t.say("ERROR something went wrong");  // a warning does not end the search
     REQUIRE(waitFor(sink, 2));
@@ -267,11 +273,10 @@ TEST_CASE(
     CHECK(s2.get().empty());
 }
 
-TEST_CASE(
-    "gomo_deadline: an engine that owes an answer ignores ERROR lines, "
-    "accepts a swap, refuses after close") {
+TEST_CASE("gomo_deadline: an engine that owes an answer ignores ERROR lines, "
+          "accepts a swap, refuses after close") {
     DeadlineRig r{20ms};
-    Collect a;
+    Collect     a;
     REQUIRE(r.e.startSearch(threeMoves(), turn(10ms), a));
     REQUIRE(waitFor(a, 1));
     r.t.say("ERROR still busy");
@@ -283,7 +288,7 @@ TEST_CASE(
     CHECK(a.get().size() == 1);
 
     DeadlineRig c{20ms};
-    Collect d;
+    Collect     d;
     REQUIRE(c.e.startSearch(threeMoves(), turn(10ms), d));
     REQUIRE(waitFor(d, 1));
     c.t.closeNow();
@@ -293,7 +298,7 @@ TEST_CASE(
 
 TEST_CASE("gomo_deadline: a move in time or after YXSTOP ends the search normally") {
     DeadlineRig r{200ms};
-    Collect a;
+    Collect     a;
     REQUIRE(r.e.startSearch(threeMoves(), turn(10ms), a));
     r.t.say("6,6");
     std::this_thread::sleep_for(400ms);
@@ -312,11 +317,10 @@ TEST_CASE("gomo_deadline: a move in time or after YXSTOP ends the search normall
     CHECK(std::holds_alternative<BestMoveEvent>(b.get()[0]));
 }
 
-TEST_CASE(
-    "gomo_deadline: no deadline without turnTime or with turnTime 0, "
-    "a closed engine gets no timeout event") {
+TEST_CASE("gomo_deadline: no deadline without turnTime or with turnTime 0, "
+          "a closed engine gets no timeout event") {
     DeadlineRig r{10ms};
-    Collect a;
+    Collect     a;
     REQUIRE(r.e.startSearch(threeMoves(), Limits{}, a));
     std::this_thread::sleep_for(150ms);
     CHECK(a.get().empty());
@@ -336,16 +340,15 @@ TEST_CASE(
     CHECK(z.get().size() == 1);
 }
 
-TEST_CASE(
-    "gomo_deadline: the sink may call startSearch from the timeout callback "
-    "(refused while owed)") {
+TEST_CASE("gomo_deadline: the sink may call startSearch from the timeout callback "
+          "(refused while owed)") {
     DeadlineRig r{10ms};
     struct Again final : EventSink {
-        DeadlineRig* rig{};
-        Collect* next{};
+        DeadlineRig*      rig{};
+        Collect*          next{};
         std::atomic<bool> called{false};
         std::atomic<bool> refused{false};
-        void onEvent(const SearchEvent&) override {
+        void              onEvent(const SearchEvent&) override {
             refused =
                 rig->e.startSearch(threeMoves(), Limits{}, *next).error() == EngineError::Busy;
             called = true;
@@ -361,7 +364,7 @@ TEST_CASE(
 }
 
 TEST_CASE("port3_gomocup: a close during startSearch gives one outcome, not event plus error") {
-    Rig r;
+    Rig     r;
     Collect sink;
     r.t.onWrite = [&](const std::string& l) {
         if (l != "BOARD") return;
@@ -374,7 +377,7 @@ TEST_CASE("port3_gomocup: a close during startSearch gives one outcome, not even
 }
 
 TEST_CASE("port3_gomocup: a failed write while the search is live is refused with no event") {
-    Rig r;
+    Rig     r;
     Collect sink;
     r.t.onWrite = [&](const std::string& l) { r.t.failWrites = l == "BOARD"; };
     CHECK(r.e.startSearch(threeMoves(), Limits{}, sink).error() == EngineError::TransportFailed);
