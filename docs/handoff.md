@@ -17,9 +17,9 @@ TSAN-01 done: the tsan preset demotes `free-nonheap-object` and `maybe-uninitial
 warnings (g++ 15 false positives in libstdc++); tsan 118/118, no race; EXT-10 closed.
 
 ## Next step
-1. Live checks not yet done: Command/force against a real Rapfi V2 (YXANALZ) and V3.
-   V3 live: `PYGOMO_RAPFI_V3=.../Rapfi_V3_PTR/dev/rapfi/gomoku-portal-ui-distribute/pbrain-rapfi`
-   (ext09_live passes).
+1. Command/force ran live on Rapfi V2 (incl. YXANALZ) and V3 dev by spike: all rounds passed,
+   no V3 drop seen (docs/reports/rapfi-force-live-spike-2026-11-23.md). Owner: keep it as a
+   live test? (new todo if yes).
 2. Pick the next todo or planning with the owner (backlog is empty).
 
 ## Uncertain
