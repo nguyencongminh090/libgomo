@@ -1937,7 +1937,7 @@
         "PYGOMO_RAPFI_V2=<path> PYGOMO_RAPFI_V3=<path> ctest --preset default -R ext10_live --no-tests=error --output-on-failure"
       ],
       "checked_by": "PYGOMO_RAPFI_V2=<path> PYGOMO_RAPFI_V3=<path> ctest --preset default -R ext10_live --no-tests=error --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "LIVE-01-suite",
@@ -1947,7 +1947,7 @@
         "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
       ],
       "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
-      "passes": false
+      "passes": true
     }
   ]
 }

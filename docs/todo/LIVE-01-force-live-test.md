@@ -2,7 +2,7 @@
 id: LIVE-01-force-live-test
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -23,7 +23,7 @@ V2 needs `PYGOMO_RAPFI_V2`, V3 needs `PYGOMO_RAPFI_V3` (cwd = binary dir for con
 Features `LIVE-01-*` in `docs/features.json` (`harness-track LIVE-01`).
 
 ## Evidence
-(none yet)
+2026-11-23. `tests/live/rapfi_live_test.cpp`: 5 cases `ext10_live` (V2 BOARD-Search, ABOUT-Until, YXANALZ; V3 BOARD-Search, ABOUT-Until), 3 rounds each. Live (V2 `Lab/Rapfi_V2/.../build/pbrain-rapfi`, V3 dev `gomoku-portal-ui-distribute`, cwd = binary dir): 5 runs in a row passed (~19 s); skipped without env; suite 119/119, no Rapfi left. YXANALZ asserts the answer is one of the two listed moves (6,6 or 9,9): the spike saw only 9,9, later rounds gave 6,6. Test and CMake only; no library code changed.
 
 ## Links
 `docs/reports/rapfi-force-live-spike-2026-11-23.md`, `docs/audit/AUD-08*`

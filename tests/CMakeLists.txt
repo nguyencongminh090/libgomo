@@ -122,6 +122,8 @@ if(UNIX)
   set_tests_properties(gomo7_live PROPERTIES SKIP_REGULAR_EXPRESSION "SKIPPED")
   add_test(NAME ext09_live COMMAND pygomo_live_tests "-tc=ext09_live*")
   set_tests_properties(ext09_live PROPERTIES SKIP_REGULAR_EXPRESSION "SKIPPED")
+  add_test(NAME ext10_live COMMAND pygomo_live_tests "-tc=ext10_live*")
+  set_tests_properties(ext10_live PROPERTIES SKIP_REGULAR_EXPRESSION "SKIPPED")
 endif()
 
 foreach(group header vertex analyze total)

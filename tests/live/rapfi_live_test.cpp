@@ -53,8 +53,9 @@ struct Terminal final : EventSink {
     void onEvent(const SearchEvent& e) override {
         std::lock_guard lock(m);
         events.push_back(e);
-        if (!std::holds_alternative<InfoEvent>(e) && !std::holds_alternative<MessageEvent>(e) &&
-            !std::holds_alternative<UnparsedEvent>(e)) {
+        if (anyEvent ||
+            (!std::holds_alternative<InfoEvent>(e) && !std::holds_alternative<MessageEvent>(e) &&
+             !std::holds_alternative<UnparsedEvent>(e))) {
             done = true;
             cv.notify_all();
         }
@@ -66,7 +67,8 @@ struct Terminal final : EventSink {
     std::mutex               m;
     std::condition_variable  cv;
     std::vector<SearchEvent> events;
-    bool                     done = false;
+    bool                     done     = false;
+    bool                     anyEvent = false;  // true: the first event ends the wait
 };
 
 // Collects parsed events from raw transport lines and wakes wait() on BestMove or close.
@@ -291,4 +293,129 @@ TEST_CASE("ext09_live: Rapfi V3 plays on a 15x10 board after RECTSTART") {
     const Coord c = std::get<BestMoveEvent>(sink.events.back()).coord;
     CHECK(pos->contains(c));
     CHECK_FALSE(pos->occupied(c));
+}
+
+namespace {
+
+// Which Rapfi generation a force case runs on.
+enum class Gen { V2, V3 };
+
+const char* forcePath(Gen g) {
+    return std::getenv(g == Gen::V2 ? "PYGOMO_RAPFI_V2" : "PYGOMO_RAPFI_V3");
+}
+
+// A force case: the command to force over a 60 s search and how its completion is expressed.
+struct ForceCase {
+    std::vector<std::string> lines;
+    bool                     until;
+};
+
+// Black (7,7), White (8,7), Black (7,8) as a BOARD script followed by a short search.
+const ForceCase kBoardSearch{{"INFO timeout_turn 500", "BOARD", "7,7,1", "8,7,2", "7,8,1", "DONE"},
+                             false};
+// ABOUT answers one line (an UnparsedEvent); the first event ends it.
+const ForceCase kAboutUntil{{"ABOUT"}, true};
+// V2 only: the search is restricted to the two listed moves, so the answer is one of them.
+const ForceCase kAnalz{{"INFO timeout_turn 500", "YXANALZ", "6,6", "9,9", "DONE"}, false};
+
+// Starts a 60 s search, forces `c` after 500 ms and checks the three outcomes of the spike: the
+// old search ends with a move, the command answers, and a new short search still answers.
+// Asserts the outcomes only, not the AUD-08 drop race (it is timing dependent).
+void runForce(Gen gen, const ForceCase& c, bool expectAnalzMove, int rounds) {
+    ProcessOptions o;
+    o.program = forcePath(gen);
+    // Rapfi reads config.toml and its weights from the working directory, next to the binary.
+    o.workingDirectory = std::filesystem::path(o.program).parent_path().string();
+    ProcessTransport t(o);
+    GomocupEngine    engine(t);
+    REQUIRE(engine.open());
+    DeadlineEngine guarded(engine, DeadlineEngine::Options{8000ms});
+    auto           pos = threeMoves();
+
+    for (int round = 0; round < rounds; ++round) {
+        CAPTURE(round);
+        Limits lim;
+        lim.turnTime = 60'000ms;
+        Terminal oldSink;
+        REQUIRE(guarded.startSearch(pos, lim, oldSink));
+        std::this_thread::sleep_for(500ms);
+
+        Command cmd;
+        cmd.lines = c.lines;
+        if (c.until) {
+            cmd.completion = Command::Until{[](const SearchEvent&) { return true; }};
+        } else {
+            cmd.completion = Command::Search{};
+        }
+        Terminal cmdSink;
+        cmdSink.anyEvent = c.until;
+        REQUIRE(guarded.execute(cmd, cmdSink, CommandOptions{true}));
+
+        REQUIRE(oldSink.wait(8s));
+        {
+            std::lock_guard lock(oldSink.m);
+            REQUIRE(std::holds_alternative<BestMoveEvent>(oldSink.events.back()));
+            CHECK(pos.contains(std::get<BestMoveEvent>(oldSink.events.back()).coord));
+        }
+        REQUIRE(cmdSink.wait(8s));
+        {
+            std::lock_guard lock(cmdSink.m);
+            if (!c.until) {
+                REQUIRE(std::holds_alternative<BestMoveEvent>(cmdSink.events.back()));
+                if (expectAnalzMove) {
+                    // YXANALZ whitelist: only the two listed moves may come back.
+                    const Coord got = std::get<BestMoveEvent>(cmdSink.events.back()).coord;
+                    CHECK((got == Coord{6, 6} || got == Coord{9, 9}));
+                }
+            }
+        }
+
+        // The engine is free again and a new short search answers.
+        Limits shortLim;
+        shortLim.turnTime = 500ms;
+        Terminal                         again;
+        std::expected<void, EngineError> started = std::unexpected(EngineError::Busy);
+        for (int i = 0; i < 100 && !started; ++i) {
+            started = guarded.startSearch(pos, shortLim, again);
+            if (!started) std::this_thread::sleep_for(50ms);
+        }
+        REQUIRE(started);
+        REQUIRE(again.wait(8s));
+        std::lock_guard lock(again.m);
+        REQUIRE(std::holds_alternative<BestMoveEvent>(again.events.back()));
+    }
+    t.close();
+}
+
+#define REQUIRE_FORCE(gen, var)                                                                    \
+    if (!forcePath(gen)) {                                                                         \
+        std::cout << "SKIPPED: " var " not set\n";                                                 \
+        return;                                                                                    \
+    }
+
+}  // namespace
+
+TEST_CASE("ext10_live: V2 force over a search with a BOARD search command") {
+    REQUIRE_FORCE(Gen::V2, "PYGOMO_RAPFI_V2");
+    runForce(Gen::V2, kBoardSearch, false, 3);
+}
+
+TEST_CASE("ext10_live: V2 force over a search with an Until ABOUT command") {
+    REQUIRE_FORCE(Gen::V2, "PYGOMO_RAPFI_V2");
+    runForce(Gen::V2, kAboutUntil, false, 3);
+}
+
+TEST_CASE("ext10_live: V2 force over a search with YXANALZ answers a whitelisted move") {
+    REQUIRE_FORCE(Gen::V2, "PYGOMO_RAPFI_V2");
+    runForce(Gen::V2, kAnalz, true, 3);
+}
+
+TEST_CASE("ext10_live: V3 force over a search with a BOARD search command") {
+    REQUIRE_FORCE(Gen::V3, "PYGOMO_RAPFI_V3");
+    runForce(Gen::V3, kBoardSearch, false, 3);
+}
+
+TEST_CASE("ext10_live: V3 force over a search with an Until ABOUT command") {
+    REQUIRE_FORCE(Gen::V3, "PYGOMO_RAPFI_V3");
+    runForce(Gen::V3, kAboutUntil, false, 3);
 }

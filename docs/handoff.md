@@ -12,16 +12,15 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing active. Planning `extensible-engine-commands` is complete (EXT-00..11 done 2026-11-23).
-TSAN-01 done: the tsan preset demotes `free-nonheap-object` and `maybe-uninitialized` to
-warnings (g++ 15 false positives in libstdc++); tsan 118/118, no race; EXT-10 closed.
+Nothing active. LIVE-01 done: `ext10_live` (5 cases, V2 and V3 force) in tests/live; run with
+PYGOMO_RAPFI_V2 and PYGOMO_RAPFI_V3, skipped without them.
 
 ## Next step
-1. LIVE-01 (backlog, size M): turn the force spike into a permanent live test `ext10_live`
-   (owner agreed 2026-11-23); not started. Spike: docs/reports/rapfi-force-live-spike-2026-11-23.md.
-2. After that, pick the next todo or planning with the owner.
+Pick the next todo or planning with the owner.
 
 ## Uncertain
+- LIVE-01: YXANALZ asserts one of the two listed moves (spike saw only 9,9; 6,6 also appears).
+  V3 stable and the AUD-08 drop race are not covered.
 - TSAN-01: the same g++ 15 warnings also break any other -O2 build with
   PYGOMO_WARNINGS_AS_ERRORS=ON (e.g. a Release preset); only the tsan preset was changed.
   No GCC bug id was verified; recheck the two -Wno-error flags after a GCC upgrade.
