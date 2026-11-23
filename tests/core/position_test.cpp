@@ -1,5 +1,8 @@
 #include <doctest.h>
 
+#include <algorithm>
+#include <string>
+
 #include "pygomo/core/position.hpp"
 
 using namespace pygomo;
@@ -79,4 +82,99 @@ TEST_CASE("Positions compare by size and move list") {
     REQUIRE(b.play({1, 1}).has_value());
     CHECK(a == b);
     CHECK(Position::create(15, 14).value() != Position::create(15, 15).value());
+}
+
+TEST_CASE("ext06_layout: play on a blocked cell fails with Blocked and changes nothing") {
+    BoardLayout layout;
+    layout.blocked = {{2, 2}, {0, 4}};
+    auto p         = Position::create(5, 5, layout).value();
+    REQUIRE(p.play({1, 1}).has_value());
+    const Position before = p;
+
+    for (Coord c : {Coord{2, 2}, Coord{0, 4}}) {
+        auto r = p.play(c);
+        REQUIRE_FALSE(r.has_value());
+        CHECK(r.error() == PositionError::Blocked);
+        CHECK(p.blocked(c));
+        // A blocked cell holds no stone.
+        CHECK_FALSE(p.occupied(c));
+    }
+    CHECK(p == before);
+    CHECK(p.moves().size() == 1);
+    CHECK(p.sideToMove() == Side::White);
+    CHECK_FALSE(p.blocked({1, 1}));
+    CHECK_FALSE(p.blocked({-1, 0}));
+}
+
+TEST_CASE("ext06_layout: play checks OutOfBounds before Blocked") {
+    auto p = Position::create(3, 3, BoardLayout{.blocked = {{0, 0}}}).value();
+    auto r = p.play({3, 0});
+    REQUIRE_FALSE(r.has_value());
+    CHECK(r.error() == PositionError::OutOfBounds);
+}
+
+TEST_CASE("ext06_layout: moves and sideToMove are unchanged by a layout") {
+    BoardLayout layout;
+    layout.torus      = true;
+    layout.blocked    = {{0, 0}};
+    layout.portals    = {{{1, 1}, {13, 13}}};
+    layout.extensions = {{"note", Value{std::string{"x"}}}};
+    auto plain        = Position::create(15, 15).value();
+    auto shaped       = Position::create(15, 15, layout).value();
+    for (Coord c : {Coord{7, 7}, Coord{8, 7}, Coord{1, 1}}) {
+        REQUIRE(plain.play(c).has_value());
+        REQUIRE(shaped.play(c).has_value());
+    }
+    CHECK(std::ranges::equal(plain.moves(), shaped.moves()));
+    CHECK(shaped.sideToMove() == plain.sideToMove());
+    CHECK(shaped.layout() == layout);
+}
+
+TEST_CASE("ext06_layout: layouts take part in equality") {
+    auto plain  = Position::create(15, 15).value();
+    auto walled = Position::create(15, 15, BoardLayout{.blocked = {{0, 0}}}).value();
+    auto torus  = Position::create(15, 15, BoardLayout{.torus = true}).value();
+    CHECK(plain != walled);
+    CHECK(plain != torus);
+    CHECK(walled != torus);
+    REQUIRE(plain.play({7, 7}).has_value());
+    REQUIRE(walled.play({7, 7}).has_value());
+    CHECK(plain != walled);
+    auto walledAgain = Position::create(15, 15, BoardLayout{.blocked = {{0, 0}}}).value();
+    REQUIRE(walledAgain.play({7, 7}).has_value());
+    CHECK(walled == walledAgain);
+}
+
+TEST_CASE("ext06_layout: create rejects an off-board blocked or portal cell") {
+    for (Coord off : {Coord{-1, 0}, Coord{0, -1}, Coord{5, 0}, Coord{0, 4}}) {
+        auto wall = Position::create(5, 4, BoardLayout{.blocked = {{1, 1}, off}});
+        REQUIRE_FALSE(wall.has_value());
+        CHECK(wall.error() == PositionError::OutOfBounds);
+
+        auto first = Position::create(5, 4, BoardLayout{.portals = {{off, {1, 1}}}});
+        REQUIRE_FALSE(first.has_value());
+        CHECK(first.error() == PositionError::OutOfBounds);
+
+        auto second = Position::create(5, 4, BoardLayout{.portals = {{{1, 1}, off}}});
+        REQUIRE_FALSE(second.has_value());
+        CHECK(second.error() == PositionError::OutOfBounds);
+    }
+    auto bad = Position::create(0, 4, BoardLayout{.blocked = {{9, 9}}});
+    REQUIRE_FALSE(bad.has_value());
+    CHECK(bad.error() == PositionError::InvalidBoardSize);
+    CHECK(Position::create(5, 4, BoardLayout{.blocked = {{4, 3}}, .portals = {{{0, 0}, {4, 3}}}})
+              .has_value());
+}
+
+TEST_CASE("ext06_layout: the default layout keeps the old behaviour") {
+    auto p = Position::create(15, 15).value();
+    CHECK(p.layout() == BoardLayout{});
+    CHECK(p == Position::create(15, 15, BoardLayout{}).value());
+    for (int y = 0; y < 15; ++y) {
+        for (int x = 0; x < 15; ++x) CHECK_FALSE(p.blocked({x, y}));
+    }
+    REQUIRE(p.play({0, 0}).has_value());
+    auto again = p.play({0, 0});
+    REQUIRE_FALSE(again.has_value());
+    CHECK(again.error() == PositionError::Occupied);
 }

@@ -774,14 +774,14 @@ and \code{opposite(side)} returns the other one.
 \begin{lstlisting}
 auto position = Position::create(15, 15);   // expected<Position, PositionError>
 if (!position) { /* InvalidBoardSize: outside 1..Position::kMaxSide (1024) */ }
-if (auto ok = position->play({7, 7}); !ok) { /* OutOfBounds or Occupied; unchanged */ }
+if (auto ok = position->play({7, 7}); !ok) { /* OutOfBounds, Blocked or Occupied; unchanged */ }
 position->sideToMove();   // Black after an even number of moves
 position->moves();        // span<const Move>, in the order played
 \end{lstlisting}
 
 \noindent A position is any rectangle; whether an engine accepts a non-square board is the
 adapter's decision. \code{Position} knows nothing about wins or forbidden moves: it records stones
-and rejects only off-board or occupied points.
+and rejects only off-board, blocked (\code{BoardLayout}) or occupied points.
 
 \subsection{Rules (\file{rules.hpp})}
 
