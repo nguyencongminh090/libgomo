@@ -2,7 +2,7 @@
 id: EXT-07-request-encoder-gomocup
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -24,7 +24,7 @@ The encoder runs under the adapter lock today (lines are built there): keep it p
 Features `EXT-07-*` in `docs/features.json` (`harness-track EXT-07`).
 
 ## Evidence
-(fill in before marking done)
+2026-11-23, Opus subagent. `ctest -R '^ext07_'` 4/4; full suite 100/100 on master after merge (live skipped); check-core-deps OK; no existing test edited. Extra public alias `EncodedRequest` (keeps `RequestEncoder` on one documented line). The square check moved into the default encoder, so a non-square board while Busy/closed now gives Busy/NotReady first. Not done (scope): the illegal-move check does not reject a move on a blocked cell.
 
 ## Links
 `features/extensible-engine-commands/planning.md`

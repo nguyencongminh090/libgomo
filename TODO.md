@@ -1,7 +1,6 @@
 # TODO
 
 ## Backlog
-- [ ] **EXT-07.** GomocupEngine: RequestEncoder and pygomo::encode - size M - [detail](docs/todo/EXT-07-request-encoder-gomocup.md)
 - [ ] **EXT-08.** GtpEngine and KataGomoEngine: RequestEncoder - size M - [detail](docs/todo/EXT-08-request-encoder-gtp-katagomo.md)
 - [ ] **EXT-09.** Rectangular boards: RECTSTART in GomocupEngine - size M - [detail](docs/todo/EXT-09-rect-boards.md)
 - [ ] **EXT-10.** CommandPort: typed commands, completion modes and force - size M - [detail](docs/todo/EXT-10-command-port-force.md)
@@ -30,6 +29,7 @@
 - [x] **EXT-04.** GtpEngine and KataGomoEngine: pluggable LineParser - size M - [detail](docs/todo/EXT-04-line-parser-gtp-katagomo.md)
 - [x] **EXT-05.** Core: Rules::extensions - size M - [detail](docs/todo/EXT-05-rules-extensions.md)
 - [x] **EXT-06.** Core: BoardLayout in Position (WALL, Torus, Portal) - size M - [detail](docs/todo/EXT-06-board-layout-position.md)
+- [x] **EXT-07.** GomocupEngine: RequestEncoder and pygomo::encode - size M - [detail](docs/todo/EXT-07-request-encoder-gomocup.md)
 - [x] **FMT-01.** Install clang-format, add the alignment-only config, measure the diff - size M - [detail](docs/todo/FMT-01-install-config-measure.md)
 - [x] **FMT-02.** Apply clang-format once and add the format check script - size M - [detail](docs/todo/FMT-02-apply-format-check.md)
 - [x] **FMT-03.** Phase 2: full-style config with clang-format off fences - size M - [detail](docs/todo/FMT-03-full-style-fences.md)
