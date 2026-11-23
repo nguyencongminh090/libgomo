@@ -1595,7 +1595,7 @@
         "cmake --build --preset default && ctest --preset default"
       ],
       "checked_by": "cmake --build --preset default && ctest --preset default",
-      "passes": false
+      "passes": true
     },
     {
       "id": "FMT-02-check",
@@ -1605,7 +1605,7 @@
         "scripts/check-format.sh"
       ],
       "checked_by": "scripts/check-format.sh",
-      "passes": false
+      "passes": true
     },
     {
       "id": "FMT-03-full-style",

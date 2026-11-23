@@ -2,7 +2,7 @@
 id: FMT-02-apply-format-check
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -23,6 +23,7 @@ planning: clang-format
 Features `FMT-02-*` in `docs/features.json` (`harness-track FMT-02`).
 
 ## Evidence
+Format commit applied (includes kept in order via `SortIncludes: Never`), build + ctest 82/82 pass, `scripts/check-format.sh` exits 0 and 123 after a misaligned edit. `diff -w` shows line re-wrapping (accepted per AUD-06).
 
 ## Links
 `features/clang-format/planning.md`

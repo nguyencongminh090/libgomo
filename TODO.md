@@ -2,7 +2,7 @@
 
 ## Backlog
 - [ ] **FMT-01.** Install clang-format, add the alignment-only config, measure the diff - size M - [detail](docs/todo/FMT-01-install-config-measure.md)
-- [ ] **FMT-02.** Apply clang-format once and add the format check script - size M - [detail](docs/todo/FMT-02-apply-format-check.md)
+- [x] **FMT-02.** Apply clang-format once and add the format check script - size M - [detail](docs/todo/FMT-02-apply-format-check.md)
 - [ ] **FMT-03.** Phase 2: full-style config with clang-format off fences - size M - [detail](docs/todo/FMT-03-full-style-fences.md)
 - [ ] **FMT-04.** Phase 2: format check as a ctest entry and rule rewrite - size M - [detail](docs/todo/FMT-04-format-check-ctest.md)
 

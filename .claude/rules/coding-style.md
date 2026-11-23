@@ -22,7 +22,6 @@ when work is finished and verified, you may remind the user once that `/align` e
    - arguments of a multi-line call or signature when each line is one record
 3. Do not align:
    - across a blank line or an unrelated line (that starts a new block)
-   - when one outlier pushes the column more than ~20 characters right: break the block or wrap the outlier
    - past 100 columns
    - prose or single statements
 4. Whitespace only: no renames, reordering or logic edits. `third_party/` is never touched.
