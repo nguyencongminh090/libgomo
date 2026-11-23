@@ -18,13 +18,14 @@ the summary-field meaning and the known limits; PDF rebuilt. All four todos of p
 `detailed-search-analysis` (CORE-06, GOMO-07, GTP-07, DOC-04) are done.
 
 ## Next step
-1. The owner may close planning `detailed-search-analysis` (all its todos done) and the
-   style-normalization planning. No other todo is queued in this handoff; pick from `TODO.md`.
+1. Plannings `detailed-search-analysis` and `code-style-normalization` are closed (2026-11-23,
+   all their todos done; frontmatter stays `approved`, the harness has no closed status).
+   No other todo is queued in this handoff; pick from `TODO.md`.
    `agy -p` in `--mode accept-edits` edits files but cannot run shell commands headless;
    `--dangerously-skip-permissions` is blocked here, so the orchestrator builds and tests.
 
 Doc skills in `.claude/skills/`: README files of `documentation` and `writing-clearly-and-concisely` were read in DOC-02 (nothing to adapt); the other copied skills still carry unread README.WARNING.md/README.md.
-Style normalization (planning code-style-normalization) is finished; the owner may close the planning. A `.clang-format` stays a separate planning.
+Style normalization (planning code-style-normalization) is finished and closed (2026-11-23). A `.clang-format` stays a separate planning.
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`); re-clone into the scratchpad when needed. Rapfi: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi` (binary `build/pbrain-rapfi`).
 
 ## Uncertain
