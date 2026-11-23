@@ -1725,7 +1725,7 @@
         "ctest --preset default -R '^ext04_' --no-tests=error --output-on-failure"
       ],
       "checked_by": "ctest --preset default -R '^ext04_' --no-tests=error --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-04-suite",
@@ -1735,7 +1735,7 @@
         "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
       ],
       "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-05-tests",
