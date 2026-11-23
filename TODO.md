@@ -1,6 +1,18 @@
 # TODO
 
 ## Backlog
+- [ ] **EXT-00.** Audit: Rapfi extension findings (VC2, YXANALZ, WALL, Torus, Portal, Caro, BOARD, STOP) - size M - [detail](docs/todo/EXT-00-audit-rapfi-findings.md)
+- [ ] **EXT-01.** Core: isTerminal(SearchEvent) replaces four copies of the terminal test - size M - [detail](docs/todo/EXT-01-is-terminal-helper.md)
+- [ ] **EXT-02.** Core: Value and CustomEvent - size M - [detail](docs/todo/EXT-02-value-and-custom-event.md)
+- [ ] **EXT-03.** GomocupEngine: pluggable LineParser and chainParsers - size M - [detail](docs/todo/EXT-03-line-parser-gomocup.md)
+- [ ] **EXT-04.** GtpEngine and KataGomoEngine: pluggable LineParser - size M - [detail](docs/todo/EXT-04-line-parser-gtp-katagomo.md)
+- [ ] **EXT-05.** Core: Rules::extensions - size M - [detail](docs/todo/EXT-05-rules-extensions.md)
+- [ ] **EXT-06.** Core: BoardLayout in Position (WALL, Torus, Portal) - size M - [detail](docs/todo/EXT-06-board-layout-position.md)
+- [ ] **EXT-07.** GomocupEngine: RequestEncoder and pygomo::encode - size M - [detail](docs/todo/EXT-07-request-encoder-gomocup.md)
+- [ ] **EXT-08.** GtpEngine and KataGomoEngine: RequestEncoder - size M - [detail](docs/todo/EXT-08-request-encoder-gtp-katagomo.md)
+- [ ] **EXT-09.** Rectangular boards: RECTSTART in GomocupEngine - size M - [detail](docs/todo/EXT-09-rect-boards.md)
+- [ ] **EXT-10.** CommandPort: typed commands, completion modes and force - size M - [detail](docs/todo/EXT-10-command-port-force.md)
+- [ ] **EXT-11.** ADR, developer guide and architecture for the extension points - size M - [detail](docs/todo/EXT-11-adr-guide-architecture.md)
 
 ## Active
 

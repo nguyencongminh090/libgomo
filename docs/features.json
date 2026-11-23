@@ -1626,6 +1626,276 @@
       ],
       "checked_by": "ctest --preset default -R format",
       "passes": true
+    },
+    {
+      "id": "EXT-00-audit",
+      "todo": "EXT-00",
+      "description": "WHEN the audit exists THEN docs/audit/AUD-08-rapfi-extension-findings.md is present and harness-check passes",
+      "steps": [
+        "test -f docs/audit/AUD-08-rapfi-extension-findings.md && node scripts/harness/harness-check.mjs"
+      ],
+      "checked_by": "test -f docs/audit/AUD-08-rapfi-extension-findings.md && node scripts/harness/harness-check.mjs",
+      "passes": false
+    },
+    {
+      "id": "EXT-00-keywords",
+      "todo": "EXT-00",
+      "description": "WHEN the audit is searched THEN it names every command of the Findings table",
+      "steps": [
+        "for k in VCTHREAD YXANALZ \"RULE 8\" \"INFO WALL\" \"INFO TORUS\" YXPORTAL RECTSTART YXBOARD SWAP2BOARD YXSTOP ABOUT; do grep -q \"$k\" docs/audit/AUD-08-rapfi-extension-findings.md || exit 1; done"
+      ],
+      "checked_by": "for k in VCTHREAD YXANALZ \"RULE 8\" \"INFO WALL\" \"INFO TORUS\" YXPORTAL RECTSTART YXBOARD SWAP2BOARD YXSTOP ABOUT; do grep -q \"$k\" docs/audit/AUD-08-rapfi-extension-findings.md || exit 1; done",
+      "passes": false
+    },
+    {
+      "id": "EXT-01-tests",
+      "todo": "EXT-01",
+      "description": "WHEN the ext01 tests run THEN isTerminal is false for Info, Message, Unparsed and true for BestMove, Swap, Pass, Resign, Error",
+      "steps": [
+        "ctest --preset default -R '^ext01_' --no-tests=error --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R '^ext01_' --no-tests=error --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-01-suite",
+      "todo": "EXT-01",
+      "description": "WHEN the whole suite runs THEN it builds without warnings and every existing test passes unchanged",
+      "steps": [
+        "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
+      ],
+      "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-02-tests",
+      "todo": "EXT-02",
+      "description": "WHEN the ext02 tests run THEN CustomEvent is not terminal for blocking_search, DeadlineEngine, GomocupEngine and KataGomoEngine, and format(Value) covers every alternative",
+      "steps": [
+        "ctest --preset default -R '^ext02_' --no-tests=error --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R '^ext02_' --no-tests=error --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-02-core-deps",
+      "todo": "EXT-02",
+      "description": "WHEN the dependency check runs THEN pygomo_core still includes no I/O, thread, process or protocol header",
+      "steps": [
+        "scripts/check-core-deps.sh"
+      ],
+      "checked_by": "scripts/check-core-deps.sh",
+      "passes": false
+    },
+    {
+      "id": "EXT-02-suite",
+      "todo": "EXT-02",
+      "description": "WHEN the whole suite runs THEN everything passes",
+      "steps": [
+        "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
+      ],
+      "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-03-tests",
+      "todo": "EXT-03",
+      "description": "WHEN the ext03 tests run THEN a custom parser sees the line first, an Unparsed result falls back to the default, and no parser given keeps the old behaviour",
+      "steps": [
+        "ctest --preset default -R '^ext03_' --no-tests=error --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R '^ext03_' --no-tests=error --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-03-suite",
+      "todo": "EXT-03",
+      "description": "WHEN the whole suite runs THEN everything passes",
+      "steps": [
+        "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
+      ],
+      "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-04-tests",
+      "todo": "EXT-04",
+      "description": "WHEN the ext04 tests run THEN both adapters use the custom parser and keep their defaults without one",
+      "steps": [
+        "ctest --preset default -R '^ext04_' --no-tests=error --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R '^ext04_' --no-tests=error --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-04-suite",
+      "todo": "EXT-04",
+      "description": "WHEN the whole suite runs THEN everything passes",
+      "steps": [
+        "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
+      ],
+      "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-05-tests",
+      "todo": "EXT-05",
+      "description": "WHEN the ext05 tests run THEN a Rules value with extensions compares and validates, and each adapter refuses it by default",
+      "steps": [
+        "ctest --preset default -R '^ext05_' --no-tests=error --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R '^ext05_' --no-tests=error --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-05-suite",
+      "todo": "EXT-05",
+      "description": "WHEN the whole suite runs THEN everything passes",
+      "steps": [
+        "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
+      ],
+      "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-06-tests",
+      "todo": "EXT-06",
+      "description": "WHEN the ext06 tests run THEN play on a blocked cell fails, moves and sideToMove are unchanged, layouts take part in equality, off-board cells are rejected",
+      "steps": [
+        "ctest --preset default -R '^ext06_' --no-tests=error --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R '^ext06_' --no-tests=error --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-06-core-deps",
+      "todo": "EXT-06",
+      "description": "WHEN the dependency check runs THEN it passes",
+      "steps": [
+        "scripts/check-core-deps.sh"
+      ],
+      "checked_by": "scripts/check-core-deps.sh",
+      "passes": false
+    },
+    {
+      "id": "EXT-06-suite",
+      "todo": "EXT-06",
+      "description": "WHEN the whole suite runs THEN everything passes",
+      "steps": [
+        "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
+      ],
+      "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-07-tests",
+      "todo": "EXT-07",
+      "description": "WHEN the ext07 tests run THEN the default encoder reproduces the old lines byte for byte, a custom encoder replaces them, and an unsupported request sends nothing",
+      "steps": [
+        "ctest --preset default -R '^ext07_' --no-tests=error --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R '^ext07_' --no-tests=error --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-07-suite",
+      "todo": "EXT-07",
+      "description": "WHEN the whole suite runs THEN all existing Gomocup tests pass unchanged",
+      "steps": [
+        "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
+      ],
+      "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-08-tests",
+      "todo": "EXT-08",
+      "description": "WHEN the ext08 tests run THEN defaults are byte-identical and a custom encoder replaces the script in both adapters",
+      "steps": [
+        "ctest --preset default -R '^ext08_' --no-tests=error --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R '^ext08_' --no-tests=error --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-08-suite",
+      "todo": "EXT-08",
+      "description": "WHEN the whole suite runs THEN everything passes",
+      "steps": [
+        "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
+      ],
+      "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-09-tests",
+      "todo": "EXT-09",
+      "description": "WHEN the ext09 tests run THEN a 15x10 position sends RECTSTART 15,10 to Gomocup, boardsize 15 10 to GTP, and is Unsupported for KataGomo",
+      "steps": [
+        "ctest --preset default -R '^ext09_' --no-tests=error --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R '^ext09_' --no-tests=error --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-09-suite",
+      "todo": "EXT-09",
+      "description": "WHEN the whole suite runs THEN everything passes",
+      "steps": [
+        "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
+      ],
+      "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-10-tests",
+      "todo": "EXT-10",
+      "description": "WHEN the ext10 tests run THEN a command during a search is Busy, force sends the command only after the terminal event, and the three completion modes end as specified",
+      "steps": [
+        "ctest --preset default -R '^ext10_' --no-tests=error --output-on-failure"
+      ],
+      "checked_by": "ctest --preset default -R '^ext10_' --no-tests=error --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-10-tsan",
+      "todo": "EXT-10",
+      "description": "WHEN the tsan preset runs the ext10 tests THEN there is no data race",
+      "steps": [
+        "cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan -R '^ext10_' --no-tests=error --output-on-failure"
+      ],
+      "checked_by": "cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan -R '^ext10_' --no-tests=error --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-10-suite",
+      "todo": "EXT-10",
+      "description": "WHEN the whole suite runs THEN everything passes",
+      "steps": [
+        "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
+      ],
+      "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
+      "passes": false
+    },
+    {
+      "id": "EXT-11-docs",
+      "todo": "EXT-11",
+      "description": "WHEN the harness check runs THEN the new ADR and the updated docs are valid",
+      "steps": [
+        "node scripts/harness/harness-check.mjs"
+      ],
+      "checked_by": "node scripts/harness/harness-check.mjs",
+      "passes": false
+    },
+    {
+      "id": "EXT-11-suite",
+      "todo": "EXT-11",
+      "description": "WHEN the whole suite runs THEN everything passes (doc-comment and format checks included)",
+      "steps": [
+        "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
+      ],
+      "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
+      "passes": false
     }
   ]
 }
