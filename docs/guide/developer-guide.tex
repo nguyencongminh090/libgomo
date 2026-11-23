@@ -1,4 +1,4 @@
-% PyGomo developer and contributor guide.
+% libgomo developer and contributor guide.
 % Build (out of tree): latexmk -pdf -outdir=<dir> docs/guide/developer-guide.tex
 \documentclass[11pt,a4paper]{article}
 
@@ -23,7 +23,7 @@
 \definecolor{st}{HTML}{067D17}
 
 % One style for the three figures. Fill shade marks the layer; every box also names its module,
-% so no meaning rests on colour alone. Dotted boxes are outside PyGomo.
+% so no meaning rests on colour alone. Dotted boxes are outside libgomo.
 \colorlet{layercore}{gray!20}
 \colorlet{layeradapter}{blue!10}
 \colorlet{layerio}{green!12}
@@ -61,15 +61,15 @@
 \setlength{\parskip}{4pt}
 \setlength{\emergencystretch}{3em}
 
-\title{\textbf{PyGomo}\\[4pt]\large Developer and Contributor Guide}
-\author{PyGomo project}
+\title{\textbf{libgomo}\\[4pt]\large Developer and Contributor Guide}
+\author{libgomo project}
 \date{Version 0.1.0 \quad--\quad November 2026}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-\noindent PyGomo is a C++23 framework that connects applications to Gomoku engines. An application
+\noindent libgomo is a C++23 framework that connects applications to Gomoku engines. An application
 talks to one protocol-neutral interface, \code{EnginePort}; adapters translate it to the wire
 protocol an engine speaks (Gomocup, also called Piskvork, with Yixin extensions; GTP with KataGomo
 extensions; and KataGomo's \code{gom} mode) and parse the engine's text output into typed events.
@@ -89,9 +89,9 @@ using and extending the library, collects the reference facts, and describes how
 \section{Overview}
 %======================================================================
 
-\subsection{What PyGomo is, and what it is not}
+\subsection{What libgomo does}
 
-PyGomo is the protocol layer between an application (a GUI, a match runner, an analysis tool) and
+libgomo is the protocol layer between an application (a GUI, a match runner, an analysis tool) and
 a Gomoku engine running as a separate process. Its priorities, in order:
 
 \begin{enumerate}
@@ -150,7 +150,7 @@ The top-level folders and what each holds:
 \toprule
 \normalfont\textbf{Path} & \textbf{Contents} \\
 \midrule
-include/pygomo/<module>/ & Public headers, one folder per module (Section~\ref{sec:layers}). \\
+include/gomo/<module>/ & Public headers, one folder per module (Section~\ref{sec:layers}). \\
 src/<module>/            & Implementations. \\
 tests/                   & doctest suites per module, fixtures, smoke and live tests. \\
 tests/fixtures/          & Recorded or source-derived engine output (Gomocup, GTP). \\
@@ -190,7 +190,7 @@ ctest --preset default
 ctest --preset default -R smoke
 
 # One doctest case, directly
-./build/default/tests/pygomo_core_tests -tc="<test case name>"
+./build/default/tests/gomo_core_tests -tc="<test case name>"
 
 # Architecture check: the core stays protocol- and I/O-free
 scripts/check-core-deps.sh
@@ -199,7 +199,7 @@ scripts/check-core-deps.sh
 cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan
 
 # Live tests against a real Rapfi engine (skipped without the variable)
-PYGOMO_RAPFI=/path/to/pbrain-rapfi ctest --preset default -R gomo2_
+GOMO_RAPFI=/path/to/pbrain-rapfi ctest --preset default -R gomo2_
 
 # Work-tracking harness: lint the docs, print one todo
 node scripts/harness/harness-check.mjs
@@ -216,14 +216,14 @@ node scripts/harness/harness-track.mjs <CODE>
 \toprule
 \textbf{Preset} & \textbf{Build dir} & \textbf{Settings} \\
 \midrule
-\code{default} & \file{build/default} & Debug, \code{PYGOMO\_WARNINGS\_AS\_ERRORS=ON} \\
+\code{default} & \file{build/default} & Debug, \code{GOMO\_WARNINGS\_AS\_ERRORS=ON} \\
 \code{tsan}    & \file{build/tsan}    & RelWithDebInfo, \code{-fsanitize=thread}, warnings as errors \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \noindent Every target is compiled with \code{-Wall -Wextra -Wpedantic -Wconversion -Wshadow}
-(\code{/W4} on MSVC) through the CMake function \code{pygomo\_enable\_warnings}. Call it for every
+(\code{/W4} on MSVC) through the CMake function \code{gomo\_enable\_warnings}. Call it for every
 new target, including test executables.
 
 
@@ -231,21 +231,21 @@ new target, including test executables.
 \section{Your first search}\label{sec:first}
 %======================================================================
 
-This tutorial builds a small program that asks a Gomocup engine for a move. You need a Gomocup
-engine executable; the steps below were run with Rapfi's \file{pbrain-rapfi}. Commands run in an
-empty directory next to a checkout of PyGomo.
+This tutorial builds a small program that asks a Gomocup engine for a move. You need POSIX and a
+Gomocup engine executable such as Rapfi's \file{pbrain-rapfi}. Start in an empty directory next to
+a checkout of libgomo.
 
 \begin{enumerate}
-  \item \textbf{Check the library.} From the PyGomo root run
+  \item \textbf{Check the library.} From the libgomo root run
         \code{cmake --preset default \&\& cmake --build --preset default \&\& ctest --preset default
         -R smoke}. Expect \code{100\% tests passed}.
-  \item \textbf{Create the project.} Write \file{CMakeLists.txt}:
+  \item \textbf{Create the project.} Write \file{CMakeLists.txt} and substitute your checkout path.
 \begin{lstlisting}[style=sh]
 cmake_minimum_required(VERSION 3.25)
-project(first_search CXX)
-add_subdirectory(/path/to/PyGomo pygomo)
+project(first_search LANGUAGES CXX)
+add_subdirectory("/path/to/libgomo" gomo)
 add_executable(first_search main.cpp)
-target_link_libraries(first_search PRIVATE pygomo::gomocup pygomo::process pygomo::engine)
+target_link_libraries(first_search PRIVATE gomo::gomocup gomo::process gomo::engine)
 \end{lstlisting}
   \item \textbf{Write the program.} Copy the first listing of Section~\ref{sec:howto-search} into
         \file{main.cpp}.
@@ -269,7 +269,7 @@ how they fit together, and Section~\ref{sec:howto-search} explains the program l
 
 \subsection{Style: ports and adapters}
 
-PyGomo follows the hexagonal (ports and adapters) style. The decision and the rejected
+libgomo follows the hexagonal (ports and adapters) style. The decision and the rejected
 alternatives are recorded in \file{features/engine-protocol-port/planning.md}. Read that planning
 for the rationale only: some of its protocol mapping rows are stale (GTP now sends bare rule
 commands and the full move list, Gomocup sends lower-case \code{INFO} keys), and the code decides
@@ -292,7 +292,7 @@ the wire format. In short:
 
 \subsection{Modules and dependencies}
 
-Each module is one static library with an alias target \code{pygomo::<module>};
+Each module is one static library with an alias target \code{gomo::<module>};
 Figure~\ref{fig:modules} shows which links which.
 
 \begin{figure}[tbp]
@@ -339,17 +339,17 @@ Figure~\ref{fig:modules} shows which links which.
 \toprule
 \normalfont\textbf{Target} & \normalfont\textbf{Links} & \textbf{Role} \\
 \midrule
-pygomo\_core      & --- & Neutral types and the \code{EnginePort} / \code{CommandPort} /
+gomo\_core      & --- & Neutral types and the \code{EnginePort} / \code{CommandPort} /
                           \code{EventSink} interfaces. No I/O, no threads, no protocol names. \\
-pygomo\_transport & Threads & \code{Transport} port and \code{StreamTransport}. Protocol-blind;
+gomo\_transport & Threads & \code{Transport} port and \code{StreamTransport}. Protocol-blind;
                           independent of the core. \\
-pygomo\_parse     & core & Pure text-to-event parsers (Gomocup, GTP) and the \code{LineParser} hook. \\
-pygomo\_engine    & core, Threads & Blocking \code{search()} and \code{DeadlineEngine}; works
+gomo\_parse     & core & Pure text-to-event parsers (Gomocup, GTP) and the \code{LineParser} hook. \\
+gomo\_engine    & core, Threads & Blocking \code{search()} and \code{DeadlineEngine}; works
                           with any adapter. \\
-pygomo\_gomocup   & core, parse, transport & Gomocup adapter and its \code{pygomo::encode} builders. \\
-pygomo\_gtp       & core, parse, transport & GTP adapter (KataGomo extensions) and builders. \\
-pygomo\_katagomo  & core, parse, transport & KataGomo \code{gom} mode adapter and builders. \\
-pygomo\_process   & transport & \code{ProcessTransport}: spawns the engine (POSIX only). \\
+gomo\_gomocup   & core, parse, transport & Gomocup adapter and its \code{gomo::encode} builders. \\
+gomo\_gtp       & core, parse, transport & GTP adapter (KataGomo extensions) and builders. \\
+gomo\_katagomo  & core, parse, transport & KataGomo \code{gom} mode adapter and builders. \\
+gomo\_process   & transport & \code{ProcessTransport}: spawns the engine (POSIX only). \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -360,12 +360,12 @@ pygomo\_process   & transport & \code{ProcessTransport}: spawns the engine (POSI
 (Section~\ref{sec:process}) hold the other two.
 
 \begin{enumerate}
-  \item \textbf{The core is protocol- and I/O-free.} \file{include/pygomo/core/} and
+  \item \textbf{The core is protocol- and I/O-free.} \file{include/gomo/core/} and
         \file{src/core/} include no stream, thread, process, signal or filesystem header, and no
         header whose path names a protocol or engine (\code{gomocup}, \code{gtp}, \code{rapfi},
         \code{katagomo}, \code{transport}, \code{adapter}, \ldots). Checked by
         \file{scripts/check-core-deps.sh}.
-  \item \textbf{The transport port is protocol-blind.} \file{include/pygomo/transport/} never
+  \item \textbf{The transport port is protocol-blind.} \file{include/gomo/transport/} never
         mentions a protocol or engine name. Same script.
   \item \textbf{Adapters never depend on each other.} A new protocol adds a module; it does not edit
         an existing one.
@@ -405,7 +405,7 @@ running down.
   \code{Transport::writeLine} (\code{START}, the \code{INFO} lines, then \code{BEGIN} or
   \code{BOARD}~\ldots~\code{DONE}) and returns before the engine answers. Every later step runs on
   the transport's reader thread: \code{TransportListener::onLine}, the parser, and
-  \code{EventSink::onEvent}. Dotted boxes are outside PyGomo.}
+  \code{EventSink::onEvent}. Dotted boxes are outside libgomo.}
 \label{fig:search-flow}
 \end{figure}
 
@@ -424,7 +424,7 @@ ignores synchronising commands while it thinks, so after a timeout the only safe
 
 Two places could own that logic. Putting it in each adapter would repeat a timer, a thread and the
 owed-answer state three times, and would give the core's one-search-at-a-time rule a different
-timeout story per protocol. PyGomo instead wraps any \code{EnginePort} in \code{DeadlineEngine},
+timeout story per protocol. libgomo instead wraps any \code{EnginePort} in \code{DeadlineEngine},
 so the adapters stay free of timers and threads and every protocol gets the same behaviour
 (\file{docs/audit/AUD-03}, which supersedes AUD-01). The price is one more object to create and a
 destruction order to respect (Section~\ref{sec:deadline}).
@@ -439,12 +439,12 @@ destruction order to respect (Section~\ref{sec:deadline}).
 
 \subsection{Linking}
 
-PyGomo has no install step yet: add the checkout with \code{add\_subdirectory}, then link the
+libgomo has no install step yet: add the checkout with \code{add\_subdirectory}, then link the
 alias targets you need. Include directories and C++23 come with them.
 
 \begin{lstlisting}[style=sh]
-add_subdirectory(/path/to/PyGomo pygomo)
-target_link_libraries(my_app PRIVATE pygomo::gomocup pygomo::process pygomo::engine)
+add_subdirectory("/path/to/libgomo" gomo)
+target_link_libraries(my_app PRIVATE gomo::gomocup gomo::process gomo::engine)
 \end{lstlisting}
 
 \subsection{A blocking search with a deadline}\label{sec:howto-search}
@@ -458,12 +458,12 @@ Section~\ref{sec:first} and was compiled and run against a real Rapfi.
 #include <cstdio>
 #include <variant>
 
-#include "pygomo/engine/blocking_search.hpp"
-#include "pygomo/engine/deadline_engine.hpp"
-#include "pygomo/gomocup/gomocup_engine.hpp"
-#include "pygomo/process/process_transport.hpp"
+#include "gomo/engine/blocking_search.hpp"
+#include "gomo/engine/deadline_engine.hpp"
+#include "gomo/gomocup/gomocup_engine.hpp"
+#include "gomo/process/process_transport.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 using namespace std::chrono_literals;
 
 // Plays one search on a 15x15 Renju board and prints the result.
@@ -519,10 +519,23 @@ int main(int argc, char** argv) {
 \subsection{An asynchronous search with a custom sink}
 
 For a GUI or an analysis view, implement \code{EventSink} and react to events as they arrive.
-This program streams KataGomo analysis through \code{GtpEngine}. It was compiled and run against a
-fake GTP engine.
+This program streams KataGomo analysis through \code{GtpEngine}. Link \code{gomo::gtp} and
+\code{gomo::process} when building it. The example was run against a fake GTP engine.
 
 \begin{lstlisting}
+#include <chrono>
+#include <condition_variable>
+#include <cstdio>
+#include <mutex>
+#include <type_traits>
+#include <variant>
+
+#include "gomo/gtp/gtp_engine.hpp"
+#include "gomo/process/process_transport.hpp"
+
+using namespace gomo;
+using namespace std::chrono_literals;
+
 // Prints progress as it arrives and wakes waitDone() on the terminal event.
 class PrintingSink final : public EventSink {
 public:
@@ -585,9 +598,6 @@ int main(int argc, char** argv) {
 }
 \end{lstlisting}
 
-{\raggedright\noindent (Includes: \file{<condition\_variable>}, \file{<cstdio>}, \file{<mutex>}, \file{<type\_traits>},
-\file{<variant>}, \file{pygomo/gtp/gtp\_engine.hpp}, \file{pygomo/process/process\_transport.hpp}.)\par}
-
 \subsection{Practical rules for applications}
 
 Follow these rules in any application built on the port:
@@ -612,7 +622,7 @@ Follow these rules in any application built on the port:
 \end{itemize}
 
 %======================================================================
-\section{Extending PyGomo}
+\section{Extending libgomo}
 %======================================================================
 
 \subsection{Adding a protocol adapter}
@@ -627,15 +637,15 @@ A new protocol is a new module; the core and existing adapters do not change.
         from the engine's source and label the fixture as source-derived) into
         \file{tests/fixtures/<protocol>/}.
   \item \textbf{Write the parser} in \file{src/parse/} with its header in
-        \file{include/pygomo/parse/}: pure, total, \code{std::string\_view} and
+        \file{include/gomo/parse/}: pure, total, \code{std::string\_view} and
         \code{std::from\_chars}, no \code{std::regex}. Unknown input becomes \code{UnparsedEvent}.
         Reuse an existing parser if the output format matches (as \code{KataGomoEngine} reuses the
         Gomocup parser).
-  \item \textbf{Write the adapter} in \file{include/pygomo/<protocol>/} and \file{src/<protocol>/},
+  \item \textbf{Write the adapter} in \file{include/gomo/<protocol>/} and \file{src/<protocol>/},
         following the shared pattern below.
-  \item \textbf{Add the CMake target} \code{pygomo\_<protocol>} with alias
-        \code{pygomo::<protocol>}, linking only \code{pygomo::core}, \code{pygomo::parse} and
-        \code{pygomo::transport}; call \code{pygomo\_enable\_warnings}.
+  \item \textbf{Add the CMake target} \code{gomo\_<protocol>} with alias
+        \code{gomo::<protocol>}, linking only \code{gomo::core}, \code{gomo::parse} and
+        \code{gomo::transport}; call \code{gomo\_enable\_warnings}.
   \item \textbf{Test} with a fake transport (Section~\ref{sec:testing}), register every test group in
         \file{tests/CMakeLists.txt}, and add a \code{DeadlineEngine} test over the new adapter.
 \end{enumerate}
@@ -695,8 +705,8 @@ private:
 Implement \code{Transport}: deliver lines on your own reader thread, serialise listener calls,
 call \code{onClosed} exactly once, reject lines containing a newline, bound the line length, and keep
 \code{close()} idempotent. Keep protocol and engine names out of
-\file{include/pygomo/transport/} (checked by \file{scripts/check-core-deps.sh}). A Windows process
-transport would be a new module next to \code{pygomo\_process}.
+\file{include/gomo/transport/} (checked by \file{scripts/check-core-deps.sh}). A Windows process
+transport would be a new module next to \code{gomo\_process}.
 
 \subsection{Adding an event or a core field}
 
@@ -717,7 +727,7 @@ same planning.
 %======================================================================
 
 An engine often has more than the three adapters know: its own output lines, its own rules, walls
-on the board, commands that start an analysis. PyGomo does not ship these. It gives you five
+on the board, commands that start an analysis. libgomo does not ship these. It gives you five
 places to plug them in, and every one is opt-in: set nothing and the adapters behave as before.
 The decision and the rejected options are in \file{docs/adr/ADR-02-\allowbreak extensible-engine-commands.md}.
 
@@ -935,7 +945,7 @@ selects cases by that prefix:
 
 \begin{lstlisting}[style=sh]
 foreach(group sequence rules events warning stop closed rect deadline)
-  add_test(NAME gomo_${group} COMMAND pygomo_gomocup_tests "-tc=gomo_${group}*")
+  add_test(NAME gomo_${group} COMMAND gomo_gomocup_tests "-tc=gomo_${group}*")
 endforeach()
 \end{lstlisting}
 
@@ -956,7 +966,7 @@ The project provides four kinds of test support:
   \item \textbf{Fixtures.} \file{tests/fixtures/gomocup/} holds Rapfi output in its brief, normal and
         UCI-like formats; \file{tests/fixtures/gtp/} holds analysis lines. A fixture derived from
         source rather than captured says so in its header comment.
-  \item \textbf{Live tests} need a real engine: set \code{PYGOMO\_RAPFI} to the
+  \item \textbf{Live tests} need a real engine: set \code{GOMO\_RAPFI} to the
         \code{pbrain-rapfi} executable. Without it every live test prints \code{SKIPPED} and
         ctest reports it as skipped, not passed.
   \item \textbf{ThreadSanitizer.} Adapters, transports and \code{DeadlineEngine} are concurrent; run
@@ -972,7 +982,7 @@ The project provides four kinds of test support:
 \section{The core model}
 %======================================================================
 
-All core types live in namespace \code{pygomo} under \file{include/pygomo/core/}. Errors are
+All core types live in namespace \code{gomo} under \file{include/gomo/core/}. Errors are
 returned as \code{std::expected<T, E>}; nothing in the library throws on purpose.
 
 \subsection{Coordinates and moves (\file{coord.hpp}, \file{side.hpp})}
@@ -1389,7 +1399,7 @@ rules come from the rule commands.
 
 \subsection{Parsers}
 
-Parsers live in namespace \code{pygomo::parse}, are pure and total, and never throw.
+Parsers live in namespace \code{gomo::parse}, are pure and total, and never throw.
 
 \begin{description}[style=nextline]
   \item[\code{parseGomocupLine(line)}] \code{SWAP} $\to$ \code{SwapEvent};
@@ -1505,7 +1515,7 @@ Figure~\ref{fig:deadline} shows the timeline of a search that times out.
 
 Each module has one doctest executable; two more cover \code{DeadlineEngine} over the GTP and
 KataGomo adapters, and the live Rapfi tests. All of them share \file{tests/main.cpp}. The smoke
-test is a plain program without doctest. Names below omit the \code{pygomo\_} prefix.
+test is a plain program without doctest. Names below omit the \code{gomo\_} prefix.
 
 \begin{center}
 \footnotesize
@@ -1534,7 +1544,7 @@ smoke           & core links, one short game & smoke \\
 \noindent The \code{ext*} entries cover the extension points, one prefix per todo of the planning
 (\code{ext02} to \code{ext10}: custom event, parser, rules, layout, encoder, rectangular boards,
 \code{CommandPort}) in each adapter's executable, plus \code{ext09\_live} against Rapfi V3 (skipped
-without \code{PYGOMO\_RAPFI\_V3}).
+without \code{GOMO\_RAPFI\_V3}).
 
 \noindent Plus three script checks registered as ctest entries: \code{ctest\_coverage},
 \code{style\_line\_length} and \code{style\_doc\_comments}.
@@ -1644,7 +1654,7 @@ What version 0.1.0 does not do, or has not verified against a real engine:
 
 \begin{itemize}
   \item \textbf{Real-engine coverage differs by adapter.} The Gomocup adapter is verified against
-        a real Rapfi (live tests, skipped without \code{PYGOMO\_RAPFI}). The GTP and KataGomo
+        a real Rapfi (live tests, skipped without \code{GOMO\_RAPFI}). The GTP and KataGomo
         adapters were never run against a real engine: their wire format comes from reading
         KataGomo \code{Gom2026} at commit \code{9a0e65c}, and they are tested with fake transports
         only. VCN rules and \code{kata-set-rule} are not mapped.

@@ -1,11 +1,11 @@
 # TODO
 
 ## Backlog
-- [ ] **CORE-10.** Document the libgomo consumer migration - size M - [detail](docs/todo/CORE-10-document-libgomo-migration.md)
 
 ## Active
 - [~] **CORE-08.** Rename the C++ namespace and public headers to gomo - size M - [detail](docs/todo/CORE-08-rename-cpp-integration.md)
 - [~] **CORE-09.** Rename the CMake project, targets, and test settings - size M - [detail](docs/todo/CORE-09-rename-cmake-test-identifiers.md)
+- [~] **CORE-10.** Document the libgomo consumer migration - size M - [detail](docs/todo/CORE-10-document-libgomo-migration.md)
 
 ## Done
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)

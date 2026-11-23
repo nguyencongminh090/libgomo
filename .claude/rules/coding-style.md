@@ -1,6 +1,6 @@
 # Coding style: layout and comments
 
-Adapted for PyGomo (C++23) from SKILLS_TREE `rules/coding-standards/items/coding-style.md`. Naming and code structure: match
+Adapted for libgomo (C++23) from SKILLS_TREE `rules/coding-standards/items/coding-style.md`. Naming and code structure: match
 the surrounding code (types `PascalCase`, functions `camelCase`, 4-space indent). Line limit: 100 columns.
 Do not reformat code you are not changing; format only the files you touch.
 

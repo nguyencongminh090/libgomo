@@ -1,7 +1,7 @@
-# PyGomo agent guide
+# libgomo agent guide
 
 ## Project
-PyGomo is a C++ framework/protocol layer connecting applications to Gomoku engines.
+libgomo is a C++ framework/protocol layer connecting applications to Gomoku engines.
 Priorities: low coupling, multiple protocols, open interfaces for third-party protocols, and clean code.
 Engine-output text parsing must robustly support multiple formats, from abstract to detailed representations.
 No source code or build system exists yet; do not assume compiler, dependency, or test commands.
@@ -41,7 +41,7 @@ Size by risk and ambiguity before work; choose the larger size when unsure. Stop
 ## Commands
 - Build: `cmake --preset default && cmake --build --preset default` (Debug, warnings are errors)
 - Test: `ctest --preset default`
-- Single test: `./build/default/tests/pygomo_core_tests -tc="<test case name>"`
+- Single test: `./build/default/tests/gomo_core_tests -tc="<test case name>"`
 - Core dependency check: `scripts/check-core-deps.sh`
 - Smoke: `ctest --preset default -R smoke`
 - ThreadSanitizer: `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan`

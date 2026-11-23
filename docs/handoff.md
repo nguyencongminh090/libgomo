@@ -12,16 +12,14 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-CORE-09 migrated CMake to `libgomo`, `gomo_*`, and `gomo::` and moved the warning, fixture,
-and live settings to `GOMO_*`. The standalone consumer and both fresh suites passed. The
-first TSAN run timed out on the V3 `ABOUT` response in `ext10_live`; the full rerun passed.
-All seven live entries ran with Rapfi V2 and V3 and skipped with the new settings unset.
-CORE-08 moved the C++ namespace and public headers to `gomo` and is active pending
-acceptance-file approval.
+CORE-10 updated the README migration instructions, contributor commands, guide and architecture.
+The README and guide examples built in a standalone CMake project and returned moves from Rapfi.
+The guide PDF rebuilt, and the Draw.io source and PNG agree on `links gomo::core`. A clean
+`default` build passed all 119 CTest entries, including the Rapfi V2 and V3 live tests.
 
 ## Next step
-Close `CORE-08` and `CORE-09` once their acceptance-file edits are approved and checked, then
-continue `CORE-10` for consumer documentation.
+Close CORE-10 once its acceptance-file edits are approved and checked. CORE-08 and CORE-09
+also have verified implementation and pending acceptance-file edits.
 
 ## Uncertain
 - LIVE-01: YXANALZ asserts one of the two listed moves (spike saw only 9,9; 6,6 also appears).
@@ -36,8 +34,7 @@ continue `CORE-10` for consumer documentation.
   wait while another thread writes a script.
 - The illegal-move check does not reject a move on a blocked (WALL) cell; BoardLayout == is
   order-sensitive.
-- Guide: mermaid class diagram in architecture.md not render-checked; ProcessTransport snippet of
-  guide section 7 not run.
+- The Mermaid class diagram in `docs/design/architecture.md` has not been render-checked.
 - DeadlineEngine (CORE-02): a progress callback that never returns also holds back the timeout
   error and the destructor; one that makes the wrapped engine deliver its terminal event on the
   same thread deadlocks (documented in the header, not guarded).
@@ -61,4 +58,5 @@ continue `CORE-10` for consumer documentation.
 ## Blockers
 CORE-08 needs owner approval for its acceptance entries and the seven style-check header path
 updates in `docs/features.json`. CORE-09 needs owner approval for its acceptance entries and
-the warning and Rapfi name updates in that file.
+the warning and Rapfi name updates in that file. CORE-10 needs approval for its acceptance
+entries and the `CORE-03-edges` label update. The diagram check passed with the new label.

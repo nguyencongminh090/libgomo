@@ -1,4 +1,4 @@
-# PyGomo
+# libgomo
 
 C++ framework/protocol layer connecting applications to Gomoku engines. Focus: low coupling, multi-protocol, open/extensible interfaces, clean code, parsing engine text output.
 
@@ -16,8 +16,8 @@ Toolchain: CMake >= 3.25, Ninja, a C++23 compiler (checked with g++ 15). Tests u
 
 - Build: `cmake --preset default && cmake --build --preset default` (Debug, warnings are errors)
 - Test: `ctest --preset default`
-- Single test: `./build/default/tests/pygomo_core_tests -tc="<test case name>"`
-- Core dependency check: `scripts/check-core-deps.sh` (pygomo_core must include no I/O, thread, process or protocol header)
+- Single test: `./build/default/tests/gomo_core_tests -tc="<test case name>"`
+- Core dependency check: `scripts/check-core-deps.sh` (gomo_core must include no I/O, thread, process or protocol header)
 - Smoke: `ctest --preset default -R smoke`
 - Format check (clang-format 21.1.8 pinned, see `docs/audit/AUD-06-clang-format-measure.md`): `scripts/check-format.sh`; apply with `clang-format -i` on the files (not `third_party/`, `tests/fixtures`)
 - Harness check: `node scripts/harness/harness-check.mjs`
