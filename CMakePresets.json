@@ -15,11 +15,12 @@
     {
       "name": "tsan",
       "displayName": "ThreadSanitizer, Ninja, warnings as errors",
+      "description": "g++ 15 at -O2 reports false positives inside libstdc++ (variant and std::function copies); free-nonheap-object and maybe-uninitialized stay warnings here, not errors (TSAN-01).",
       "inherits": "default",
       "binaryDir": "${sourceDir}/build/tsan",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "CMAKE_CXX_FLAGS": "-fsanitize=thread -fno-omit-frame-pointer",
+        "CMAKE_CXX_FLAGS": "-fsanitize=thread -fno-omit-frame-pointer -Wno-error=free-nonheap-object -Wno-error=maybe-uninitialized",
         "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=thread"
       }
     }

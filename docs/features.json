@@ -1865,7 +1865,7 @@
         "cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan -R '^ext10_' --no-tests=error --output-on-failure"
       ],
       "checked_by": "cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan -R '^ext10_' --no-tests=error --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-10-suite",
@@ -1875,6 +1875,38 @@
         "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
       ],
       "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
+      "passes": true
+    },
+    {
+      "id": "TSAN-01-build",
+      "todo": "TSAN-01",
+      "description": "WHEN the tsan preset is configured and built from clean with g++ 15 THEN it succeeds with warnings as errors",
+      "steps": [
+        "cmake --preset tsan",
+        "cmake --build --preset tsan --clean-first"
+      ],
+      "checked_by": "cmake --preset tsan && cmake --build --preset tsan --clean-first",
+      "passes": true
+    },
+    {
+      "id": "TSAN-01-scope",
+      "todo": "TSAN-01",
+      "description": "WHEN the presets are read THEN only free-nonheap-object and maybe-uninitialized are demoted from errors, only in the tsan preset, and warnings as errors stay on",
+      "steps": [
+        "Read CMakePresets.json: the tsan CMAKE_CXX_FLAGS carry exactly these two -Wno-error= flags, the default preset has none and keeps PYGOMO_WARNINGS_AS_ERRORS=ON"
+      ],
+      "checked_by": "node -e 'const p=require(\"./CMakePresets.json\").configurePresets;const t=p.find(x=>x.name===\"tsan\"),d=p.find(x=>x.name===\"default\");const w=(t.cacheVariables.CMAKE_CXX_FLAGS.match(/-Wno-\\S+/g)||[]).sort().join(\" \");process.exit(w===\"-Wno-error=free-nonheap-object -Wno-error=maybe-uninitialized\"&&d.cacheVariables.PYGOMO_WARNINGS_AS_ERRORS===\"ON\"&&!(\"PYGOMO_WARNINGS_AS_ERRORS\" in t.cacheVariables)&&!d.cacheVariables.CMAKE_CXX_FLAGS?0:1)'",
+      "passes": true
+    },
+    {
+      "id": "TSAN-01-suite",
+      "todo": "TSAN-01",
+      "description": "WHEN the whole suite runs under the tsan preset THEN everything passes with no ThreadSanitizer report",
+      "steps": [
+        "ctest --preset tsan --output-on-failure",
+        "grep the last test log for 'WARNING: ThreadSanitizer'"
+      ],
+      "checked_by": "ctest --preset tsan --output-on-failure && ! grep -q 'WARNING: ThreadSanitizer' build/tsan/Testing/Temporary/LastTest.log",
       "passes": true
     },
     {

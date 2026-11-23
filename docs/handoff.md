@@ -12,19 +12,20 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Planning `extensible-engine-commands`: EXT-00..09 and EXT-11 done 2026-11-23 (ADR-02 written).
-EXT-10 is active: features EXT-10-tests and EXT-10-suite pass; EXT-10-tsan cannot pass because
-the tsan preset does not build on g++ 15 (TSAN-01, pre-existing since EXT-02). ctest 118/118.
+Nothing active. Planning `extensible-engine-commands` is complete (EXT-00..11 done 2026-11-23).
+TSAN-01 done: the tsan preset demotes `free-nonheap-object` and `maybe-uninitialized` to
+warnings (g++ 15 false positives in libstdc++); tsan 118/118, no race; EXT-10 closed.
 
 ## Next step
-1. Owner: decide TSAN-01 (targeted `-Wno-free-nonheap-object` / `-Wno-maybe-uninitialized`
-   on the tsan preset, or code change) and add its features. Then run EXT-10-tsan and close
-   EXT-10 and the planning. With `-DPYGOMO_WARNINGS_AS_ERRORS=OFF` tsan passes, no race.
-2. Live checks not yet done: Command/force against a real Rapfi V2 (YXANALZ) and V3.
+1. Live checks not yet done: Command/force against a real Rapfi V2 (YXANALZ) and V3.
    V3 live: `PYGOMO_RAPFI_V3=.../Rapfi_V3_PTR/dev/rapfi/gomoku-portal-ui-distribute/pbrain-rapfi`
    (ext09_live passes).
+2. Pick the next todo or planning with the owner (backlog is empty).
 
 ## Uncertain
+- TSAN-01: the same g++ 15 warnings also break any other -O2 build with
+  PYGOMO_WARNINGS_AS_ERRORS=ON (e.g. a Release preset); only the tsan preset was changed.
+  No GCC bug id was verified; recheck the two -Wno-error flags after a GCC upgrade.
 - EXT-10: Rapfi V3 may drop a command written right after its move (AUD-08); built as planned,
   documented only (owner decision 2026-11-23). V2 YXANALZ with no valid move answers only ERROR,
   which is not terminal: Busy until close (use Until). GTP CommandPort supports None only.
@@ -55,4 +56,4 @@ the tsan preset does not build on g++ 15 (TSAN-01, pre-existing since EXT-02). c
 - DeadlineEngine: an engine that never answers after a timeout stays Busy; the caller must close it (docs/audit/AUD-03). The Gomocup timeout path ran against a real Rapfi (frozen with SIGSTOP, DEAD-04); GTP and KataGomo only against fake transports.
 
 ## Blockers
-TSAN-01 blocks closing EXT-10 (owner decision).
+None.

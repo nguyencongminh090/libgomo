@@ -2,7 +2,7 @@
 id: TSAN-01-tsan-preset-werror-gcc15
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -35,7 +35,7 @@ Owner adds features; until then: the tsan preset builds and `ctest --preset tsan
 also unblocks feature `EXT-10-tsan`.
 
 ## Evidence
-(fill in before marking done)
+2026-11-23, Opus. Owner chose `-Wno-error=free-nonheap-object -Wno-error=maybe-uninitialized` on the tsan preset only (CMakePresets.json; the reason is in the preset `description`, JSON has no comments). Measured: the warnings also appear at plain -O2 without -fsanitize (not tsan specific), all inside libstdc++ headers (variant/vector/string copies of `Value`, `std::function` copy in `Command`); GCC still prints them as warnings. No GCC bug id cited (not verified). clang 21 compiles the src files clean but doctest trips `-W#warnings` (<ciso646>), so switching compiler was not an option. Clean tsan build passes; `ctest --preset tsan` 118/118, no ThreadSanitizer report; default 118/118. TSAN-01-scope check fails on a mutated preset (an extra `-Wno-error`). Features TSAN-01-build/-scope/-suite; EXT-10-tsan now passes.
 
 ## Links
 `docs/todo/EXT-10-command-port-force.md` (Evidence), `CMakePresets.json`.
