@@ -148,6 +148,9 @@ add_test(NAME gtp7_engine COMMAND pygomo_gtp_tests "-tc=gtp7_engine*")
 add_test(NAME port3_gtp COMMAND pygomo_gtp_tests "-tc=port3_gtp*")
 add_test(NAME port3_kata COMMAND pygomo_katagomo_tests "-tc=port3_kata*")
 add_test(NAME port3_gomocup COMMAND pygomo_gomocup_tests "-tc=port3_gomocup*")
+add_test(NAME ext04_gtp COMMAND pygomo_gtp_tests "-tc=ext04_gtp*")
+add_test(NAME ext04_kata COMMAND pygomo_katagomo_tests "-tc=ext04_kata*")
+add_test(NAME ext02_kata COMMAND pygomo_katagomo_tests "-tc=ext02_kata*")
 
 add_executable(pygomo_deadline_adapter_tests
   main.cpp

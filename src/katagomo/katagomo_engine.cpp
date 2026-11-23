@@ -1,6 +1,7 @@
 #include "pygomo/katagomo/katagomo_engine.hpp"
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "pygomo/parse/gomocup_parser.hpp"
@@ -19,7 +20,9 @@ const char* ruleCommand(BoardRule r) {
 
 }  // namespace
 
-KataGomoEngine::KataGomoEngine(Transport& transport) : transport_(transport) {}
+KataGomoEngine::KataGomoEngine(Transport& transport, parse::LineParser parser)
+    : transport_(transport),
+      parser_(parser ? std::move(parser) : parse::LineParser{parse::parseGomocupLine}) {}
 
 std::expected<void, EngineError> KataGomoEngine::open() {
     if (!transport_.start(*this)) return std::unexpected(EngineError::NotReady);
@@ -93,7 +96,7 @@ std::expected<void, EngineError> KataGomoEngine::sendRaw(std::string_view line) 
 
 void KataGomoEngine::onLine(std::string_view line) {
     if (line == "OK") return;  // reply to START, not an event
-    SearchEvent event = parse::parseGomocupLine(line);
+    SearchEvent event = parser_(line);
     EventSink*  sink  = nullptr;
     {
         std::lock_guard lock(mutex_);

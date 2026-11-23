@@ -1,11 +1,13 @@
 #include <doctest.h>
 
+#include <cstdint>
 #include <functional>
 #include <mutex>
 #include <string>
 #include <vector>
 
 #include "pygomo/katagomo/katagomo_engine.hpp"
+#include "pygomo/parse/gomocup_parser.hpp"
 
 using namespace pygomo;
 
@@ -170,4 +172,77 @@ TEST_CASE("port3_kata: a failed write while the search is live is refused with n
     r.t.onWrite    = nullptr;
     r.t.failWrites = false;
     CHECK(r.e.startSearch(threeMoves(), Limits{}, sink));  // the refused search left no sink
+}
+
+namespace {
+
+// Turns "VC <n>" into a CustomEvent and leaves every other line to the default parser.
+SearchEvent vcParser(std::string_view line) {
+    if (line.starts_with("VC ")) {
+        return CustomEvent{"vc",
+                           {{"depth", std::int64_t{std::stoll(std::string{line.substr(3)})}}}};
+    }
+    return UnparsedEvent{std::string{line}};
+}
+
+}  // namespace
+
+TEST_CASE("ext02_kata: a CustomEvent from the parser does not end the search") {
+    FakeTransport  t;
+    KataGomoEngine e{t, parse::chainParsers(vcParser, parse::parseGomocupLine)};
+    REQUIRE(e.open());
+    Collect sink;
+    REQUIRE(e.startSearch(threeMoves(), Limits{}, sink));
+    t.say("VC 7");
+    CHECK(e.startSearch(threeMoves(), Limits{}, sink).error() == EngineError::Busy);
+    t.say("6,6");
+    auto ev = sink.get();
+    REQUIRE(ev.size() == 2);
+    CHECK(std::get<CustomEvent>(ev[0]).tag == "vc");
+    CHECK(std::get<BestMoveEvent>(ev[1]).coord == Coord{6, 6});
+}
+
+TEST_CASE("ext04_kata: a custom parser sees the line first, except OK") {
+    Lines seen;
+    auto  parser = [&](std::string_view l) -> SearchEvent {
+        seen.emplace_back(l);
+        return MessageEvent{"mine"};
+    };
+
+    FakeTransport  t;
+    KataGomoEngine e{t, parser};
+    REQUIRE(e.open());
+    Collect sink;
+    REQUIRE(e.startSearch(threeMoves(), Limits{}, sink));
+    t.say("OK");
+    t.say("6,6");  // the custom parser answers, so the default never reads this move
+    REQUIRE(sink.get().size() == 1);
+    CHECK(std::get<MessageEvent>(sink.get()[0]).text == "mine");
+    CHECK(seen == Lines{"6,6"});
+}
+
+TEST_CASE("ext04_kata: Unparsed falls back via chainParsers; no parser keeps old behaviour") {
+    FakeTransport  t;
+    KataGomoEngine e{t, parse::chainParsers(vcParser, parse::parseGomocupLine)};
+    REQUIRE(e.open());
+    Collect sink;
+    REQUIRE(e.startSearch(threeMoves(), Limits{}, sink));
+    t.say("OK");
+    t.say("VC 1");
+    t.say("MESSAGE Visits 10");
+    t.say("6,6");
+    auto ev = sink.get();
+    REQUIRE(ev.size() == 3);
+    CHECK(std::holds_alternative<CustomEvent>(ev[0]));
+    CHECK(std::holds_alternative<MessageEvent>(ev[1]));
+    CHECK(std::get<BestMoveEvent>(ev[2]).coord == Coord{6, 6});
+
+    Rig     r;  // default constructor argument
+    Collect s2;
+    REQUIRE(r.e.startSearch(threeMoves(), Limits{}, s2));
+    r.t.say("VC 1");
+    r.t.say("6,6");
+    REQUIRE(s2.get().size() == 2);
+    CHECK(std::holds_alternative<UnparsedEvent>(s2.get()[0]));
+    CHECK(std::get<BestMoveEvent>(s2.get()[1]).coord == Coord{6, 6});
 }

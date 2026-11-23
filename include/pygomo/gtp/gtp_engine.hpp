@@ -7,6 +7,7 @@
 #include <string>
 
 #include "pygomo/core/engine_port.hpp"
+#include "pygomo/parse/line_parser.hpp"
 #include "pygomo/transport/transport.hpp"
 
 namespace pygomo {
@@ -25,7 +26,12 @@ namespace pygomo {
 class GtpEngine final : public EnginePort, private TransportListener {
   public:
     /// Binds the engine to `transport`; nothing is read or sent until open().
-    explicit GtpEngine(Transport& transport);
+    /// `parser`, if set, runs on the reader thread (outside the lock) during a search for each
+    /// non-empty reply body line and non-header free-text line, never on reply headers or blank
+    /// terminators. Non-terminal, non-Unparsed results go to the sink and consume the line;
+    /// Unparsed or terminal results fall back to the built-in GTP handling. Only a reply ends a
+    /// search: a parser that consumes the final `play X` line of an analyze reply loses the move.
+    explicit GtpEngine(Transport& transport, parse::LineParser parser = {});
 
     /// Starts reading from the transport. Returns NotReady if the transport cannot start.
     [[nodiscard]] std::expected<void, EngineError> open();
@@ -67,6 +73,7 @@ class GtpEngine final : public EnginePort, private TransportListener {
                  std::optional<SearchEvent>& event);
 
     Transport&              transport_;
+    parse::LineParser       parser_;
     std::mutex              mutex_;
     Rules                   rules_{};
     bool                    closed_{false};

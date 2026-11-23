@@ -5,6 +5,7 @@
 #include <optional>
 
 #include "pygomo/core/engine_port.hpp"
+#include "pygomo/parse/line_parser.hpp"
 #include "pygomo/transport/transport.hpp"
 
 namespace pygomo {
@@ -20,7 +21,10 @@ namespace pygomo {
 class KataGomoEngine final : public EnginePort, private TransportListener {
   public:
     /// Binds the engine to `transport`; nothing is read or sent until open().
-    explicit KataGomoEngine(Transport& transport);
+    /// `parser` reads every engine line (except `OK`) on the reader thread; empty means
+    /// parseGomocupLine. To add to the default instead of replacing it, pass
+    /// chainParsers(custom, parseGomocupLine). The illegal-move check still runs on the result.
+    explicit KataGomoEngine(Transport& transport, parse::LineParser parser = {});
 
     /// Starts reading from the transport. Returns NotReady if the transport cannot start.
     [[nodiscard]] std::expected<void, EngineError> open();
@@ -47,6 +51,7 @@ class KataGomoEngine final : public EnginePort, private TransportListener {
     void onClosed(CloseReason reason) override;
 
     Transport&              transport_;
+    parse::LineParser       parser_;
     std::mutex              mutex_;
     Rules                   rules_{};
     bool                    closed_{false};
