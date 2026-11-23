@@ -2,6 +2,7 @@
 
 ## Backlog
 - [ ] **EXT-11.** ADR, developer guide and architecture for the extension points - size M - [detail](docs/todo/EXT-11-adr-guide-architecture.md)
+- [ ] **TSAN-01.** tsan preset fails to build on g++ 15 (-O2 -Werror false positives) - size M - [detail](docs/todo/TSAN-01-tsan-preset-werror-gcc15.md)
 
 ## Active
 - [~] **EXT-10.** CommandPort: typed commands, completion modes and force - size M - [detail](docs/todo/EXT-10-command-port-force.md)
