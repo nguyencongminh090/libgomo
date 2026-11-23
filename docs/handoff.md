@@ -16,9 +16,10 @@ Nothing active. Planning `extensible-engine-commands` is complete (EXT-00..11 do
 TSAN-01 done: the tsan preset demotes `free-nonheap-object` and `maybe-uninitialized` to
 warnings (g++ 15 false positives in libstdc++); tsan 118/118, no race; EXT-10 closed.
 
-## Next step Spike report: docs/reports/rapfi-force-live-spike-2026-11-23.md.
-   live test? (new todo if yes).
-2. Pick the next todo or planning with the owner (backlog is empty).
+## Next step
+1. LIVE-01 (backlog, size M): turn the force spike into a permanent live test `ext10_live`
+   (owner agreed 2026-11-23); not started. Spike: docs/reports/rapfi-force-live-spike-2026-11-23.md.
+2. After that, pick the next todo or planning with the owner.
 
 ## Uncertain
 - TSAN-01: the same g++ 15 warnings also break any other -O2 build with
