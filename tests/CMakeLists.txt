@@ -17,6 +17,7 @@ add_test(NAME cand1_equality COMMAND pygomo_core_tests "-tc=cand1_equality*")
 add_test(NAME cand1_compat COMMAND pygomo_core_tests "-tc=cand1_compat*")
 add_test(NAME ext01_is_terminal COMMAND pygomo_core_tests "-tc=ext01_is_terminal*")
 add_test(NAME ext02_core COMMAND pygomo_core_tests "-tc=ext02_*")
+add_test(NAME ext06_core COMMAND pygomo_core_tests "-tc=ext06_*")
 add_test(NAME core_tests COMMAND pygomo_core_tests)
 
 add_executable(pygomo_transport_tests
