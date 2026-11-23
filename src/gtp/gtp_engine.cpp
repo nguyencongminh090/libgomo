@@ -161,7 +161,8 @@ void GtpEngine::onReply(bool ok, std::optional<int> id, const std::string& text,
     auto finish = [&](SearchEvent e) {
         deliver = sink_;
         event   = std::move(e);
-        sink_   = nullptr;
+        // A queued command takes over at once: nothing may start before it is written.
+        sink_ = queued_ ? static_cast<EventSink*>(&discard_) : nullptr;
     };
     if (!ok) return finish(ErrorEvent{text});
     if (!id) return finish(ErrorEvent{"engine reply carries no id"});
@@ -215,6 +216,7 @@ void GtpEngine::onLine(std::string_view line) {
 
     EventSink*                 deliver = nullptr;
     std::optional<SearchEvent> event;
+    bool                       flush = false;
     {
         std::lock_guard lock(mutex_);
         if (!inReply_) {
@@ -242,21 +244,85 @@ void GtpEngine::onLine(std::string_view line) {
         } else {
             inReply_ = false;
             onReply(replyOk_, replyId_, replyText_, deliver, event);
+            flush = sink_ == &discard_;
         }
     }
     if (deliver) deliver->onEvent(*event);
+    if (flush) flushQueued();  // only after the terminal event reached the old sink
 }
 
 void GtpEngine::onClosed(CloseReason) {
-    EventSink* sink = nullptr;
+    EventSink* sink    = nullptr;
+    EventSink* dropped = nullptr;  // a queued command never written
     {
         std::lock_guard lock(mutex_);
         closed_ = true;
         pending_.clear();
         sink  = sink_;
         sink_ = nullptr;
+        if (queued_) dropped = queued_->sink;
+        queued_.reset();
     }
     if (sink) sink->onEvent(ErrorEvent{"engine connection closed"});
+    if (dropped) dropped->onEvent(ErrorEvent{"engine connection closed; command not sent"});
+}
+
+std::expected<void, EngineError> GtpEngine::execute(const Command& command, EventSink& sink,
+                                                    CommandOptions options) {
+    if (!std::holds_alternative<Command::None>(command.completion) || !command.block.empty() ||
+        command.terminator) {
+        return std::unexpected(EngineError::Unsupported);
+    }
+    auto lines = commandLines(command);
+    if (lines.empty()) return std::unexpected(EngineError::Unsupported);
+    std::lock_guard writeLock(writeMutex_);
+    {
+        std::lock_guard lock(mutex_);
+        if (closed_) return std::unexpected(EngineError::NotReady);
+        if (sink_) {
+            // stop() cannot interrupt genmove: the command waits for the search's natural end.
+            if (!options.force || queued_ || sink_ == &discard_) {
+                return std::unexpected(EngineError::Busy);
+            }
+            queued_ = Queued{std::move(lines), &sink};
+            return {};
+        }
+    }
+    return writeCommand(lines);
+}
+
+// Caller holds writeMutex_. Each reply is queued as raw before its line is written (AUD-04).
+std::expected<void, EngineError> GtpEngine::writeCommand(const std::vector<std::string>& lines) {
+    for (const auto& l : lines) {
+        const std::size_t replies = getsReply(l) ? 1 : 0;
+        {
+            std::lock_guard lock(mutex_);
+            pending_.insert(pending_.end(), replies, true);
+        }
+        if (!transport_.writeLine(l)) {
+            std::lock_guard lock(mutex_);
+            const auto      unwritten = std::min(replies, pending_.size());
+            pending_.erase(pending_.end() - static_cast<std::ptrdiff_t>(unwritten), pending_.end());
+            return std::unexpected(EngineError::TransportFailed);
+        }
+    }
+    return {};
+}
+
+// Reader thread, after the search's terminal event was delivered and no lock is held.
+void GtpEngine::flushQueued() {
+    std::lock_guard       writeLock(writeMutex_);
+    std::optional<Queued> queued;
+    {
+        std::lock_guard lock(mutex_);
+        queued = std::exchange(queued_, std::nullopt);
+    }
+    const bool written = !queued || writeCommand(queued->lines).has_value();
+    {
+        std::lock_guard lock(mutex_);
+        if (sink_ == &discard_) sink_ = nullptr;
+    }
+    if (!written) queued->sink->onEvent(ErrorEvent{"command could not be sent"});
 }
 
 }  // namespace pygomo

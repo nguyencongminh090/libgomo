@@ -5,7 +5,9 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <vector>
 
+#include "pygomo/core/command_port.hpp"
 #include "pygomo/core/engine_port.hpp"
 #include "pygomo/parse/line_parser.hpp"
 #include "pygomo/transport/transport.hpp"
@@ -23,7 +25,7 @@ namespace pygomo {
 /// stop() cannot interrupt a search: a GTP engine reads commands in one thread, so a line sent
 /// during `genmove` is only read after the move is chosen. Searches end by the limits given to
 /// startSearch.
-class GtpEngine final : public EnginePort, private TransportListener {
+class GtpEngine final : public EnginePort, public CommandPort, private TransportListener {
   public:
     /// Binds the engine to `transport`; nothing is read or sent until open().
     /// `parser`, if set, runs on the reader thread (outside the lock) during a search for each
@@ -63,6 +65,22 @@ class GtpEngine final : public EnginePort, private TransportListener {
     /// TransportFailed.
     [[nodiscard]] std::expected<void, EngineError> sendRaw(std::string_view line) override;
 
+    /// Writes each line of commandLines(command) as a GTP command, as is (no id). Only the None
+    /// completion and commands without `block` or `terminator` are supported: a GTP command is
+    /// one line with one reply, and the reply to an arbitrary command is no move for a known
+    /// position, so Search, Until, blocks and terminators are Unsupported. Each line's reply is
+    /// attributed like a sendRaw reply (AUD-04): dropped, since no search runs when it is sent.
+    /// Busy while a search runs. With force during a search: stop() cannot interrupt `genmove`,
+    /// so the command is queued and execute returns; it is written from the reader thread right
+    /// after the search's natural terminal event has reached the old sink (startSearch and
+    /// execute are Busy in between). Wrap in DeadlineEngine to bound the wait. A second force
+    /// while one is queued is Busy. A queued command dropped by a close, or whose write fails,
+    /// gets one ErrorEvent on its sink; otherwise the sink gets no event.
+    /// Errors: Unsupported (nothing sent), NotReady after the connection closed, Busy,
+    /// TransportFailed when a line cannot be written.
+    [[nodiscard]] std::expected<void, EngineError> execute(const Command& command, EventSink& sink,
+                                                           CommandOptions options = {}) override;
+
   private:
     void onLine(std::string_view line) override;
     void onClosed(CloseReason reason) override;
@@ -94,6 +112,23 @@ class GtpEngine final : public EnginePort, private TransportListener {
     bool               replyOk_{false};
     std::optional<int> replyId_{};
     std::string        replyText_{};
+
+    // Swallows nothing in practice; its address in sink_ keeps the engine Busy while a queued
+    // command is written after a search's terminal event.
+    struct DiscardSink final : EventSink {
+        void onEvent(const SearchEvent&) override {}
+    };
+    // A command queued by execute(force), written after the search's terminal event.
+    struct Queued {
+        std::vector<std::string> lines;
+        EventSink*               sink;
+    };
+
+    std::expected<void, EngineError> writeCommand(const std::vector<std::string>& lines);
+    void                             flushQueued();
+
+    DiscardSink           discard_{};
+    std::optional<Queued> queued_{};
 };
 
 }  // namespace pygomo

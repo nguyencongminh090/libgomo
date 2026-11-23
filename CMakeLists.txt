@@ -23,7 +23,7 @@ function(pygomo_enable_warnings target)
 endfunction()
 
 # Protocol-neutral core. It links nothing else (see scripts/check-core-deps.sh).
-add_library(pygomo_core STATIC src/core/position.cpp src/core/value.cpp)
+add_library(pygomo_core STATIC src/core/position.cpp src/core/value.cpp src/core/command_port.cpp)
 add_library(pygomo::core ALIAS pygomo_core)
 target_include_directories(pygomo_core PUBLIC include)
 target_compile_features(pygomo_core PUBLIC cxx_std_23)

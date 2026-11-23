@@ -5,7 +5,8 @@ add_executable(pygomo_core_tests
   core/rules_test.cpp
   core/limits_test.cpp
   core/search_event_test.cpp
-  core/engine_port_test.cpp)
+  core/engine_port_test.cpp
+  core/command_port_test.cpp)
 target_link_libraries(pygomo_core_tests PRIVATE pygomo::core)
 # Vendored single header; SYSTEM keeps its own warnings out of our build.
 target_include_directories(pygomo_core_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
@@ -71,7 +72,8 @@ add_test(NAME ext02_engine COMMAND pygomo_engine_tests "-tc=ext02_*")
 add_executable(pygomo_gomocup_tests
   main.cpp
   gomocup/gomocup_engine_test.cpp
-  gomocup/gomocup_encode_test.cpp)
+  gomocup/gomocup_encode_test.cpp
+  gomocup/gomocup_command_test.cpp)
 target_link_libraries(pygomo_gomocup_tests PRIVATE pygomo::gomocup pygomo::engine)
 target_include_directories(pygomo_gomocup_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
 pygomo_enable_warnings(pygomo_gomocup_tests)
@@ -128,7 +130,8 @@ endforeach()
 
 add_executable(pygomo_gtp_tests
   main.cpp
-  gtp/gtp_engine_test.cpp)
+  gtp/gtp_engine_test.cpp
+  gtp/gtp_command_test.cpp)
 target_link_libraries(pygomo_gtp_tests PRIVATE pygomo::gtp)
 target_include_directories(pygomo_gtp_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
 pygomo_enable_warnings(pygomo_gtp_tests)
@@ -139,7 +142,8 @@ add_test(NAME ext05_gtp COMMAND pygomo_gtp_tests "-tc=ext05_*")
 
 add_executable(pygomo_katagomo_tests
   main.cpp
-  katagomo/katagomo_engine_test.cpp)
+  katagomo/katagomo_engine_test.cpp
+  katagomo/katagomo_command_test.cpp)
 target_link_libraries(pygomo_katagomo_tests PRIVATE pygomo::katagomo)
 target_include_directories(pygomo_katagomo_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
 pygomo_enable_warnings(pygomo_katagomo_tests)
@@ -160,6 +164,9 @@ add_test(NAME port3_gomocup COMMAND pygomo_gomocup_tests "-tc=port3_gomocup*")
 add_test(NAME ext04_gtp COMMAND pygomo_gtp_tests "-tc=ext04_gtp*")
 add_test(NAME ext04_kata COMMAND pygomo_katagomo_tests "-tc=ext04_kata*")
 add_test(NAME ext02_kata COMMAND pygomo_katagomo_tests "-tc=ext02_kata*")
+foreach(exe core gomocup gtp katagomo)
+  add_test(NAME ext10_${exe} COMMAND pygomo_${exe}_tests "-tc=ext10_*")
+endforeach()
 
 add_executable(pygomo_deadline_adapter_tests
   main.cpp
