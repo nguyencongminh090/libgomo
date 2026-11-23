@@ -6,7 +6,7 @@ status: active
 owner: codex
 created: 2026-11-22
 supersedes: []
-links: [CORE-03-document-architecture-lifecycle]
+links: [CORE-03-document-architecture-lifecycle, ADR-02-extensible-engine-commands]
 ---
 # PyGomo architecture
 
@@ -59,14 +59,55 @@ class EventSink {
 class SearchEvent {
     <<variant>>
     InfoEvent / BestMoveEvent / SwapEvent / PassEvent
-    ResignEvent / ErrorEvent / MessageEvent / UnparsedEvent
+    ResignEvent / ErrorEvent / MessageEvent / UnparsedEvent / CustomEvent
+}
+class CustomEvent {
+    +tag string
+    +fields key and Value pairs
+}
+class Value {
+    <<variant>>
+    bool, int64, double, string, Coord, Move, vectors
+}
+class CommandPort {
+    <<interface>>
+    +execute(Command, EventSink, CommandOptions) expected
+    +canExecute(Command) bool
+}
+class Command {
+    +name, lines, args, block, terminator
+    +completion None, Search or Until
+}
+class CommandOptions {
+    +force bool
+}
+class SearchRequest {
+    +rules Rules
+    +position Position
+    +limits Limits
+}
+class RequestEncoder {
+    <<function>>
+    +encode(SearchRequest) expected~Lines~
+}
+class LineParser {
+    <<function>>
+    +parse(string_view) SearchEvent
+}
+class BoardLayout {
+    +torus bool
+    +blocked vector~Coord~
+    +portals pairs of Coord
+    +extensions map
 }
 class InfoEvent {
     +candidates vector~Candidate~
 }
 class Candidate
 class Position
-class Rules
+class Rules {
+    +extensions map~string, Value~
+}
 class Limits
 class Move
 class Coord
@@ -129,7 +170,15 @@ EnginePort ..> Limits
 EnginePort ..> EventSink
 EventSink ..> SearchEvent
 SearchEvent ..> InfoEvent
+SearchEvent ..> CustomEvent
+CustomEvent ..> Value
 InfoEvent *-- Candidate
+Position *-- BoardLayout
+Rules ..> Value
+CommandPort ..> Command
+CommandPort ..> CommandOptions
+Command ..> Value
+RequestEncoder ..> SearchRequest
 Position *-- Move
 Move *-- Coord
 
@@ -137,6 +186,16 @@ EnginePort <|.. GomocupEngine
 EnginePort <|.. GtpEngine
 EnginePort <|.. KataGomoEngine
 EnginePort <|.. DeadlineEngine
+CommandPort <|.. GomocupEngine
+CommandPort <|.. GtpEngine
+CommandPort <|.. KataGomoEngine
+CommandPort <|.. DeadlineEngine
+GomocupEngine o--> LineParser : hook
+GomocupEngine o--> RequestEncoder : hook
+GtpEngine o--> LineParser : hook
+GtpEngine o--> RequestEncoder : hook
+KataGomoEngine o--> LineParser : hook
+KataGomoEngine o--> RequestEncoder : hook
 DeadlineEngine o--> EnginePort : decorates
 
 TransportListener <|.. GomocupEngine
@@ -160,6 +219,39 @@ ProcessTransport *-- ProcessOptions
 `principalVariation` from an unranked line or the rank-1 candidate) and a `candidates` list of
 `Candidate` values for per-move analysis.
 [search_event.hpp](../../include/pygomo/core/search_event.hpp)
+
+### Extension points
+
+Four additions let an application support an engine's own commands, rules and board structure
+without editing the library. Each is opt-in: set none and the adapters behave as before. The
+decision and the rejected options are in
+[ADR-02](../adr/ADR-02-extensible-engine-commands.md).
+
+- `CommandPort` is a second interface beside `EnginePort`, which is unchanged. `Command` is data
+  with a completion: `None` (done once written), `Search` (ends at a terminal event) or
+  `Until` (ends at the first event the predicate accepts). `CommandOptions::force` stops the
+  running work and writes the command after its terminal event, because Rapfi drops commands sent
+  while it thinks. `DeadlineEngine` forwards to the wrapped engine; `GtpEngine` supports `None`
+  only. [command_port.hpp](../../include/pygomo/core/command_port.hpp)
+- `RequestEncoder` replaces the whole script of one `startSearch`. It is a constructor argument
+  of each adapter, with the default builders public in `pygomo::encode` so an application edits
+  the default script instead of rewriting it. It runs under the adapter lock and must be pure.
+  [search_request.hpp](../../include/pygomo/core/search_request.hpp) ·
+  [gomocup_encode.hpp](../../include/pygomo/gomocup/gomocup_encode.hpp)
+- `LineParser` replaces or extends how an adapter reads a line; `chainParsers` asks the
+  application's parser first and falls back to the built-in one. A parser can yield
+  `CustomEvent`, which is not terminal (`isTerminal`). The core keeps one terminal test for
+  every adapter and decorator. [line_parser.hpp](../../include/pygomo/parse/line_parser.hpp)
+- `BoardLayout` (torus, blocked cells, portals) belongs to `Position`; `Rules::extensions` holds
+  rules the enums lack. Both are plain data: the core checks only that cells are on the board, and
+  the engine decides what it can play. The default encoders refuse them with `Unsupported`
+  rather than drop them. [board_layout.hpp](../../include/pygomo/core/board_layout.hpp) ·
+  [rules.hpp](../../include/pygomo/core/rules.hpp)
+
+`Value` is the typed argument and field type used by all four
+([value.hpp](../../include/pygomo/core/value.hpp)). The core still includes no I/O, thread or
+protocol header, so the dependency diagram above does not change; the adapters gain the
+`encode` builders in their own module.
 
 ## Session lifecycle
 
@@ -206,8 +298,8 @@ The application coordinates shutdown because it owns the session objects. It cal
 `close()` from the control thread while the adapter, decorator and any active sink are
 still alive. `GomocupEngine::onClosed()` only emits `ErrorEvent{"engine connection closed"}`
 while a search is active. If the watchdog has already timed out that search, the relay
-consumes the terminal event. [GomocupEngine source](../../src/gomocup/gomocup_engine.cpp#L138) ·
-[DeadlineEngine source](../../src/engine/deadline_engine.cpp#L67-L81)
+consumes the terminal event. [GomocupEngine source](../../src/gomocup/gomocup_engine.cpp#L136-L152) ·
+[DeadlineEngine source](../../src/engine/deadline_engine.cpp#L78-L107)
 
 The sink can be released once its terminal callback returns, including a timeout callback
 from the watchdog. [ProcessTransport](../../include/pygomo/process/process_transport.hpp) ·
