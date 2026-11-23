@@ -373,3 +373,62 @@ TEST_CASE("ext10_deadline: a move read during stop(): command waits for the old 
     CHECK(after(r.log.get(), "w YXSTOP") ==
           Lines{"w YXSTOP", "search best", "w YXANALZ", "w 7,7", "w 8,8", "w DONE"});
 }
+
+TEST_CASE("ext10_force: YXSTOP never lands inside another thread's search script") {
+    Rig  r;
+    Gate gate;
+    r.t.onWrite = [&](const std::string& line) {
+        if (line == "BOARD") gate.hold();
+    };
+    LogSink     search{r.log, "search"};
+    std::thread starter([&] { CHECK(r.e.startSearch(threeMoves(), Limits{}, search)); });
+    gate.waitHeld();  // the script stops in the middle of its BOARD block
+    LogSink     cmd{r.log, "cmd"};
+    std::thread forcer([&] { CHECK(r.e.execute(analyze(), cmd, {.force = true})); });
+    std::this_thread::sleep_for(50ms);  // time for a YXSTOP to slip in if writes are not ordered
+    gate.open();
+    starter.join();
+    forcer.join();
+    const auto lines = r.t.lines();
+    CHECK(indexOf(lines, "DONE") < indexOf(lines, "YXSTOP"));
+    CHECK(lines.back() == "YXSTOP");
+    r.t.say("9,9");
+    CHECK(after(r.log.get(), "search best") ==
+          Lines{"search best", "w YXANALZ", "w 7,7", "w 8,8", "w DONE"});
+}
+
+TEST_CASE("ext10_force: a failed search script leaves no forced command stuck behind it") {
+    Rig  r;
+    Gate gate;
+    r.t.onWrite = [&](const std::string& line) {
+        if (line == "BOARD") gate.hold();
+    };
+    r.t.failOn = "7,8,2";  // the script's last stone cannot be written
+    LogSink                          search{r.log, "search"};
+    std::expected<void, EngineError> started;
+    std::thread starter([&] { started = r.e.startSearch(threeMoves(), Limits{}, search); });
+    gate.waitHeld();
+    LogSink                          cmd{r.log, "cmd"};
+    std::expected<void, EngineError> forced;
+    std::thread forcer([&] { forced = r.e.execute(analyze(), cmd, {.force = true}); });
+    std::this_thread::sleep_for(50ms);
+    gate.open();
+    starter.join();
+    forcer.join();
+    REQUIRE_FALSE(started);
+    CHECK(started.error() == EngineError::TransportFailed);
+    CHECK(search.get().empty());
+    // The forced call waited for the whole script, then ran on the now idle engine.
+    REQUIRE(forced);
+    CHECK(cmd.get().empty());
+    const auto lines = r.t.lines();
+    CHECK(Lines(lines.end() - 4, lines.end()) == Lines{"YXANALZ", "7,7", "8,8", "DONE"});
+    r.t.failOn.reset();
+    r.t.say("8,8");  // ends the command's search, if it runs
+    LogSink next{r.log, "next"};
+    REQUIRE(r.e.startSearch(threeMoves(), Limits{}, next));
+    LogSink later{r.log, "later"};
+    REQUIRE(r.e.execute(vcThread(), later, {.force = true}));  // not Busy forever
+    r.t.say("9,9");
+    CHECK(after(r.log.get(), "next best") == Lines{"next best", "w INFO VCTHREAD 2"});
+}

@@ -142,7 +142,8 @@ void DeadlineEngine::finishSearch(std::unique_lock<std::mutex>& lock, const Sear
 
 std::expected<void, EngineError> DeadlineEngine::execute(const Command& command, EventSink& sink,
                                                          CommandOptions options) {
-    if (!commands_) return std::unexpected(EngineError::Unsupported);
+    // Checked up front: a command kept during a search must not fail later for its shape.
+    if (!canExecute(command)) return std::unexpected(EngineError::Unsupported);
     std::uint64_t queuedId = 0;
     {
         std::lock_guard lock(mutex_);
@@ -167,6 +168,10 @@ std::expected<void, EngineError> DeadlineEngine::execute(const Command& command,
     }
     if (released) passOn(std::move(*released));
     return {};
+}
+
+bool DeadlineEngine::canExecute(const Command& command) const {
+    return commands_ && commands_->canExecute(command);
 }
 
 // Hands a kept command to the wrapped engine after this object's search ended.

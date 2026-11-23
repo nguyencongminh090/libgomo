@@ -238,12 +238,8 @@ void GtpEngine::onClosed(CloseReason) {
 
 std::expected<void, EngineError> GtpEngine::execute(const Command& command, EventSink& sink,
                                                     CommandOptions options) {
-    if (!std::holds_alternative<Command::None>(command.completion) || !command.block.empty() ||
-        command.terminator) {
-        return std::unexpected(EngineError::Unsupported);
-    }
-    auto lines = commandLines(command);
-    if (lines.empty()) return std::unexpected(EngineError::Unsupported);
+    if (!canExecute(command)) return std::unexpected(EngineError::Unsupported);
+    auto            lines = commandLines(command);
     std::lock_guard writeLock(writeMutex_);
     {
         std::lock_guard lock(mutex_);
@@ -280,18 +276,25 @@ std::expected<void, EngineError> GtpEngine::writeCommand(const std::vector<std::
 
 // Reader thread, after the search's terminal event was delivered and no lock is held.
 void GtpEngine::flushQueued() {
-    std::lock_guard       writeLock(writeMutex_);
     std::optional<Queued> queued;
+    bool                  written = true;
     {
-        std::lock_guard lock(mutex_);
-        queued = std::exchange(queued_, std::nullopt);
-    }
-    const bool written = !queued || writeCommand(queued->lines).has_value();
-    {
+        std::lock_guard writeLock(writeMutex_);
+        {
+            std::lock_guard lock(mutex_);
+            queued = std::exchange(queued_, std::nullopt);
+        }
+        written = !queued || writeCommand(queued->lines).has_value();
         std::lock_guard lock(mutex_);
         if (sink_ == &discard_) sink_ = nullptr;
     }
+    // After writeMutex_ is released: the sink may call back into the engine.
     if (!written) queued->sink->onEvent(ErrorEvent{"command could not be sent"});
+}
+
+bool GtpEngine::canExecute(const Command& command) const {
+    return std::holds_alternative<Command::None>(command.completion) && command.block.empty() &&
+           !command.terminator && CommandPort::canExecute(command);
 }
 
 }  // namespace pygomo

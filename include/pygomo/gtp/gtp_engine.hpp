@@ -78,7 +78,8 @@ class GtpEngine final : public EnginePort, public CommandPort, private Transport
     /// completion and commands without `block` or `terminator` are supported: a GTP command is
     /// one line with one reply, and the reply to an arbitrary command is no move for a known
     /// position, so Search, Until, blocks and terminators are Unsupported. Each line's reply is
-    /// attributed like a sendRaw reply (AUD-04): dropped, since no search runs when it is sent.
+    /// handled like a sendRaw reply (AUD-04): dropped if no search runs when it arrives, else a
+    /// MessageEvent to that search's sink (a slow reply can reach a later search).
     /// Busy while a search runs. With force during a search: stop() cannot interrupt `genmove`,
     /// so the command is queued and execute returns; it is written from the reader thread right
     /// after the search's natural terminal event has reached the old sink (startSearch and
@@ -89,6 +90,8 @@ class GtpEngine final : public EnginePort, public CommandPort, private Transport
     /// TransportFailed when a line cannot be written.
     [[nodiscard]] std::expected<void, EngineError> execute(const Command& command, EventSink& sink,
                                                            CommandOptions options = {}) override;
+    /// The default check, plus: None completion, no `block` and no `terminator`.
+    [[nodiscard]] bool canExecute(const Command& command) const override;
 
   private:
     void onLine(std::string_view line) override;

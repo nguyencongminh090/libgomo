@@ -48,7 +48,8 @@ class KataGomoEngine final : public EnginePort, public CommandPort, private Tran
     /// See encode::defaultKataGomoRequest for default limitations. A non-square board stays
     /// Unsupported: `gom` mode only has START n (AUD-02).
     /// A failed write after the search already ended (its terminal event was delivered) is not
-    /// an error: the call succeeds, so the caller sees one outcome.
+    /// an error: the call succeeds, so the caller sees one outcome. A failed write also drops a
+    /// command queued by execute(force): its sink gets one ErrorEvent.
     [[nodiscard]] std::expected<void, EngineError> startSearch(const Position& position,
                                                                const Limits&   limits,
                                                                EventSink&      sink) override;
@@ -66,9 +67,10 @@ class KataGomoEngine final : public EnginePort, public CommandPort, private Tran
     /// queued and execute returns; it is written from the reader thread right after the natural
     /// terminal event has reached the old sink (startSearch and execute are Busy in between).
     /// Wrap in DeadlineEngine to bound the wait. A second force while one is queued is Busy.
-    /// A queued command dropped by a close, or whose write fails, gets one ErrorEvent on its sink
-    /// (also for None, since execute already returned success).
-    /// Errors: Unsupported for an empty command or an Until without `done`, NotReady after the
+    /// A queued command dropped by a close, by a failed write of the work it waits for (that work
+    /// has no terminal event left), or whose own write fails, gets one ErrorEvent on its sink
+    /// (also for None, since execute already returned success), never under a lock.
+    /// Errors: Unsupported when canExecute is false (nothing sent), NotReady after the
     /// connection closed, Busy, TransportFailed as for startSearch.
     [[nodiscard]] std::expected<void, EngineError> execute(const Command& command, EventSink& sink,
                                                            CommandOptions options = {}) override;
@@ -93,8 +95,9 @@ class KataGomoEngine final : public EnginePort, public CommandPort, private Tran
     std::uint64_t beginCommand(const Command::Completion& completion, EventSink& sink);
     bool          finishLocked();
     void          flushQueued();
+    EventSink*    failLocked();
     std::expected<void, EngineError> writeCommand(const std::vector<std::string>& lines,
-                                                  std::uint64_t id, bool none);
+                                                  std::uint64_t id, bool none, EventSink*& dropped);
 
     Transport&              transport_;
     parse::LineParser       parser_;

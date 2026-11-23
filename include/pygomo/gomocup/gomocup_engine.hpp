@@ -58,8 +58,10 @@ class GomocupEngine final : public EnginePort, public CommandPort, private Trans
                                                                const Limits&   limits,
                                                                EventSink&      sink) override;
     /// Sends YXSTOP if a search runs; the engine is expected to answer with a move, which ends it.
+    /// Waits until a search script or command being written by another thread is complete.
     void stop() override;
-    /// Writes the line to the engine. Errors: TransportFailed.
+    /// Writes the line to the engine, never inside a script being written. Errors:
+    /// TransportFailed.
     [[nodiscard]] std::expected<void, EngineError> sendRaw(std::string_view line) override;
 
     /// Writes commandLines(command). None: done once written. Search: Busy until a terminal
@@ -77,8 +79,10 @@ class GomocupEngine final : public EnginePort, public CommandPort, private Trans
     /// returned success). Rapfi V3 can drop a command sent right after its move, has no YXANALZ,
     /// and a one-shot reply has no terminator: Until can wait forever (docs/audit/AUD-08
     /// corrections). A V2 YXANALZ with no valid move answers only `ERROR`, which does not end a
-    /// Search: use Until for it. Errors: Unsupported for an empty command or an Until without
-    /// `done`, NotReady after the connection closed, Busy, TransportFailed as for startSearch.
+    /// Search: use Until for it. Errors: Unsupported when canExecute is false (nothing sent),
+    /// NotReady after the connection closed, Busy, TransportFailed as for startSearch. Every
+    /// write (script, command, YXSTOP, sendRaw) holds one write lock, so YXSTOP never lands
+    /// inside another thread's script; execute may wait for a script being written.
     [[nodiscard]] std::expected<void, EngineError> execute(const Command& command, EventSink& sink,
                                                            CommandOptions options = {}) override;
 
@@ -105,8 +109,9 @@ class GomocupEngine final : public EnginePort, public CommandPort, private Trans
     std::uint64_t beginCommand(const Command::Completion& completion, EventSink& sink);
     bool          finishLocked();
     void          flushQueued();
+    EventSink*    failLocked();
     std::expected<void, EngineError> writeCommand(const std::vector<std::string>& lines,
-                                                  std::uint64_t id, bool none);
+                                                  std::uint64_t id, bool none, EventSink*& dropped);
 
     Transport&              transport_;
     parse::LineParser       parser_;
@@ -124,6 +129,12 @@ class GomocupEngine final : public EnginePort, public CommandPort, private Trans
     DiscardSink                             discard_{};
     std::optional<Queued>                   queued_{};
     std::uint64_t                           queueId_{0};
+    // Held over every write (a search script, a command, YXSTOP, sendRaw), so no line lands
+    // inside another thread's script. Lock order: writeMutex_, then mutex_. No sink is called
+    // while either is held, and the reader thread takes writeMutex_ only to write a queued
+    // command, holding nothing else; a holder never waits for the reader (beyond the transport's
+    // own write buffer).
+    std::mutex writeMutex_;
 };
 
 }  // namespace pygomo

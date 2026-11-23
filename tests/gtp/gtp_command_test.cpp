@@ -1,8 +1,11 @@
 // EXT-10: CommandPort on GtpEngine: one-line None commands, force waits for genmove's reply.
 #include <doctest.h>
 
+#include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "../support/command_fakes.hpp"
@@ -10,6 +13,7 @@
 
 using namespace pygomo;
 using namespace pygomo::testing;
+using namespace std::chrono_literals;
 
 namespace {
 
@@ -90,4 +94,31 @@ TEST_CASE("ext10_gtp: close drops a queued command with one ErrorEvent") {
     REQUIRE(r.e.execute(setParam(), cmd, {.force = true}));
     r.t.closeNow();
     CHECK(after(r.log.get(), "search error") == Lines{"search error", "cmd error"});
+}
+
+TEST_CASE("ext10_gtp: a failed queued write reports with no lock, so the sink may call back") {
+    Rig     r;
+    LogSink search{r.log, "search"};
+    REQUIRE(r.e.startSearch(emptyBoard(), Limits{}, search));
+    LogSink           cmd{r.log, "cmd"};
+    std::atomic<bool> sent{false};
+    bool              sentInTime = false;
+    std::thread       caller;
+    cmd.hook = [&](const SearchEvent&) {
+        // Another thread uses the engine while this callback runs; it must not wait for it.
+        caller = std::thread([&] { sent = r.e.sendRaw("name").has_value(); });
+        for (int i = 0; i < 200 && !sent; ++i) std::this_thread::sleep_for(5ms);
+        sentInTime = sent;
+    };
+    REQUIRE(r.e.execute(setParam(), cmd, {.force = true}));
+    r.t.failOn = "kata-set-param maxVisits 100";
+    r.reply("=1");
+    r.reply("=2");
+    r.reply("=3");
+    r.reply("=4 H8");
+    REQUIRE(caller.joinable());
+    caller.join();
+    REQUIRE(cmd.get().size() == 1);
+    CHECK(std::get<ErrorEvent>(cmd.get()[0]).message == "command could not be sent");
+    CHECK(sentInTime);
 }

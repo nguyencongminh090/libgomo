@@ -60,7 +60,8 @@ class DeadlineEngine final : public EnginePort, public CommandPort {
     /// Forwards to the wrapped engine; its errors pass through.
     [[nodiscard]] std::expected<void, EngineError> sendRaw(std::string_view line) override;
 
-    /// Forwards to the wrapped engine when it is a CommandPort; Unsupported otherwise. A command
+    /// Forwards to the wrapped engine when it is a CommandPort; Unsupported otherwise, and
+    /// Unsupported with nothing kept or sent when the wrapped canExecute refuses it. A command
     /// gets no deadline (it has no Limits): bound a Search command with stop() or use Until.
     /// Busy while a timed-out search still owes its answer or its terminal callback runs
     /// (AUD-03), so nothing is written to an engine that may still be thinking.
@@ -75,6 +76,8 @@ class DeadlineEngine final : public EnginePort, public CommandPort {
     /// command without an event.
     [[nodiscard]] std::expected<void, EngineError> execute(const Command& command, EventSink& sink,
                                                            CommandOptions options = {}) override;
+    /// Asks the wrapped engine; false when it is not a CommandPort.
+    [[nodiscard]] bool canExecute(const Command& command) const override;
 
   private:
     class Relay final : public EventSink {

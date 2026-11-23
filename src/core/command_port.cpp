@@ -19,4 +19,10 @@ std::vector<std::string> commandLines(const Command& command) {
     return out;
 }
 
+bool CommandPort::canExecute(const Command& command) const {
+    const auto* until = std::get_if<Command::Until>(&command.completion);
+    if (until && !until->done) return false;
+    return !commandLines(command).empty();
+}
+
 }  // namespace pygomo

@@ -52,17 +52,22 @@ std::expected<void, EngineError> KataGomoEngine::startSearch(const Position& pos
         position_ = position;
         id        = ++searchId_;
     }
+    EventSink*                       dropped = nullptr;
+    std::expected<void, EngineError> result{};
     for (const auto& l : lines) {
         if (!transport_.writeLine(l)) {
             std::lock_guard lock(mutex_);
             // The search already ended (a close or terminal line gave the sink its terminal
             // event): that is its one outcome, so report success, not a second one (PORT-03).
-            if (!sink_ || searchId_ != id) return {};
-            sink_ = nullptr;
-            return std::unexpected(EngineError::TransportFailed);
+            if (sink_ && searchId_ == id) {
+                dropped = failLocked();
+                result  = std::unexpected(EngineError::TransportFailed);
+            }
+            break;
         }
     }
-    return {};
+    if (dropped) dropped->onEvent(ErrorEvent{"search could not be sent; command not sent"});
+    return result;
 }
 
 void KataGomoEngine::stop() {}
@@ -126,12 +131,10 @@ void KataGomoEngine::onClosed(CloseReason) {
 
 std::expected<void, EngineError> KataGomoEngine::execute(const Command& command, EventSink& sink,
                                                          CommandOptions options) {
-    auto lines = commandLines(command);
-    if (lines.empty()) return std::unexpected(EngineError::Unsupported);
-    const auto* until = std::get_if<Command::Until>(&command.completion);
-    if (until && !until->done) return std::unexpected(EngineError::Unsupported);
-    const bool    none = std::holds_alternative<Command::None>(command.completion);
-    std::uint64_t id   = 0;
+    if (!canExecute(command)) return std::unexpected(EngineError::Unsupported);
+    auto          lines = commandLines(command);
+    const bool    none  = std::holds_alternative<Command::None>(command.completion);
+    std::uint64_t id    = 0;
     {
         std::lock_guard lock(mutex_);
         if (closed_) return std::unexpected(EngineError::NotReady);
@@ -146,7 +149,10 @@ std::expected<void, EngineError> KataGomoEngine::execute(const Command& command,
         }
         id = beginCommand(command.completion, sink);
     }
-    return writeCommand(lines, id, none);
+    EventSink* dropped = nullptr;
+    auto       result  = writeCommand(lines, id, none, dropped);
+    if (dropped) dropped->onEvent(ErrorEvent{"command could not be sent; queued command not sent"});
+    return result;
 }
 
 // Caller holds the lock. Marks the engine Busy for a command and returns its search id.
@@ -187,7 +193,7 @@ void KataGomoEngine::flushQueued() {
         user  = queued_->sink;
         id    = queued_->activeId;
         none  = std::holds_alternative<Command::None>(queued_->completion);
-        queued_.reset();
+        // queued_ stays until the write ends, so a force meanwhile is Busy, as in GomocupEngine.
     }
     bool failed = false;
     for (const auto& l : lines) {
@@ -199,30 +205,32 @@ void KataGomoEngine::flushQueued() {
     EventSink* report = nullptr;
     {
         std::lock_guard lock(mutex_);
-        const bool      ours = searchId_ == id && sink_ == (none ? &discard_ : user);
-        if (ours && (failed || none)) {
-            sink_  = nullptr;
-            until_ = nullptr;
+        if (queued_ && queued_->activeId == id) queued_.reset();
+        const bool ours = searchId_ == id && sink_ == (none ? &discard_ : user);
+        if (ours && none && !failed) sink_ = nullptr;
+        if (ours && failed) {
+            report = user;
+            (void)failLocked();  // nothing else is queued while this command still was
         }
-        if (ours && failed) report = user;
     }
     if (report) report->onEvent(ErrorEvent{"command could not be sent"});
 }
 
-// Writes a command started on the caller's thread; errors are returned, not delivered.
+// Writes a command started on the caller's thread; errors are returned. `dropped` gets a queued
+// command's sink, owed one ErrorEvent once the caller holds no lock.
 std::expected<void, EngineError> KataGomoEngine::writeCommand(const std::vector<std::string>& lines,
-                                                              std::uint64_t id, bool none) {
+                                                              std::uint64_t id, bool none,
+                                                              EventSink*& dropped) {
     for (const auto& l : lines) {
         if (!transport_.writeLine(l)) {
             std::lock_guard lock(mutex_);
             if (none) {
-                if (sink_ == &discard_ && searchId_ == id) sink_ = nullptr;
+                if (sink_ == &discard_ && searchId_ == id) dropped = failLocked();
                 return std::unexpected(EngineError::TransportFailed);
             }
             // As in startSearch: an ended command already had its one outcome (PORT-03).
             if (!sink_ || searchId_ != id) return {};
-            sink_  = nullptr;
-            until_ = nullptr;
+            dropped = failLocked();
             return std::unexpected(EngineError::TransportFailed);
         }
     }
@@ -231,6 +239,18 @@ std::expected<void, EngineError> KataGomoEngine::writeCommand(const std::vector<
         if (sink_ == &discard_ && searchId_ == id) sink_ = nullptr;
     }
     return {};
+}
+
+// Caller holds mutex_. Ends the running work after a failed write. An unclaimed queued command
+// has no terminal event left to follow, so it is taken out; the caller gives the returned sink
+// one ErrorEvent after releasing the lock.
+EventSink* KataGomoEngine::failLocked() {
+    sink_  = nullptr;
+    until_ = nullptr;
+    if (!queued_ || queued_->active) return nullptr;
+    EventSink* dropped = queued_->sink;
+    queued_.reset();
+    return dropped;
 }
 
 }  // namespace pygomo

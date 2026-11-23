@@ -2,7 +2,9 @@
 #include <doctest.h>
 
 #include <cstdint>
+#include <expected>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "../support/command_fakes.hpp"
@@ -82,5 +84,36 @@ TEST_CASE("ext10_kata: close drops a queued command with one ErrorEvent") {
     REQUIRE(r.e.execute(boardOnly(), cmd, {.force = true}));
     r.t.closeNow();
     CHECK(after(r.log.get(), "search error") == Lines{"search error", "cmd error"});
+    CHECK(cmd.get().size() == 1);
+}
+
+TEST_CASE("ext10_kata: a failed search script drops the command forced behind it") {
+    Rig  r;
+    Gate gate;
+    r.t.onWrite = [&](const std::string& line) {
+        if (line == "BOARD") gate.hold();
+    };
+    r.t.failOn = "DONE";  // the script's block cannot be closed
+    LogSink                          search{r.log, "search"};
+    std::expected<void, EngineError> started;
+    std::thread starter([&] { started = r.e.startSearch(twoMoves(), Limits{}, search); });
+    gate.waitHeld();
+    LogSink cmd{r.log, "cmd"};
+    REQUIRE(r.e.execute(setParam(), cmd, {.force = true}));  // queued behind the search
+    gate.open();
+    starter.join();
+    REQUIRE_FALSE(started);
+    CHECK(started.error() == EngineError::TransportFailed);
+    REQUIRE(cmd.get().size() == 1);  // the search it waited for has no terminal event left
+    CHECK(std::holds_alternative<ErrorEvent>(cmd.get()[0]));
+
+    r.t.failOn.reset();
+    LogSink next{r.log, "next"};
+    REQUIRE(r.e.startSearch(twoMoves(), Limits{}, next));
+    LogSink later{r.log, "later"};
+    REQUIRE(r.e.execute(setParam(), later, {.force = true}));  // not Busy forever
+    r.t.say("9,9");
+    // Only the new command follows the next search: the dropped one is never written.
+    CHECK(after(r.log.get(), "next best") == Lines{"next best", "w kata-set-param maxVisits 100"});
     CHECK(cmd.get().size() == 1);
 }

@@ -181,13 +181,15 @@ endforeach()
 
 add_executable(pygomo_deadline_adapter_tests
   main.cpp
-  engine/deadline_adapters_test.cpp)
+  engine/deadline_adapters_test.cpp
+  engine/deadline_command_test.cpp)
 target_link_libraries(pygomo_deadline_adapter_tests PRIVATE pygomo::engine pygomo::gtp pygomo::katagomo)
 target_include_directories(pygomo_deadline_adapter_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
 pygomo_enable_warnings(pygomo_deadline_adapter_tests)
 foreach(group gtp kata)
   add_test(NAME dead2_${group} COMMAND pygomo_deadline_adapter_tests "-tc=dead2_${group}*")
 endforeach()
+add_test(NAME ext10_deadline_adapters COMMAND pygomo_deadline_adapter_tests "-tc=ext10_*")
 
 # Fails when a doctest case above is run by no ctest entry (needs the built tree).
 add_test(NAME ctest_coverage

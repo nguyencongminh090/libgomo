@@ -69,6 +69,11 @@ class CommandPort {
     [[nodiscard]] virtual std::expected<void, EngineError> execute(const Command& command,
                                                                    EventSink&     sink,
                                                                    CommandOptions options = {}) = 0;
+
+    /// True if execute would accept `command` (it would not return Unsupported). Checks only the
+    /// command, not the engine's state. Default: commandLines(command) is not empty and an Until
+    /// completion has `done`. An adapter that expresses less overrides it.
+    [[nodiscard]] virtual bool canExecute(const Command& command) const;
 };
 
 }  // namespace pygomo

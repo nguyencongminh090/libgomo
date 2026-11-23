@@ -36,7 +36,10 @@ std::expected<void, EngineError> GomocupEngine::setRules(const Rules& rules) {
 std::expected<void, EngineError> GomocupEngine::startSearch(const Position& position,
                                                             const Limits& limits, EventSink& sink) {
     std::vector<std::string> lines;
-    std::uint64_t            id = 0;
+    std::uint64_t            id      = 0;
+    EventSink*               dropped = nullptr;
+    // Held from the Busy check to the last line, so a forced YXSTOP follows the whole script.
+    std::unique_lock writeLock(writeMutex_);
     {
         std::lock_guard lock(mutex_);
         if (closed_) return std::unexpected(EngineError::NotReady);
@@ -49,20 +52,26 @@ std::expected<void, EngineError> GomocupEngine::startSearch(const Position& posi
         position_ = position;
         id        = ++searchId_;
     }
+    std::expected<void, EngineError> result{};
     for (const auto& l : lines) {
         if (!transport_.writeLine(l)) {
             std::lock_guard lock(mutex_);
             // The search already ended (a close or terminal line gave the sink its terminal
             // event): that is its one outcome, so report success, not a second one (PORT-03).
-            if (!sink_ || searchId_ != id) return {};
-            sink_ = nullptr;
-            return std::unexpected(EngineError::TransportFailed);
+            if (sink_ && searchId_ == id) {
+                dropped = failLocked();
+                result  = std::unexpected(EngineError::TransportFailed);
+            }
+            break;
         }
     }
-    return {};
+    writeLock.unlock();
+    if (dropped) dropped->onEvent(ErrorEvent{"search could not be sent; command not sent"});
+    return result;
 }
 
 void GomocupEngine::stop() {
+    std::lock_guard writeLock(writeMutex_);  // never inside another thread's script
     {
         std::lock_guard lock(mutex_);
         if (!sink_ || sink_ == &discard_) return;
@@ -71,6 +80,7 @@ void GomocupEngine::stop() {
 }
 
 std::expected<void, EngineError> GomocupEngine::sendRaw(std::string_view line) {
+    std::lock_guard writeLock(writeMutex_);
     if (!transport_.writeLine(line)) return std::unexpected(EngineError::TransportFailed);
     return {};
 }
@@ -143,13 +153,12 @@ void GomocupEngine::onClosed(CloseReason) {
 
 std::expected<void, EngineError> GomocupEngine::execute(const Command& command, EventSink& sink,
                                                         CommandOptions options) {
-    auto lines = commandLines(command);
-    if (lines.empty()) return std::unexpected(EngineError::Unsupported);
-    const auto* until = std::get_if<Command::Until>(&command.completion);
-    if (until && !until->done) return std::unexpected(EngineError::Unsupported);
-    const bool    none     = std::holds_alternative<Command::None>(command.completion);
-    std::uint64_t id       = 0;
-    std::uint64_t queuedId = 0;
+    if (!canExecute(command)) return std::unexpected(EngineError::Unsupported);
+    auto             lines    = commandLines(command);
+    const bool       none     = std::holds_alternative<Command::None>(command.completion);
+    std::uint64_t    id       = 0;
+    std::uint64_t    queuedId = 0;
+    std::unique_lock writeLock(writeMutex_);  // over the Busy check and this call's writes
     {
         std::lock_guard lock(mutex_);
         if (closed_) return std::unexpected(EngineError::NotReady);
@@ -165,12 +174,20 @@ std::expected<void, EngineError> GomocupEngine::execute(const Command& command, 
             id = beginCommand(command.completion, sink);
         }
     }
-    if (id != 0) return writeCommand(lines, id, none);
+    if (id != 0) {
+        EventSink* dropped = nullptr;
+        auto       result  = writeCommand(lines, id, none, dropped);
+        writeLock.unlock();
+        if (dropped)
+            dropped->onEvent(ErrorEvent{"command could not be sent; queued command not sent"});
+        return result;
+    }
 
-    // Written outside the lock: a transport may answer on this thread. If the move arrives
+    // Written outside mutex_: a transport may answer on this thread. If the move arrives
     // before YXSTOP is written, the side that finishes last (this thread or the reader, once the
     // old sink has its terminal event) writes the command, so YXSTOP never follows it.
     (void)transport_.writeLine("YXSTOP");
+    writeLock.unlock();  // flushQueued takes it again
     bool flush = false;
     {
         std::lock_guard lock(mutex_);
@@ -222,42 +239,46 @@ void GomocupEngine::flushQueued() {
         id    = queued_->activeId;
         none  = std::holds_alternative<Command::None>(queued_->completion);
     }
-    bool failed = false;
-    for (const auto& l : lines) {
-        if (!transport_.writeLine(l)) {
-            failed = true;
-            break;
-        }
-    }
+    bool       failed = false;
     EventSink* report = nullptr;
     {
+        std::lock_guard writeLock(writeMutex_);
+        for (const auto& l : lines) {
+            if (!transport_.writeLine(l)) {
+                failed = true;
+                break;
+            }
+        }
         std::lock_guard lock(mutex_);
         if (queued_ && queued_->activeId == id) queued_.reset();
         // Not ours any more: a close or the command's own terminal event already ended it.
         const bool ours = searchId_ == id && sink_ == (none ? &discard_ : user);
-        if (ours && (failed || none)) {
-            sink_  = nullptr;
-            until_ = nullptr;
+        if (ours && none && !failed) sink_ = nullptr;
+        if (ours && failed) {
+            report = user;
+            (void)failLocked();  // nothing else is queued while this command still was
         }
-        if (ours && failed) report = user;
     }
+    // After both locks are released: the sink may call back into the engine.
     if (report) report->onEvent(ErrorEvent{"command could not be sent"});
 }
 
-// Writes a command started on the caller's thread; errors are returned, not delivered.
+// Caller holds writeMutex_. Writes a command started on the caller's thread; errors are
+// returned. `dropped` gets a queued command's sink, owed one ErrorEvent once the caller has
+// released writeMutex_.
 std::expected<void, EngineError> GomocupEngine::writeCommand(const std::vector<std::string>& lines,
-                                                             std::uint64_t id, bool none) {
+                                                             std::uint64_t id, bool none,
+                                                             EventSink*& dropped) {
     for (const auto& l : lines) {
         if (!transport_.writeLine(l)) {
             std::lock_guard lock(mutex_);
             if (none) {
-                if (sink_ == &discard_ && searchId_ == id) sink_ = nullptr;
+                if (sink_ == &discard_ && searchId_ == id) dropped = failLocked();
                 return std::unexpected(EngineError::TransportFailed);
             }
             // As in startSearch: an ended command already had its one outcome (PORT-03).
             if (!sink_ || searchId_ != id) return {};
-            sink_  = nullptr;
-            until_ = nullptr;
+            dropped = failLocked();
             return std::unexpected(EngineError::TransportFailed);
         }
     }
@@ -266,6 +287,18 @@ std::expected<void, EngineError> GomocupEngine::writeCommand(const std::vector<s
         if (sink_ == &discard_ && searchId_ == id) sink_ = nullptr;
     }
     return {};
+}
+
+// Caller holds mutex_. Ends the running work after a failed write. An unclaimed queued command
+// has no terminal event left to follow, so it is taken out; the caller gives the returned sink
+// one ErrorEvent after releasing every lock.
+EventSink* GomocupEngine::failLocked() {
+    sink_  = nullptr;
+    until_ = nullptr;
+    if (!queued_ || queued_->active) return nullptr;
+    EventSink* dropped = queued_->sink;
+    queued_.reset();
+    return dropped;
 }
 
 }  // namespace pygomo

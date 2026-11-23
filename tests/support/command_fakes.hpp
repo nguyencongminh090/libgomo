@@ -3,6 +3,7 @@
 #pragma once
 
 #include <chrono>
+#include <condition_variable>
 #include <cstddef>
 #include <expected>
 #include <functional>
@@ -119,6 +120,41 @@ inline Lines after(const Lines& log, const std::string& from) {
         if (log[i] == from) return Lines(log.begin() + static_cast<std::ptrdiff_t>(i), log.end());
     }
     return {};
+}
+
+/// Holds a writer inside FakeTransport::onWrite until the test opens it.
+struct Gate {
+    /// Called from onWrite: marks the writer as held and waits until open().
+    void hold() {
+        std::unique_lock lock(m);
+        held = true;
+        cv.notify_all();
+        cv.wait(lock, [this] { return opened; });
+    }
+    /// Waits until a writer is held.
+    void waitHeld() {
+        std::unique_lock lock(m);
+        cv.wait(lock, [this] { return held; });
+    }
+    /// Lets the held writer go on.
+    void open() {
+        {
+            std::lock_guard lock(m);
+            opened = true;
+        }
+        cv.notify_all();
+    }
+    std::mutex              m;
+    std::condition_variable cv;
+    bool                    held   = false;
+    bool                    opened = false;
+};
+
+/// Index of the first entry equal to `line`, or the size when there is none.
+inline std::size_t indexOf(const Lines& lines, const std::string& line) {
+    std::size_t i = 0;
+    while (i < lines.size() && lines[i] != line) ++i;
+    return i;
 }
 
 }  // namespace pygomo::testing
