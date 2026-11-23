@@ -105,8 +105,8 @@ a Gomoku engine running as a separate process. Its priorities, in order:
 \end{enumerate}
 
 \noindent Out of scope: a GUI, a game loop or referee, a tournament manager, and any engine
-implementation. Engine-specific commands with no cross-protocol meaning are reachable only through
-the raw escape hatch \code{EnginePort::sendRaw}.
+implementation. Engine-specific commands with no cross-protocol meaning go through the typed
+\code{CommandPort} (Section~\ref{sec:own}) or the raw escape hatch \code{EnginePort::sendRaw}.
 
 \subsection{Status}
 
@@ -279,11 +279,13 @@ the wire format. In short:
   \item The \textbf{core} owns a neutral model: a \code{Position} (board size plus ordered moves),
         \code{Rules}, \code{Limits}, and the \code{SearchEvent} variant.
   \item \textbf{Two ports} cut the system: \code{EnginePort} (what an application calls) and
-        \code{Transport} (a line-oriented text channel to an engine).
+        \code{Transport} (a line-oriented text channel to an engine). \code{CommandPort} is an
+        optional companion of \code{EnginePort} for engine-specific commands.
   \item \textbf{Adapters} sit between them: each implements \code{EnginePort} for one protocol and
         talks to the engine through a \code{Transport}.
   \item \textbf{Parsing} is a separate, pure step: one line of text in, one \code{SearchEvent} out.
-        Parsers can be tested on recorded text without spawning anything.
+        Parsers can be tested on recorded text without spawning anything. An application can
+        add its own (\code{LineParser}).
   \item \textbf{Threads} live only in transports and in the \code{engine} helpers, never in the
         core.
 \end{itemize}
@@ -337,16 +339,16 @@ Figure~\ref{fig:modules} shows which links which.
 \toprule
 \normalfont\textbf{Target} & \normalfont\textbf{Links} & \textbf{Role} \\
 \midrule
-pygomo\_core      & --- & Neutral types and the \code{EnginePort} / \code{EventSink} interfaces.
-                          No I/O, no threads, no protocol names. \\
+pygomo\_core      & --- & Neutral types and the \code{EnginePort} / \code{CommandPort} /
+                          \code{EventSink} interfaces. No I/O, no threads, no protocol names. \\
 pygomo\_transport & Threads & \code{Transport} port and \code{StreamTransport}. Protocol-blind;
                           independent of the core. \\
-pygomo\_parse     & core & Pure text-to-event parsers (Gomocup, GTP). \\
+pygomo\_parse     & core & Pure text-to-event parsers (Gomocup, GTP) and the \code{LineParser} hook. \\
 pygomo\_engine    & core, Threads & Blocking \code{search()} and \code{DeadlineEngine}; works
                           with any adapter. \\
-pygomo\_gomocup   & core, parse, transport & Gomocup adapter. \\
-pygomo\_gtp       & core, parse, transport & GTP adapter (KataGomo extensions). \\
-pygomo\_katagomo  & core, parse, transport & KataGomo \code{gom} mode adapter. \\
+pygomo\_gomocup   & core, parse, transport & Gomocup adapter and its \code{pygomo::encode} builders. \\
+pygomo\_gtp       & core, parse, transport & GTP adapter (KataGomo extensions) and builders. \\
+pygomo\_katagomo  & core, parse, transport & KataGomo \code{gom} mode adapter and builders. \\
 pygomo\_process   & transport & \code{ProcessTransport}: spawns the engine (POSIX only). \\
 \bottomrule
 \end{tabularx}
@@ -603,9 +605,10 @@ Follow these rules in any application built on the port:
   \item Give every search a \code{turnTime}, and wrap the adapter in \code{DeadlineEngine} unless
         you trust the engine to answer.
   \item Return from \code{onEvent} quickly; hand the event to your own queue or thread.
-  \item Use \code{sendRaw} for engine-only commands (Rapfi database commands, KataGomo
-        \code{kata-set-param} keys, VCN rules). Nothing about the reply is promised; on GTP it
-        never ends a search (Section~\ref{sec:limits}).
+  \item Use \code{sendRaw} for a one-off engine-only line (Rapfi database commands, KataGomo
+        \code{kata-set-param} keys). Nothing about the reply is promised; on GTP it never ends a
+        search (Section~\ref{sec:limits}). For a command you send often, or whose reply you need,
+        use \code{CommandPort} (Section~\ref{sec:own}).
 \end{itemize}
 
 %======================================================================
@@ -701,11 +704,224 @@ Changing \code{SearchEvent}, \code{EnginePort} or any core type changes a public
 every adapter and application: it is size~L. Precedent: \code{MessageEvent} and \code{ResignEvent}
 were added under the planning \file{features/core-message-resign-events/planning.md};
 \code{InfoEvent::candidates} under \file{features/detailed-search-analysis/planning.md}, recorded
-in ADR-01. A new \code{SearchEvent} type ends searches: \code{search()}, \code{DeadlineEngine}
-and \code{KataGomoEngine} treat every type other than Info, Message and Unparsed as terminal, so
-extend an existing event when the data is progress. Keep the
-variant protocol-neutral, and update every adapter, both parsers and \code{search()} in the same
-planning.
+in ADR-01. The terminal test is one function, \code{isTerminal(const SearchEvent\&)} in
+\file{search\_event.hpp}: Info, Message, Unparsed and Custom do not end a search, every other
+type does. A new type is terminal unless you add it to that function, so decide there first
+(\file{docs/adr/ADR-02-\allowbreak extensible-engine-commands.md}). For output only one application understands,
+do not add a type: use \code{CustomEvent} from a \code{LineParser} (Section~\ref{sec:own}). Keep
+the variant protocol-neutral, and update every adapter, both parsers and \code{search()} in the
+same planning.
+
+%======================================================================
+\section{Write your own commands, rules and board layouts}\label{sec:own}
+%======================================================================
+
+An engine often has more than the three adapters know: its own output lines, its own rules, walls
+on the board, commands that start an analysis. PyGomo does not ship these. It gives you five
+places to plug them in, and every one is opt-in: set nothing and the adapters behave as before.
+The decision and the rejected options are in \file{docs/adr/ADR-02-\allowbreak extensible-engine-commands.md}.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}X >{\ttfamily}l X@{}}
+\toprule
+\textbf{You want to\ldots} & \normalfont\textbf{Use} & \textbf{Where it goes} \\
+\midrule
+read an output line the parser does not know & LineParser & adapter constructor \\
+send a different script for a search (new \code{INFO} lines, another position command) &
+  RequestEncoder & adapter constructor \\
+ask for a rule the enums lack (Caro) & Rules::extensions & \code{setRules}; read by your encoder \\
+describe walls, a torus or portals & BoardLayout & \code{Position::create}; read by your encoder \\
+send a command outside a search (an option, an analysis) & CommandPort & \code{execute} on the
+  adapter \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent The example below drives a made-up Rapfi-like engine (the ``fake Rapfi''). Its lines are
+invented for the guide; the commands follow what \file{docs/audit/AUD-08} read in Rapfi's source.
+The code was compiled and run against a fake transport.
+
+\subsection{Step 1: read a new output line}
+
+A \code{LineParser} turns one line into one \code{SearchEvent}. Return \code{UnparsedEvent} for any
+line that is not yours, and chain your parser before the default one with
+\code{parse::chainParsers}. Output only your application understands goes in a
+\code{CustomEvent}: a tag and an ordered list of typed fields. It never ends a search.
+
+\begin{lstlisting}
+// Reads the fake engine's `VC win 7,7 depth 9` line; anything else stays Unparsed.
+SearchEvent parseVcLine(std::string_view line) {
+    const std::string text{line};  // sscanf needs a terminated string
+    int               x = 0, y = 0, depth = 0;
+    if (std::sscanf(text.c_str(), "VC win %d,%d depth %d", &x, &y, &depth) != 3) {
+        return UnparsedEvent{text};
+    }
+    return CustomEvent{.tag    = "vc-win",
+                       .fields = {{"move", Coord{x, y}}, {"depth", std::int64_t{depth}}}};
+}
+\end{lstlisting}
+
+\noindent The parser runs on the transport's reader thread, outside the adapter's lock: it must
+not block. It must also never turn a line that ends a search (a move, \code{SWAP}, a fatal
+\code{ERROR}) into a non-terminal event, because the adapter trusts \code{isTerminal} of what you
+return. On GTP your parser sees the body lines of a reply and free text, not the reply header, and
+only a reply ends the search: a parser that swallows the final \code{play X} of an analyze reply
+loses the move.
+
+\subsection{Step 2: send your own script}
+
+A \code{RequestEncoder} turns a \code{SearchRequest} (\code{rules}, \code{position},
+\code{limits}) into the full list of lines for one \code{startSearch}. You can write every line
+yourself, or call the default builder and edit its result. The default builders refuse
+\code{Rules::extensions} and a non-default \code{BoardLayout} with \code{Unsupported}, so the
+encoder below hands the default a plain request and adds the extras itself:
+
+\begin{lstlisting}
+// Sends Caro, torus, walls and portals the way the fake engine wants them.
+EncodedRequest fakeRapfiRequest(const SearchRequest& request) {
+    // Let the default script write START, the INFO limits and rule; it refuses what it does not
+    // know (extensions, layout), so give it a plain request on an empty board.
+    auto empty = Position::create(request.position.width(), request.position.height());
+    if (!empty) return std::unexpected(EngineError::Unsupported);
+    SearchRequest plain{.rules = request.rules, .position = *empty, .limits = request.limits};
+    plain.rules.extensions.clear();
+
+    EncodedRequest script = encode::defaultGomocupRequest(plain);
+    if (!script) return script;
+    script->pop_back();  // the default ends in BEGIN: we send a position block instead
+
+    const BoardLayout& layout = request.position.layout();
+    if (request.rules.extensions.contains("caro")) script->push_back("INFO RULE 8");
+    if (layout.torus) script->push_back("INFO TORUS 1");
+    for (const auto& [a, b] : layout.portals) {
+        script->push_back(std::format("INFO YXPORTAL {},{} {},{}", a.x, a.y, b.x, b.y));
+    }
+    // A position block replaces the walls, so INFO WALL lines would be wiped: the walls go in
+    // the block itself, as `x,y,3` entries.
+    std::vector<std::string> walls;
+    for (const Coord& c : layout.blocked) walls.push_back(std::format("{},{},3", c.x, c.y));
+    auto block = encode::boardBlock("BOARD", request.position.moves(), walls);
+    script->insert(script->end(), block.begin(), block.end());
+    return script;
+}
+\end{lstlisting}
+
+\noindent \code{encode::boardBlock(command, moves, extra)} writes \code{command}, one
+\code{x,y,c} line per move (\code{c} is 1 for the side that moves next, 2 for the other side), the
+\code{extra} lines as given, and \code{DONE}. Pass \code{"YXBOARD"} instead of \code{"BOARD"} for
+a block that only sets the position and starts no search. Every block, \code{YXBOARD} too, replaces
+the engine's walls with its own \code{c=3} entries, so walls belong in the block. Rules for an encoder:
+
+\begin{itemize}
+  \item It runs under the adapter's lock. It must be pure, must not block and must not call back
+        into the adapter.
+  \item Return an error (normally \code{EngineError::Unsupported}) to refuse; then nothing is
+        sent.
+  \item With an encoder set, \code{supports(rules)} accepts any valid rules: only your encoder
+        knows what it can send, and it refuses in \code{startSearch}.
+  \item \code{GtpEngine} wants one command per line, no id, one reply each; the last line asks for
+        the move. \code{KataGomoEngine} takes any script.
+\end{itemize}
+
+\subsection{Step 3: ask for a rule and a layout}
+
+Neither type needs code in the library. A rule the enums lack goes in \code{Rules::extensions},
+board structure in a \code{BoardLayout}; the encoder above reads both.
+
+\begin{lstlisting}
+Rules rules{.board = BoardRule::Freestyle, .extensions = {{"caro", true}}};
+auto  position = Position::create(15, 15, BoardLayout{.torus   = true,
+                                                      .blocked = {{3, 3}},
+                                                      .portals = {{{1, 1}, {12, 12}}}});
+if (!position) return 1;       // OutOfBounds: a wall or portal end is off the board
+if (auto ok = position->play({3, 3}); !ok) { /* PositionError::Blocked */ }
+if (auto ok = position->play({7, 7}); !ok) return 1;  // walls are not moves: sideToMove() holds
+\end{lstlisting}
+
+\noindent The core stores the layout as data and checks only that every cell is on the board.
+Whether the engine can play it (torus size, portals on a rectangle) is the engine's call: it
+answers with \code{ERROR}. Without your encoder, \code{setRules} refuses the extension and
+\code{startSearch} refuses the layout with \code{Unsupported}, and nothing is sent.
+
+\subsection{Step 4: send a command}
+
+\code{CommandPort} sits beside \code{EnginePort}; \code{GomocupEngine}, \code{KataGomoEngine} and
+\code{DeadlineEngine} implement it. A \code{Command} is data, and its \code{completion} says how
+the adapter knows it is finished:
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}>{\ttfamily}l X@{}}
+\toprule
+\normalfont\textbf{Completion} & \textbf{Meaning} \\
+\midrule
+None   & Done once the lines are written. The sink gets no event. \\
+Search & A search: ends with its terminal event; Busy until then. \\
+Until  & Ends at the first event for which \code{done(event)} is true; that event still reaches
+         the sink. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{lstlisting}
+// Fire and forget: INFO VCTHREAD 2
+Command vcThread{.name = "INFO", .args = {std::string{"VCTHREAD"}, std::int64_t{2}}};
+
+// A multi-line analysis: YXANALZ, one x,y per line, DONE. It runs as a search.
+Command analyze{.name       = "YXANALZ",
+                .block      = {Coord{7, 7}, Coord{8, 8}},
+                .terminator = "DONE",
+                .completion = Command::Search{}};
+
+if (!engine.execute(vcThread, sink)) { /* Busy, NotReady, Unsupported, TransportFailed */ }
+auto sent = engine.execute(analyze, sink, CommandOptions{.force = true});
+\end{lstlisting}
+
+\noindent \code{commandLines(command)} gives the exact lines (\code{YXANALZ}, \code{7,7},
+\code{8,8}, \code{DONE}); \code{format(Value)} is how each argument and block element is written.
+Without \code{force}, \code{execute} returns \code{Busy} while a search or a \code{Search} or
+\code{Until} command runs, and sends nothing. With \code{force} the adapter stops the running work
+(\code{YXSTOP} for Gomocup), queues the command, and returns at once. Rapfi silently drops every
+command but \code{STOP} while it thinks, so the command is written only after the old terminal
+event has reached its own sink; the old output is not lost. One command can wait; a second
+\code{force} returns \code{Busy}.
+
+\subsection{Step 5: wire it together}
+
+\begin{lstlisting}
+ProcessTransport transport{ProcessOptions{.program = "fake-rapfi"}};
+GomocupEngine    gomocup{transport, parse::chainParsers(parseVcLine, parse::parseGomocupLine),
+                         fakeRapfiRequest};
+DeadlineEngine   engine{gomocup};  // forwards execute() to gomocup, adds search deadlines
+\end{lstlisting}
+
+\noindent Call \code{open()} on the adapter, then \code{setRules}, \code{startSearch} and
+\code{execute} on \code{engine}; \code{DeadlineEngine} is both an \code{EnginePort} and a
+\code{CommandPort}. In your sink, test for \code{CustomEvent} with \code{std::get\_if} like any
+other event type.
+
+\subsection{Limits to know}
+
+\begin{itemize}
+  \item \textbf{Completion by \code{Until} can wait forever.} Rapfi has no terminator line for a
+        one-shot reply: it is a fixed number of lines, one \code{OK} or \code{ERROR}, or nothing.
+        Use \code{None} for a silent command, or bound the wait with \code{DeadlineEngine}.
+  \item \textbf{A command has no deadline} (it has no \code{Limits}). Bound a \code{Search}
+        command with \code{stop()}, or use \code{Until}.
+  \item \textbf{Rapfi V3 can drop a command sent right after its move}, and leaves its arguments
+        in the input, where they run as commands. V2 and V3 also differ: \code{YXANALZ} exists
+        only in V2, and a list with no valid move ends with a bare \code{ERROR}, which does not
+        end a \code{Search} (use \code{Until}). Choose the commands for your engine version.
+  \item \textbf{GTP supports \code{None} only.} \code{GtpEngine::canExecute} is false for
+        \code{Search}, \code{Until}, a \code{block} or a \code{terminator}. With \code{force}
+        during a search it waits for the natural end: \code{stop()} cannot interrupt
+        \code{genmove}.
+  \item \textbf{Non-square boards.} \code{GomocupEngine}'s default script sends
+        \code{RECTSTART w,h}; an engine that does not know it prints \code{ERROR}, which does not
+        end a search, so wrap the adapter in \code{DeadlineEngine}. \code{KataGomoEngine} refuses
+        them.
+\end{itemize}
 
 %======================================================================
 \section{Writing and registering tests}\label{sec:testing}
@@ -773,25 +989,32 @@ and \code{opposite(side)} returns the other one.
 
 \begin{lstlisting}
 auto position = Position::create(15, 15);   // expected<Position, PositionError>
-if (!position) { /* InvalidBoardSize: outside 1..Position::kMaxSide (1024) */ }
+if (!position) { /* InvalidBoardSize: outside 1..Position::kMaxSide (1024); OutOfBounds:
+                    a cell of the optional BoardLayout argument is off the board */ }
 if (auto ok = position->play({7, 7}); !ok) { /* OutOfBounds, Blocked or Occupied; unchanged */ }
 position->sideToMove();   // Black after an even number of moves
 position->moves();        // span<const Move>, in the order played
 \end{lstlisting}
 
 \noindent A position is any rectangle; whether an engine accepts a non-square board is the
-adapter's decision. \code{Position} knows nothing about wins or forbidden moves: it records stones
-and rejects only off-board, blocked (\code{BoardLayout}) or occupied points.
+adapter's decision (Gomocup and GTP do, \code{KataGomoEngine} does not). \code{Position} knows
+nothing about wins or forbidden moves: it records stones and rejects only off-board, blocked or
+occupied points, checked in that order. A third argument, \code{BoardLayout}, adds structure
+without changing the moves: \code{torus}, \code{blocked} cells (WALL), \code{portals} (cell
+pairs) and free-form \code{extensions}. \code{layout()} returns it, \code{blocked(c)} asks about
+one cell, and \code{==} compares it. The core checks only that every cell is on the board; torus
+size, portals on a rectangle and similar limits are the engine's to refuse.
 
 \subsection{Rules (\file{rules.hpp})}
 
-\code{Rules\{board, opening, maxMoves\}}. \code{BoardRule} is \code{Freestyle} (five or more wins),
+\code{Rules\{board, opening, maxMoves, extensions\}}. \code{BoardRule} is \code{Freestyle} (five or more wins),
 \code{Standard} (exactly five) or \code{Renju}. \code{OpeningRule} is \code{FreeOpen},
 \code{Swap1} or \code{Swap2}. Board and opening rules are separate fields; an adapter whose
 protocol needs one combined rule number (Gomocup) builds it. \code{validate(rules)} checks
 self-consistency
 (\code{maxMoves} must be positive); \code{EnginePort::supports(rules)} says whether an engine can play
-them.
+them. \code{extensions} is a \code{std::map<std::string, Value>} for rules the enums do not model
+(Caro); an adapter without a custom encoder refuses a non-empty map.
 
 \subsection{Limits (\file{limits.hpp})}
 
@@ -805,7 +1028,7 @@ Everything an adapter reports during a search is one \code{SearchEvent}:
 
 \begin{lstlisting}
 using SearchEvent = std::variant<InfoEvent, BestMoveEvent, SwapEvent, PassEvent, ResignEvent,
-                                 ErrorEvent, MessageEvent, UnparsedEvent>;
+                                 ErrorEvent, MessageEvent, UnparsedEvent, CustomEvent>;
 \end{lstlisting}
 
 \begin{center}
@@ -825,9 +1048,16 @@ ErrorEvent    & yes & The search failed: fatal engine error, illegal move, close
                       timeout. \code{message} is for humans, not for parsing. \\
 MessageEvent  & no  & Free text the engine sent on purpose (e.g.\ Gomocup \code{MESSAGE}). \\
 UnparsedEvent & no  & A line no parser understood, kept whole. \\
+CustomEvent   & no  & Output only an application's own parser understands: a \code{tag} and
+                      typed \code{fields} (\code{Value}). \\
 \bottomrule
 \end{tabularx}
 \end{center}
+
+\noindent \code{isTerminal(event)} is the single test for the Terminal column; adapters,
+\code{search()} and \code{DeadlineEngine} all call it. \code{Value} is a closed variant of
+\code{bool}, \code{std::int64\_t}, \code{double}, \code{std::string}, \code{Coord}, \code{Move}
+and vectors of the last two; \code{format(Value)} gives its default wire text.
 
 \noindent \code{Score} has a \code{kind} (\code{Eval}, \code{MateIn}, \code{MatedIn}) and a
 \code{value}, always from the side to move's point of view.
@@ -1017,9 +1247,11 @@ must close it.
 \section{Protocol adapters}
 %======================================================================
 
-All three adapters share one shape: they implement \code{EnginePort}, privately implement
-\code{TransportListener}, do not own the transport (it must outlive them), and need one call to
-\code{open()} before use. \code{setRules} only stores the rules; \code{startSearch} sends
+All three adapters share one shape: they implement \code{EnginePort} and \code{CommandPort},
+privately implement \code{TransportListener}, do not own the transport (it must outlive them),
+and need one call to \code{open()} before use. Each constructor takes the transport and two
+optional hooks, a \code{LineParser} and a \code{RequestEncoder}; empty means the built-in one
+(Section~\ref{sec:own}). \code{setRules} only stores the rules; \code{startSearch} sends
 everything, including the full position, each time.
 
 \subsection{Capability matrix}
@@ -1034,7 +1266,8 @@ What each adapter can express and how it reports results:
 \midrule
 Reference engine     & Rapfi (run live) & KataGomo \code{gtp} (source only) &
                        KataGomo \code{gom} (source only) \\
-Board                & square only & any rectangle up to 625 columns & square only \\
+Board                & any rectangle (\code{RECTSTART w,h} when not square) & any rectangle up to
+                       625 columns & square only \\
 Board rules          & all three & all three & all three \\
 Swap1 / Swap2        & freestyle only & no & no \\
 \code{maxMoves}      & yes & yes & yes \\
@@ -1048,6 +1281,11 @@ Swap1 / Swap2        & freestyle only & no & no \\
 Streaming info       & \code{MESSAGE} lines & with \code{setAnalyze()} & \code{MESSAGE} lines as
                        \code{MessageEvent} \\
 Swap / pass / resign & \code{SwapEvent} & \code{PassEvent}, \code{ResignEvent} & \code{SwapEvent} \\
+\code{CommandPort}  & \code{None}, \code{Search}, \code{Until}; \code{force} sends \code{YXSTOP}
+                       & \code{None} only; \code{force} waits for the search to end
+                       & \code{None}, \code{Search}, \code{Until}; \code{force} waits \\
+Extension types      & custom parser and encoder & custom parser and encoder & custom parser
+                       and encoder \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -1058,7 +1296,7 @@ Swap / pass / resign & \code{SwapEvent} & \code{PassEvent}, \code{ResignEvent} &
 sends:
 
 \begin{lstlisting}[style=sh]
-START 15
+START 15                    # RECTSTART 15,10 for a non-square board
 INFO rule 4                 # 0 freestyle, 1 standard, 4 renju, 5 swap1, 6 swap2
 INFO max_moves 225          # only for the fields that are set
 INFO timeout_turn 1000
@@ -1072,7 +1310,9 @@ BOARD                       # or BEGIN for an empty board
 DONE
 \end{lstlisting}
 
-\noindent Replies are parsed by \code{parse::parseGomocupLine}. An \code{ERROR} line during a search
+\noindent This is the default script (\code{encode::defaultGomocupRequest}); a custom
+\code{RequestEncoder} replaces it. Replies are parsed by \code{parse::parseGomocupLine} unless you
+pass a \code{LineParser}. An \code{ERROR} line during a search
 is \emph{not} the end: Rapfi prints non-fatal errors and still answers, so it becomes a
 \code{MessageEvent} and the search waits for a move. A returned move that is off the board or on an
 occupied point becomes \code{ErrorEvent\{"engine returned an illegal move: ..."\}}. Lines outside a
@@ -1249,6 +1489,11 @@ Figure~\ref{fig:deadline} shows the timeline of a search that times out.
         \code{startSearch}. That call returns \code{Busy} while timeout delivery is pending or
         the engine still owes its answer (Section~\ref{sec:why-deadline}).
   \item If the engine never answers, the decorator stays \code{Busy}; close the transport.
+  \item \textbf{Commands.} \code{DeadlineEngine} is also a \code{CommandPort}: \code{execute}
+        forwards to the wrapped engine, or returns \code{Unsupported} if it is not one. A command
+        has no deadline. With \code{force} over a search of this object, the command is kept and
+        sent after that search's terminal event; if the search times out instead, it is never sent
+        and its sink gets an \code{ErrorEvent}, because the engine may still be thinking.
   \item \textbf{Lifetime.} Keep the sink alive until the terminal callback returns. The wrapped
         port must outlive the decorator. Close the transport and let the wrapped port finish
         delivering events before destroying the decorator.
@@ -1268,8 +1513,10 @@ test is a plain program without doctest. Names below omit the \code{pygomo\_} pr
 \toprule
 \normalfont\textbf{Executable} & \textbf{Covers} & \normalfont\textbf{ctest entries} \\
 \midrule
-core\_tests     & Coord, Position, Rules, Limits, events, port contract &
-                          core\_tests, port\_sink, port\_contract \\
+core\_tests     & Coord, Position (with layout), Rules, Limits, events, \code{Value}, port
+                          contract, \code{CommandPort} &
+                          core\_tests, port\_sink, port\_contract, ext01\_*, ext02\_core,
+                          ext05\_core, ext06\_core \\
 transport\_tests & StreamTransport & transport\_\{lines, write, close, limit, misc\} \\
 parse\_tests    & Gomocup and GTP parsers, fixtures & parse\_*, gomo2\_parse, gomo2\_fixtures, gtp\_* \\
 engine\_tests   & search(), DeadlineEngine & port\_blocking, dead1\_* \\
@@ -1283,6 +1530,11 @@ smoke           & core links, one short game & smoke \\
 \bottomrule
 \end{tabularx}
 \end{center}
+
+\noindent The \code{ext*} entries cover the extension points, one prefix per todo of the planning
+(\code{ext02} to \code{ext10}: custom event, parser, rules, layout, encoder, rectangular boards,
+\code{CommandPort}) in each adapter's executable, plus \code{ext09\_live} against Rapfi V3 (skipped
+without \code{PYGOMO\_RAPFI\_V3}).
 
 \noindent Plus three script checks registered as ctest entries: \code{ctest\_coverage},
 \code{style\_line\_length} and \code{style\_doc\_comments}.
@@ -1408,7 +1660,14 @@ What version 0.1.0 does not do, or has not verified against a real engine:
   \item \textbf{Lines outside a search are dropped} by every adapter (there is no sink to receive
         them).
   \item \textbf{Not covered by fixtures:} late \code{[Pondering]} lines and Rapfi's
-        \code{coord\_conversion\_mode} other than \code{none}.
+        \code{coord\_conversion\_mode} other than \code{none}, which also swaps the width and height
+        in \code{RECTSTART}.
+  \item \textbf{Extension points have known gaps} (ADR-02, AUD-08): Rapfi V3 can drop a command sent
+        right after its move; \code{Until} cannot complete a command whose success prints nothing;
+        the default illegal-move check does not reject a move on a blocked cell;
+        \code{BoardLayout} equality depends on the order of its cells, and duplicate walls are
+        accepted; the \code{tsan} preset does not build on g++~15 until a separate \code{-Werror}
+        failure is fixed.
   \item \textbf{KataGomo \code{MESSAGE Visits ... Winrate ...} lines} are not an info shape the
         Gomocup parser knows; they arrive as \code{MessageEvent}, with no structured fields.
   \item \textbf{Candidate data has limits.} GTP \code{winrate} is from whatever perspective the
@@ -1432,6 +1691,10 @@ What version 0.1.0 does not do, or has not verified against a real engine:
   \item \file{docs/adr/ADR-01-info-event-candidates.md} --- why per-move analysis lives in
         \code{InfoEvent::candidates} (planning:
         \file{features/detailed-search-analysis/planning.md}).
+  \item \file{docs/adr/ADR-02-\allowbreak extensible-engine-commands.md} --- why commands, rules, board
+        layouts, parsers and encoders are extension points (planning:
+        \file{features/\allowbreak extensible-\allowbreak engine-\allowbreak commands/\allowbreak planning.md}; Rapfi facts:
+        \file{docs/audit/AUD-08}).
   \item \file{docs/knowledge/} --- background notes (hexagonal style, adapter, strategy, SOLID,
         coupling and cohesion, testability).
   \item \file{docs/fix-log.md} --- root causes of past bugs and the checks that now catch them.
