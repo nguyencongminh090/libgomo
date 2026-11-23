@@ -31,6 +31,7 @@ std::expected<void, EngineError> GomocupEngine::open() {
 }
 
 bool GomocupEngine::supports(const Rules& rules) const {
+    if (!rules.extensions.empty()) return false;
     return ruleId(rules).has_value() && validate(rules).has_value();
 }
 

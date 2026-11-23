@@ -34,3 +34,23 @@ TEST_CASE("maxMoves takes part in equality") {
     CHECK(Rules{.maxMoves = 10} != Rules{});
     CHECK(Rules{.maxMoves = 10} == Rules{.maxMoves = 10});
 }
+
+TEST_CASE("ext05_rules: equality compares extension keys and values") {
+    const Rules rules{.extensions = {{"custom-rule", true}}};
+    CHECK(rules == Rules{.extensions = {{"custom-rule", true}}});
+    CHECK(rules != Rules{.extensions = {{"custom-rule", false}}});
+    CHECK(rules != Rules{.extensions = {{"other-rule", true}}});
+    CHECK(rules != Rules{});
+}
+
+TEST_CASE("ext05_rules: validation accepts extensions") {
+    const Rules rules{.maxMoves = 225, .extensions = {{"custom-rule", true}}};
+    CHECK(validate(rules).has_value());
+}
+
+TEST_CASE("ext05_rules: default and designated initialization leave extensions empty") {
+    CHECK(Rules{}.extensions.empty());
+    const Rules rules{.maxMoves = 225};
+    CHECK(rules.maxMoves == 225);
+    CHECK(rules.extensions.empty());
+}

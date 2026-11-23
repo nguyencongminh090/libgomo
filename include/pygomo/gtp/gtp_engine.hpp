@@ -37,7 +37,7 @@ class GtpEngine final : public EnginePort, private TransportListener {
     /// the mode it started with.
     void setAnalyze(std::optional<std::chrono::milliseconds> interval);
 
-    /// True for valid rules with free opening; GTP has no swap opening.
+    /// Accepts valid rules with free opening and empty extensions. GTP has no swap opening.
     [[nodiscard]] bool supports(const Rules& rules) const override;
     /// Stores the rules for later searches; sends nothing. Unsupported if supports() is false.
     [[nodiscard]] std::expected<void, EngineError> setRules(const Rules& rules) override;
