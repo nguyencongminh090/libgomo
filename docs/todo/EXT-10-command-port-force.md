@@ -2,7 +2,7 @@
 id: EXT-10-command-port-force
 type: todo
 size: M
-status: backlog
+status: active
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -24,7 +24,7 @@ The queued command is written from inside the listener (allowed by ProcessTransp
 Features `EXT-10-*` in `docs/features.json` (`harness-track EXT-10`).
 
 ## Evidence
-(fill in before marking done)
+2026-11-23, Opus subagent; reviewed by the `reviewer` agent (5 findings: GTP sink called under writeMutex_, forced command stuck after a failed write, YXSTOP inside another thread's BOARD block, DeadlineEngine accepting unsendable commands, GTP reply doc), all fixed with regression tests that fail without the fix (c26fa30). `ctest -R '^ext10_'` 5/5 (also --repeat until-fail:10); full suite 118/118. EXT-10-tsan NOT passing: the tsan preset (-O2 -Werror, g++ 15) fails to build on master already since EXT-02 (`free-nonheap-object` in blocking_search.cpp via Value), plus `maybe-uninitialized` in deadline_engine.cpp (copy of Command with std::function). With `-DPYGOMO_WARNINGS_AS_ERRORS=OFF` (command line only): 118/118 and ext10_ x20, no ThreadSanitizer report. Decisions: wire format via commandLines(); GTP supports None only; commands get no deadline; a kept command fails after a DeadlineEngine timeout; CommandPort::canExecute added; Gomocup now serializes writes (stop/sendRaw/execute wait for a script being written).
 
 ## Links
 `features/extensible-engine-commands/planning.md`

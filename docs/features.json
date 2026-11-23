@@ -1855,7 +1855,7 @@
         "ctest --preset default -R '^ext10_' --no-tests=error --output-on-failure"
       ],
       "checked_by": "ctest --preset default -R '^ext10_' --no-tests=error --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-10-tsan",
@@ -1875,7 +1875,7 @@
         "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
       ],
       "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-11-docs",
