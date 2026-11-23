@@ -1566,6 +1566,66 @@
       ],
       "checked_by": "latexmk -pdf -interaction=nonstopmode -outdir=/tmp/pygomo-guide docs/guide/developer-guide.tex && ! grep -E \"undefined|Overfull\" /tmp/pygomo-guide/developer-guide.log",
       "passes": true
+    },
+    {
+      "id": "FMT-01-config",
+      "todo": "FMT-01",
+      "description": "WHEN .clang-format is read THEN it sets IndentWidth 4, ColumnLimit 100 and the three alignment options, and clang-format --version is recorded in an audit",
+      "steps": [
+        "test -f .clang-format && grep -q \"ColumnLimit: 100\" .clang-format && clang-format --version"
+      ],
+      "checked_by": "test -f .clang-format && grep -q \"ColumnLimit: 100\" .clang-format && clang-format --version",
+      "passes": true
+    },
+    {
+      "id": "FMT-01-measure",
+      "todo": "FMT-01",
+      "description": "WHEN the config is dry-run over include/ src/ tests/ THEN the audit records the diff size per directory and the tree is unchanged",
+      "steps": [
+        "clang-format --dry-run include/*/*.hpp 2>&1 | wc -l  # plus git status clean and audit read"
+      ],
+      "checked_by": "clang-format --dry-run include/*/*.hpp 2>&1 | wc -l  # plus git status clean and audit read",
+      "passes": false
+    },
+    {
+      "id": "FMT-02-applied",
+      "todo": "FMT-02",
+      "description": "WHEN clang-format is applied THEN git diff -w of the format commit shows only alignment and ctest passes",
+      "steps": [
+        "cmake --build --preset default && ctest --preset default"
+      ],
+      "checked_by": "cmake --build --preset default && ctest --preset default",
+      "passes": false
+    },
+    {
+      "id": "FMT-02-check",
+      "todo": "FMT-02",
+      "description": "WHEN scripts/check-format.sh runs on the formatted tree THEN it exits 0, and exits non-zero after a misaligned edit",
+      "steps": [
+        "scripts/check-format.sh"
+      ],
+      "checked_by": "scripts/check-format.sh",
+      "passes": false
+    },
+    {
+      "id": "FMT-03-full-style",
+      "todo": "FMT-03",
+      "description": "WHEN the full-style config is applied THEN scripts/check-format.sh exits 0 and the build and ctest pass",
+      "steps": [
+        "scripts/check-format.sh && cmake --build --preset default && ctest --preset default"
+      ],
+      "checked_by": "scripts/check-format.sh && cmake --build --preset default && ctest --preset default",
+      "passes": false
+    },
+    {
+      "id": "FMT-04-ctest",
+      "todo": "FMT-04",
+      "description": "WHEN ctest runs THEN it includes the format check and fails on a misformatted file",
+      "steps": [
+        "ctest --preset default -R format"
+      ],
+      "checked_by": "ctest --preset default -R format",
+      "passes": false
     }
   ]
 }

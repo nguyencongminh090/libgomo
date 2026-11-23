@@ -1,0 +1,22 @@
+# Alignment-only config (planning clang-format, phase 1). Pinned: clang-format 21.1.8.
+# Based on LLVM, with the layout options below set to what the code already does,
+# so that only the three Align* options and the 100-column limit change anything.
+BasedOnStyle: LLVM
+Language: Cpp
+IndentWidth: 4
+ColumnLimit: 100
+PointerAlignment: Left
+SpacesBeforeTrailingComments: 2
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortLoopsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: All
+AllowShortBlocksOnASingleLine: Always
+AllowShortLambdasOnASingleLine: All
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortEnumsOnASingleLine: true
+PenaltyReturnTypeOnItsOwnLine: 1000
+AlignAfterOpenBracket: Align
+BinPackParameters: BinPack
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveDeclarations: Consecutive
+AlignTrailingComments: true

@@ -19,5 +19,6 @@ Toolchain: CMake >= 3.25, Ninja, a C++23 compiler (checked with g++ 15). Tests u
 - Single test: `./build/default/tests/pygomo_core_tests -tc="<test case name>"`
 - Core dependency check: `scripts/check-core-deps.sh` (pygomo_core must include no I/O, thread, process or protocol header)
 - Smoke: `ctest --preset default -R smoke`
+- Format (dry run, clang-format 21.1.8 pinned, see `docs/audit/AUD-06-clang-format-measure.md`): `clang-format --dry-run include/*/*.hpp`
 - Harness check: `node scripts/harness/harness-check.mjs`
 - ThreadSanitizer: `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan`
