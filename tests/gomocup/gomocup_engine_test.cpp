@@ -478,3 +478,23 @@ TEST_CASE("ext03_chain: skips an empty custom parser and tries custom first") {
     CHECK(std::holds_alternative<CustomEvent>(both("VC 3")));
     CHECK(std::holds_alternative<SwapEvent>(both("SWAP")));
 }
+
+TEST_CASE("ext05_gomocup: rules with extensions are unsupported and write nothing") {
+    Rig         r;
+    const Rules rules{.extensions = {{"custom-rule", true}}};
+    CHECK_FALSE(r.e.supports(rules));
+    const auto result = r.e.setRules(rules);
+    REQUIRE_FALSE(result);
+    CHECK(result.error() == EngineError::Unsupported);
+    CHECK(r.t.lines().empty());
+}
+
+TEST_CASE("ext05_deadline: forwards rules with extensions to GomocupEngine") {
+    DeadlineRig r{std::chrono::milliseconds{0}};
+    const Rules rules{.extensions = {{"custom-rule", true}}};
+    CHECK_FALSE(r.e.supports(rules));
+    const auto result = r.e.setRules(rules);
+    REQUIRE_FALSE(result);
+    CHECK(result.error() == EngineError::Unsupported);
+    CHECK(r.t.lines().empty());
+}

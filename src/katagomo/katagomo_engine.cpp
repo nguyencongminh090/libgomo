@@ -27,6 +27,7 @@ std::expected<void, EngineError> KataGomoEngine::open() {
 }
 
 bool KataGomoEngine::supports(const Rules& rules) const {
+    if (!rules.extensions.empty()) return false;
     return rules.opening == OpeningRule::FreeOpen && validate(rules).has_value();
 }
 

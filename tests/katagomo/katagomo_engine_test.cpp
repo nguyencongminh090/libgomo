@@ -171,3 +171,13 @@ TEST_CASE("port3_kata: a failed write while the search is live is refused with n
     r.t.failWrites = false;
     CHECK(r.e.startSearch(threeMoves(), Limits{}, sink));  // the refused search left no sink
 }
+
+TEST_CASE("ext05_katagomo: rules with extensions are unsupported and write nothing") {
+    Rig         r;
+    const Rules rules{.extensions = {{"custom-rule", true}}};
+    CHECK_FALSE(r.e.supports(rules));
+    const auto result = r.e.setRules(rules);
+    REQUIRE_FALSE(result);
+    CHECK(result.error() == EngineError::Unsupported);
+    CHECK(r.t.lines().empty());
+}

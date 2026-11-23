@@ -17,6 +17,7 @@ add_test(NAME cand1_equality COMMAND pygomo_core_tests "-tc=cand1_equality*")
 add_test(NAME cand1_compat COMMAND pygomo_core_tests "-tc=cand1_compat*")
 add_test(NAME ext01_is_terminal COMMAND pygomo_core_tests "-tc=ext01_is_terminal*")
 add_test(NAME ext02_core COMMAND pygomo_core_tests "-tc=ext02_*")
+add_test(NAME ext05_core COMMAND pygomo_core_tests "-tc=ext05_*")
 add_test(NAME core_tests COMMAND pygomo_core_tests)
 
 add_executable(pygomo_transport_tests
@@ -77,6 +78,7 @@ foreach(group sequence rules events warning stop closed rect deadline)
 endforeach()
 add_test(NAME ext02_gomocup COMMAND pygomo_gomocup_tests "-tc=ext02_*")
 add_test(NAME ext03_gomocup COMMAND pygomo_gomocup_tests "-tc=ext03_*")
+add_test(NAME ext05_gomocup COMMAND pygomo_gomocup_tests "-tc=ext05_*")
 
 if(UNIX)
   add_executable(pygomo_process_tests
@@ -128,6 +130,7 @@ pygomo_enable_warnings(pygomo_gtp_tests)
 foreach(group sequence result rules lifecycle)
   add_test(NAME gtp2_${group} COMMAND pygomo_gtp_tests "-tc=gtp2_${group}*")
 endforeach()
+add_test(NAME ext05_gtp COMMAND pygomo_gtp_tests "-tc=ext05_*")
 
 add_executable(pygomo_katagomo_tests
   main.cpp
@@ -138,6 +141,7 @@ pygomo_enable_warnings(pygomo_katagomo_tests)
 foreach(group sequence rules limits events)
   add_test(NAME kata_${group} COMMAND pygomo_katagomo_tests "-tc=kata_${group}*")
 endforeach()
+add_test(NAME ext05_katagomo COMMAND pygomo_katagomo_tests "-tc=ext05_*")
 foreach(group sequence stream errors)
   add_test(NAME gtp3_${group} COMMAND pygomo_gtp_tests "-tc=gtp3_${group}*")
 endforeach()

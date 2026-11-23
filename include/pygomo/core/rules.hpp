@@ -1,7 +1,11 @@
 #pragma once
 
 #include <expected>
+#include <map>
 #include <optional>
+#include <string>
+
+#include "pygomo/core/value.hpp"
 
 namespace pygomo {
 
@@ -32,11 +36,15 @@ struct Rules {
     OpeningRule opening{OpeningRule::FreeOpen};  ///< Opening protocol.
     /// Game is a draw once this many moves are played. Empty means no limit.
     std::optional<int> maxMoves{};
+    /// Rules the core does not model (e.g. Caro), keyed by a name the engine encoder knows.
+    /// An adapter with no encoder for them refuses a non-empty map (supports() is false).
+    std::map<std::string, Value> extensions{};
 
-    constexpr bool operator==(const Rules&) const = default;
+    bool operator==(const Rules&) const = default;
 };
 
 /// Checks that `rules` is self-consistent. Errors: InvalidMaxMoves.
+/// Accepts extension entries as provided.
 [[nodiscard]] constexpr std::expected<void, RulesError> validate(const Rules& rules) noexcept {
     if (rules.maxMoves && *rules.maxMoves <= 0) {
         return std::unexpected(RulesError::InvalidMaxMoves);

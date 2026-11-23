@@ -548,3 +548,13 @@ TEST_CASE("gtp7_engine: analyze streams multi-candidate kata InfoEvent and ends 
     REQUIRE(r.sink.events.size() == 2);
     CHECK(std::get<BestMoveEvent>(r.sink.events[1]).coord == Coord{8, 6});
 }
+
+TEST_CASE("ext05_gtp: rules with extensions are unsupported and write nothing") {
+    Rig         r;
+    const Rules rules{.extensions = {{"custom-rule", true}}};
+    CHECK_FALSE(r.e.supports(rules));
+    const auto result = r.e.setRules(rules);
+    REQUIRE_FALSE(result);
+    CHECK(result.error() == EngineError::Unsupported);
+    CHECK(r.t.lines().empty());
+}

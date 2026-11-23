@@ -30,8 +30,8 @@ class GomocupEngine final : public EnginePort, private TransportListener {
     /// Starts reading from the transport. Returns NotReady if the transport cannot start.
     [[nodiscard]] std::expected<void, EngineError> open();
 
-    /// True for valid rules that have a Gomocup rule id: any board rule with free opening, or
-    /// freestyle with swap1 or swap2.
+    /// Accepts valid rules with empty extensions and a Gomocup rule id. Supports any board rule
+    /// with free opening, or freestyle with swap1 or swap2.
     [[nodiscard]] bool supports(const Rules& rules) const override;
     /// Stores the rules for later searches; sends nothing. Unsupported if supports() is false.
     [[nodiscard]] std::expected<void, EngineError> setRules(const Rules& rules) override;

@@ -25,7 +25,8 @@ class KataGomoEngine final : public EnginePort, private TransportListener {
     /// Starts reading from the transport. Returns NotReady if the transport cannot start.
     [[nodiscard]] std::expected<void, EngineError> open();
 
-    /// True for valid rules with free opening; `gom` mode has no swap opening.
+    /// Accepts valid rules with free opening and empty extensions.
+    /// The `gom` mode has no swap opening.
     [[nodiscard]] bool supports(const Rules& rules) const override;
     /// Stores the rules for later searches; sends nothing. Unsupported if supports() is false.
     [[nodiscard]] std::expected<void, EngineError> setRules(const Rules& rules) override;
