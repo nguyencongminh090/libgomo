@@ -1585,7 +1585,7 @@
         "clang-format --dry-run include/*/*.hpp 2>&1 | wc -l  # plus git status clean and audit read"
       ],
       "checked_by": "clang-format --dry-run include/*/*.hpp 2>&1 | wc -l  # plus git status clean and audit read",
-      "passes": false
+      "passes": true
     },
     {
       "id": "FMT-02-applied",

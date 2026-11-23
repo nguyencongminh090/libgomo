@@ -2,7 +2,7 @@
 id: FMT-01-install-config-measure
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []

@@ -12,10 +12,9 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing in progress. DOC-04 done (2026-11-22): ADR-01 (`docs/adr/ADR-01-info-event-candidates.md`,
-the first ADR) records `InfoEvent::candidates`; the developer guide explains candidates (§8.5),
-the summary-field meaning and the known limits; PDF rebuilt. All four todos of planning
-`detailed-search-analysis` (CORE-06, GOMO-07, GTP-07, DOC-04) are done.
+Nothing in progress. Planning `clang-format` is done (2026-11-23): FMT-01..04 all done. `.clang-format` is full style
+(sorted includes), `scripts/check-format.sh` runs as ctest `style_format`, `coding-style.md` §1 says clang-format owns layout
+and `/align` is retired. Measurements: AUD-06 (alignment-only), AUD-07 (full style). ctest 83/83 pass (live tests skipped).
 
 ## Next step
 1. Plannings `detailed-search-analysis` and `code-style-normalization` are closed (2026-11-23,
@@ -25,7 +24,7 @@ the summary-field meaning and the known limits; PDF rebuilt. All four todos of p
    `--dangerously-skip-permissions` is blocked here, so the orchestrator builds and tests.
 
 Doc skills in `.claude/skills/`: README files of `documentation` and `writing-clearly-and-concisely` were read in DOC-02 (nothing to adapt); the other copied skills still carry unread README.WARNING.md/README.md.
-Style normalization (planning code-style-normalization) is finished and closed (2026-11-23). A `.clang-format` stays a separate planning.
+Style normalization (planning code-style-normalization) is finished and closed (2026-11-23); formatting is now owned by clang-format (planning clang-format, closed).
 FMT-04 done (2026-11-23): ctest `style_format`, coding-style rule rewritten, `/align` retired. Planning `clang-format` has all its todos done.
 KataGomo source is outside the repo (shallow clone of `https://github.com/hzyhhzy/KataGomo`, branch `Gom2026`, commit `9a0e65c`); re-clone into the scratchpad when needed. Rapfi: `/run/media/ngmint/Data/Programming/Programming/C++/Project/Lab/Rapfi_V2/rapfi/Rapfi` (binary `build/pbrain-rapfi`).
 
