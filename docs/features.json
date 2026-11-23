@@ -1948,6 +1948,17 @@
       ],
       "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
       "passes": true
+    },
+    {
+      "id": "CORE-07-plan",
+      "todo": "CORE-07",
+      "description": "WHEN the owner approves the rename plan THEN it records the integration names, compatibility policy, implementation slices, and verification steps",
+      "steps": [
+        "Compare the approved plan with the owner's decision",
+        "grep -qx 'status: approved' features/rename-libgomo/planning.md && node scripts/harness/harness-check.mjs"
+      ],
+      "checked_by": "grep -qx 'status: approved' features/rename-libgomo/planning.md && node scripts/harness/harness-check.mjs",
+      "passes": true
     }
   ]
 }

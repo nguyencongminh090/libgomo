@@ -12,11 +12,14 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Nothing active. LIVE-01 done: `ext10_live` (5 cases, V2 and V3 force) in tests/live; run with
+CORE-07 is done. The owner approved the [libgomo rename plan](../features/rename-libgomo/planning.md)
+and direct migration. `CORE-07-plan` passed. `AUD-09` records the compatibility decision.
+LIVE-01 done: `ext10_live` (5 cases, V2 and V3 force) in tests/live; run with
 PYGOMO_RAPFI_V2 and PYGOMO_RAPFI_V3, skipped without them.
 
 ## Next step
-Pick the next todo or planning with the owner.
+Start with `CORE-08` for the namespace and header tree, then `CORE-09` for CMake and test
+names and `CORE-10` for consumer documentation.
 
 ## Uncertain
 - LIVE-01: YXANALZ asserts one of the two listed moves (spike saw only 9,9; 6,6 also appears).
@@ -54,4 +57,5 @@ Pick the next todo or planning with the owner.
 - DeadlineEngine: an engine that never answers after a timeout stays Busy; the caller must close it (docs/audit/AUD-03). The Gomocup timeout path ran against a real Rapfi (frozen with SIGSTOP, DEAD-04); GTP and KataGomo only against fake transports.
 
 ## Blockers
-None.
+The implementation todos still need owner authorization for their acceptance entries and
+the mechanical updates to existing checks listed in the plan.

@@ -1,7 +1,9 @@
 # TODO
 
 ## Backlog
-- [x] **LIVE-01.** Live test: Command/force against Rapfi V2 and V3 - size M - [detail](docs/todo/LIVE-01-force-live-test.md)
+- [ ] **CORE-08.** Rename the C++ namespace and public headers to gomo - size M - [detail](docs/todo/CORE-08-rename-cpp-integration.md)
+- [ ] **CORE-09.** Rename the CMake project, targets, and test settings - size M - [detail](docs/todo/CORE-09-rename-cmake-test-identifiers.md)
+- [ ] **CORE-10.** Document the libgomo consumer migration - size M - [detail](docs/todo/CORE-10-document-libgomo-migration.md)
 
 ## Active
 
@@ -11,6 +13,7 @@
 - [x] **CORE-03.** Bổ sung phụ thuộc và vòng đời phiên vào sơ đồ kiến trúc - size M - [detail](docs/todo/CORE-03-document-architecture-lifecycle.md)
 - [x] **CORE-04.** DeadlineEngine: startSearch thất bại không được xóa sink của lượt mới hơn - size M - [detail](docs/todo/CORE-04-failed-start-clears-newer-search.md)
 - [x] **CORE-06.** Core: kiểu `Candidate` và `InfoEvent::candidates` - size M - [detail](docs/todo/CORE-06-info-event-candidates.md)
+- [x] **CORE-07.** Plan the PyGomo rename to libgomo - size M - [detail](docs/todo/CORE-07-plan-libgomo-rename.md)
 - [x] **DEAD-01.** DeadlineEngine: decorator that gives any EnginePort a search deadline - size M - [detail](docs/todo/DEAD-01-deadline-engine-decorator.md)
 - [x] **DEAD-02.** DeadlineEngine over GtpEngine and KataGomoEngine (fake-transport tests) - size M - [detail](docs/todo/DEAD-02-deadline-gtp-katagomo.md)
 - [x] **DEAD-03.** GomocupEngine: retire the built-in deadline, use DeadlineEngine - size M - [detail](docs/todo/DEAD-03-retire-gomocup-builtin-deadline.md)
@@ -54,6 +57,7 @@
 - [x] **HARNESS-03.** Canonical path for the features.json match - size M - [detail](docs/todo/HARNESS-03-canonical-features-path.md)
 - [x] **HARNESS-04.** Semantic check for the passes-only edit - size M - [detail](docs/todo/HARNESS-04-passes-only-semantic-check.md)
 - [x] **KATA-01.** KataGomoEngine: adapter for KataGomo `gom` mode (source-derived) - size M - [detail](docs/todo/KATA-01-katagomo-gom-adapter.md)
+- [x] **LIVE-01.** Live test: Command/force against Rapfi V2 and V3 - size M - [detail](docs/todo/LIVE-01-force-live-test.md)
 - [x] **MSG-01.** MessageEvent in core and parsers - size M - [detail](docs/todo/MSG-01-message-event.md)
 - [x] **PARSE-01.** Gomocup line parser - size M - [detail](docs/todo/PARSE-01-gomocup-line-parser.md)
 - [x] **PORT-01.** EnginePort and EventSink - size M - [detail](docs/todo/PORT-01-engine-port-event-sink.md)
