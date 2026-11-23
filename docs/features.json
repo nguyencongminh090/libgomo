@@ -1675,7 +1675,7 @@
         "ctest --preset default -R '^ext02_' --no-tests=error --output-on-failure"
       ],
       "checked_by": "ctest --preset default -R '^ext02_' --no-tests=error --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-02-core-deps",
@@ -1685,7 +1685,7 @@
         "scripts/check-core-deps.sh"
       ],
       "checked_by": "scripts/check-core-deps.sh",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-02-suite",
@@ -1695,7 +1695,7 @@
         "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
       ],
       "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-03-tests",
@@ -1705,7 +1705,7 @@
         "ctest --preset default -R '^ext03_' --no-tests=error --output-on-failure"
       ],
       "checked_by": "ctest --preset default -R '^ext03_' --no-tests=error --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-03-suite",
@@ -1715,7 +1715,7 @@
         "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
       ],
       "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-04-tests",

@@ -1,8 +1,6 @@
 # TODO
 
 ## Backlog
-- [ ] **EXT-02.** Core: Value and CustomEvent - size M - [detail](docs/todo/EXT-02-value-and-custom-event.md)
-- [ ] **EXT-03.** GomocupEngine: pluggable LineParser and chainParsers - size M - [detail](docs/todo/EXT-03-line-parser-gomocup.md)
 - [ ] **EXT-04.** GtpEngine and KataGomoEngine: pluggable LineParser - size M - [detail](docs/todo/EXT-04-line-parser-gtp-katagomo.md)
 - [ ] **EXT-05.** Core: Rules::extensions - size M - [detail](docs/todo/EXT-05-rules-extensions.md)
 - [ ] **EXT-06.** Core: BoardLayout in Position (WALL, Torus, Portal) - size M - [detail](docs/todo/EXT-06-board-layout-position.md)
@@ -15,8 +13,6 @@
 ## Active
 
 ## Done
-- [x] **EXT-00.** Audit: Rapfi extension findings (VC2, YXANALZ, WALL, Torus, Portal, Caro, BOARD, STOP) - size M - [detail](docs/todo/EXT-00-audit-rapfi-findings.md)
-- [x] **EXT-01.** Core: isTerminal(SearchEvent) replaces four copies of the terminal test - size M - [detail](docs/todo/EXT-01-is-terminal-helper.md)
 - [x] **CORE-01.** CMake skeleton and protocol-neutral core types - size M - [detail](docs/todo/CORE-01-cmake-skeleton-core-types.md)
 - [x] **CORE-02.** Tuần tự hóa callback của DeadlineEngine khi hết hạn - size M - [detail](docs/todo/CORE-02-serialize-deadline-callbacks.md)
 - [x] **CORE-03.** Bổ sung phụ thuộc và vòng đời phiên vào sơ đồ kiến trúc - size M - [detail](docs/todo/CORE-03-document-architecture-lifecycle.md)
@@ -30,6 +26,10 @@
 - [x] **DOC-02.** Developer guide, pass 2: prose, structure inside sections, and fact re-check - size M - [detail](docs/todo/DOC-02-developer-guide-prose.md)
 - [x] **DOC-03.** Developer guide, pass 3: the three TikZ figures - size M - [detail](docs/todo/DOC-03-developer-guide-figures.md)
 - [x] **DOC-04.** ADR cho hình dạng `InfoEvent` và cập nhật guide - size M - [detail](docs/todo/DOC-04-candidates-adr-guide.md)
+- [x] **EXT-00.** Audit: Rapfi extension findings (VC2, YXANALZ, WALL, Torus, Portal, Caro, BOARD, STOP) - size M - [detail](docs/todo/EXT-00-audit-rapfi-findings.md)
+- [x] **EXT-01.** Core: isTerminal(SearchEvent) replaces four copies of the terminal test - size M - [detail](docs/todo/EXT-01-is-terminal-helper.md)
+- [x] **EXT-02.** Core: Value and CustomEvent - size M - [detail](docs/todo/EXT-02-value-and-custom-event.md)
+- [x] **EXT-03.** GomocupEngine: pluggable LineParser and chainParsers - size M - [detail](docs/todo/EXT-03-line-parser-gomocup.md)
 - [x] **FMT-01.** Install clang-format, add the alignment-only config, measure the diff - size M - [detail](docs/todo/FMT-01-install-config-measure.md)
 - [x] **FMT-02.** Apply clang-format once and add the format check script - size M - [detail](docs/todo/FMT-02-apply-format-check.md)
 - [x] **FMT-03.** Phase 2: full-style config with clang-format off fences - size M - [detail](docs/todo/FMT-03-full-style-fences.md)

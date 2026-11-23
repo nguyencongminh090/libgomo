@@ -21,7 +21,9 @@ std::optional<int> ruleId(const Rules& r) {
 
 }  // namespace
 
-GomocupEngine::GomocupEngine(Transport& transport) : transport_(transport) {}
+GomocupEngine::GomocupEngine(Transport& transport, parse::LineParser parser)
+    : transport_(transport),
+      parser_(parser ? std::move(parser) : parse::LineParser{parse::parseGomocupLine}) {}
 
 std::expected<void, EngineError> GomocupEngine::open() {
     if (!transport_.start(*this)) return std::unexpected(EngineError::NotReady);
@@ -102,7 +104,7 @@ std::expected<void, EngineError> GomocupEngine::sendRaw(std::string_view line) {
 }
 
 void GomocupEngine::onLine(std::string_view line) {
-    SearchEvent event = parse::parseGomocupLine(line);
+    SearchEvent event = parser_(line);  // reader thread, outside the lock
     EventSink*  sink  = nullptr;
     {
         std::lock_guard lock(mutex_);

@@ -360,3 +360,17 @@ TEST_CASE("core4_failed_start: a nested start that is refused too leaves no stat
     REQUIRE(last.get().size() == 1);
     CHECK(std::holds_alternative<BestMoveEvent>(last.get()[0]));
 }
+
+TEST_CASE("ext02_deadline: a CustomEvent is progress, the search stays open") {
+    FakePort       port;
+    DeadlineEngine d(port, DeadlineEngine::Options{50ms});
+    Collect        sink;
+    REQUIRE(d.startSearch(pos(), Limits{}, sink));
+    port.say(CustomEvent{"vcn", {}}, false);
+    REQUIRE(waitFor(sink, 1));
+    CHECK(d.startSearch(pos(), Limits{}, sink).error() == EngineError::Busy);
+    port.say(kMove, true);
+    REQUIRE(waitFor(sink, 2));
+    CHECK(std::holds_alternative<CustomEvent>(sink.get()[0]));
+    CHECK(std::holds_alternative<BestMoveEvent>(sink.get()[1]));
+}

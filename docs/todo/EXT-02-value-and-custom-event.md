@@ -2,7 +2,7 @@
 id: EXT-02-value-and-custom-event
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -24,7 +24,7 @@ Add the new type only after EXT-01. Check the `std::visit` and `holds_alternativ
 Features `EXT-02-*` in `docs/features.json` (`harness-track EXT-02`).
 
 ## Evidence
-(fill in before marking done)
+2026-11-23. `Value` + `format(Value)` in `core/value.hpp` (src/core/value.cpp, std::format only), `CustomEvent{tag, fields}` added to `SearchEvent`; `isTerminal` treats it as non-terminal. Tests `ext02_*` cover core, `blocking_search`, `DeadlineEngine` and `GomocupEngine` (via a custom parser from EXT-03). `KataGomoEngine` has no parser hook until EXT-04, so no CustomEvent can reach it yet; it only calls `isTerminal`, which is tested. `check-core-deps` OK, suite 88/88 (live skipped).
 
 ## Links
 `features/extensible-engine-commands/planning.md`

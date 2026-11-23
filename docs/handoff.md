@@ -12,11 +12,13 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-Planning `extensible-engine-commands` (approved): EXT-00 (audit AUD-08) and EXT-01 (`isTerminal`) done
-2026-11-23. ctest 84/84 pass (live tests skipped).
+Planning `extensible-engine-commands` (approved): EXT-00, 01, 02, 03 done 2026-11-23. ctest 88/88 pass
+(live tests skipped).
 
 ## Next step
-1. EXT-02 (`Value`, `CustomEvent`); then EXT-03/05/06 are independent of each other.
+1. EXT-05 and EXT-06 are independent; EXT-04 (GTP/KataGomo `LineParser`, uses `parse/line_parser.hpp`)
+   and EXT-07 follow. EXT-04 should also add a KataGomo `CustomEvent` test (`ext02_` prefix) since
+   EXT-02 could not reach `KataGomoEngine`.
 2. Before EXT-10, read AUD-08 "Corrections to the planning": V3 dev clears `thinking` only after
    printing the move, so `force` waiting for the terminal event is not enough on V3 (a command sent
    right after can be dropped); V3 has no `YXANALZ` and ignores `INFO VCTHREAD`. Rapfi prints no

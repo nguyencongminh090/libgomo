@@ -2,7 +2,7 @@
 id: EXT-03-line-parser-gomocup
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -24,7 +24,7 @@ Both hooks run on the reader thread, never under the adapter lock. A custom pars
 Features `EXT-03-*` in `docs/features.json` (`harness-track EXT-03`).
 
 ## Evidence
-(fill in before marking done)
+2026-11-23. `parse::LineParser` and `parse::chainParsers` in `parse/line_parser.hpp` (header only); `GomocupEngine(Transport&, LineParser = {})`, empty means `parseGomocupLine`. The parser runs on the reader thread before the lock; the ERROR-to-Message rule and illegal-move check apply to its result. Terminal caveat is in the `LineParser` doc comment. Tests `ext03_*`; suite 88/88.
 
 ## Links
 `features/extensible-engine-commands/planning.md`

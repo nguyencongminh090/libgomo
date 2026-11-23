@@ -4,10 +4,12 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 
 #include "pygomo/core/coord.hpp"
+#include "pygomo/core/value.hpp"
 
 namespace pygomo {
 
@@ -98,17 +100,28 @@ struct UnparsedEvent {
     bool operator==(const UnparsedEvent&) const = default;
 };
 
-/// Everything an EventSink can receive. BestMove, Swap, Pass, Resign and Error end a search.
-using SearchEvent = std::variant<InfoEvent, BestMoveEvent, SwapEvent, PassEvent, ResignEvent,
-                                 ErrorEvent, MessageEvent, UnparsedEvent>;
+/// Output only an application's own parser understands, as typed fields. Not terminal.
+struct CustomEvent {
+    std::string tag{};  ///< Names the kind of output, chosen by the parser that made it.
+    std::vector<std::pair<std::string, Value>> fields{};  ///< Key and value, in line order.
 
-/// Says whether `event` ends a search: Info, Message and Unparsed do not, every other type does.
+    bool operator==(const CustomEvent&) const = default;
+};
+
+/// Everything an EventSink can receive. BestMove, Swap, Pass, Resign and Error end a search;
+/// Info, Message, Unparsed and Custom do not.
+using SearchEvent = std::variant<InfoEvent, BestMoveEvent, SwapEvent, PassEvent, ResignEvent,
+                                 ErrorEvent, MessageEvent, UnparsedEvent, CustomEvent>;
+
+/// Says whether `event` ends a search: Info, Message, Unparsed and Custom do not, every other
+/// type does.
 /// The one place that decides it, so a new event type cannot be classified differently by each
 /// adapter or decorator (ADR-01).
 [[nodiscard]] constexpr bool isTerminal(const SearchEvent& event) noexcept {
     return !std::holds_alternative<InfoEvent>(event) &&
            !std::holds_alternative<MessageEvent>(event) &&
-           !std::holds_alternative<UnparsedEvent>(event);
+           !std::holds_alternative<UnparsedEvent>(event) &&
+           !std::holds_alternative<CustomEvent>(event);
 }
 
 }  // namespace pygomo

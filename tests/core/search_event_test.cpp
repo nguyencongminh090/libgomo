@@ -2,8 +2,10 @@
 
 #include <string>
 #include <type_traits>
+#include <vector>
 
 #include "pygomo/core/search_event.hpp"
+#include "pygomo/core/value.hpp"
 
 using namespace pygomo;
 using namespace std::chrono_literals;
@@ -22,6 +24,7 @@ std::string describe(const SearchEvent& e) {
         std::string operator()(const ErrorEvent&) const { return "error"; }
         std::string operator()(const MessageEvent&) const { return "message"; }
         std::string operator()(const UnparsedEvent&) const { return "unparsed"; }
+        std::string operator()(const CustomEvent&) const { return "custom"; }
     };
     return std::visit(Visitor{}, e);
 }
@@ -37,6 +40,7 @@ TEST_CASE("Every alternative is reachable through the variant") {
     CHECK(describe(ErrorEvent{"boom"}) == "error");
     CHECK(describe(MessageEvent{"hi"}) == "message");
     CHECK(describe(UnparsedEvent{"???"}) == "unparsed");
+    CHECK(describe(CustomEvent{}) == "custom");
 }
 
 TEST_CASE("InfoEvent has no mandatory field") {
@@ -178,4 +182,29 @@ TEST_CASE("ext01_is_terminal: only Info, Message and Unparsed keep a search runn
     CHECK(isTerminal(ResignEvent{}));
     CHECK(isTerminal(ErrorEvent{"boom"}));
     static_assert(isTerminal(SearchEvent{SwapEvent{}}));
+}
+
+TEST_CASE("ext02_custom_event: not terminal, compares tag and fields") {
+    const CustomEvent a{"vcn", {{"mode", std::int64_t{2}}, {"win", Coord{3, 4}}}};
+    CHECK_FALSE(isTerminal(a));
+    CHECK(a == CustomEvent{"vcn", {{"mode", std::int64_t{2}}, {"win", Coord{3, 4}}}});
+    CHECK_FALSE(a == CustomEvent{"vcn", {}});
+    CHECK_FALSE(a == CustomEvent{"other", a.fields});
+    SearchEvent e = a;
+    CHECK(std::get<CustomEvent>(e).tag == "vcn");
+}
+
+TEST_CASE("ext02_value: format covers every alternative") {
+    CHECK(format(Value{true}) == "1");
+    CHECK(format(Value{false}) == "0");
+    CHECK(format(Value{std::int64_t{-42}}) == "-42");
+    CHECK(format(Value{1.5}) == "1.5");
+    CHECK(format(Value{std::string{"abc d"}}) == "abc d");
+    CHECK(format(Value{Coord{3, 4}}) == "3,4");
+    CHECK(format(Value{Move{{3, 4}, Side::Black}}) == "3,4,1");
+    CHECK(format(Value{Move{{5, 6}, Side::White}}) == "5,6,2");
+    CHECK(format(Value{std::vector<Coord>{{1, 2}, {3, 4}}}) == "1,2 3,4");
+    CHECK(format(Value{std::vector<Coord>{}}).empty());
+    CHECK(format(Value{std::vector<Move>{{{1, 2}, Side::Black}, {{3, 4}, Side::White}}}) ==
+          "1,2,1 3,4,2");
 }

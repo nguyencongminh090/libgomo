@@ -80,3 +80,26 @@ TEST_CASE("port_blocking: a start error is returned, not waited on") {
     REQUIRE_FALSE(r);
     CHECK(r.error() == EngineError::NotReady);
 }
+
+TEST_CASE("ext02_blocking: a CustomEvent does not end the search and is kept in other") {
+    struct CustomEngine final : EnginePort {
+        bool                             supports(const Rules&) const override { return true; }
+        std::expected<void, EngineError> setRules(const Rules&) override { return {}; }
+        std::expected<void, EngineError> startSearch(const Position&, const Limits&,
+                                                     EventSink& s) override {
+            s.onEvent(CustomEvent{"vcn", {}});
+            s.onEvent(BestMoveEvent{{7, 7}});
+            return {};
+        }
+        void                             stop() override {}
+        std::expected<void, EngineError> sendRaw(std::string_view) override { return {}; }
+    };
+    auto pos = Position::create(15, 15);
+    REQUIRE(pos);
+    CustomEngine engine;
+    auto         r = search(engine, *pos, Limits{});
+    REQUIRE(r);
+    CHECK(std::holds_alternative<BestMoveEvent>(r->terminal));
+    REQUIRE(r->other.size() == 1);
+    CHECK(std::get<CustomEvent>(r->other[0]).tag == "vcn");
+}

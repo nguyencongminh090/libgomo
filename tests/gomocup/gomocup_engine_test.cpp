@@ -11,6 +11,7 @@
 #include "pygomo/engine/blocking_search.hpp"
 #include "pygomo/engine/deadline_engine.hpp"
 #include "pygomo/gomocup/gomocup_engine.hpp"
+#include "pygomo/parse/gomocup_parser.hpp"
 
 using namespace pygomo;
 
@@ -385,4 +386,95 @@ TEST_CASE("port3_gomocup: a failed write while the search is live is refused wit
     r.t.onWrite    = nullptr;
     r.t.failWrites = false;
     CHECK(r.e.startSearch(threeMoves(), Limits{}, sink));  // the refused search left no sink
+}
+
+namespace {
+
+// Turns "VC <n>" into a CustomEvent and leaves every other line to the default parser.
+SearchEvent vcParser(std::string_view line) {
+    if (line.starts_with("VC ")) {
+        return CustomEvent{"vc",
+                           {{"depth", std::int64_t{std::stoll(std::string{line.substr(3)})}}}};
+    }
+    return UnparsedEvent{std::string{line}};
+}
+
+}  // namespace
+
+TEST_CASE("ext02_gomocup: a CustomEvent from the parser does not end the search") {
+    FakeTransport t;
+    GomocupEngine e{t, parse::chainParsers(vcParser, parse::parseGomocupLine)};
+    REQUIRE(e.open());
+    Collect sink;
+    REQUIRE(e.startSearch(threeMoves(), Limits{}, sink));
+    t.say("VC 7");
+    CHECK(e.startSearch(threeMoves(), Limits{}, sink).error() == EngineError::Busy);
+    t.say("6,6");
+    auto ev = sink.get();
+    REQUIRE(ev.size() == 2);
+    CHECK(std::get<CustomEvent>(ev[0]).tag == "vc");
+    CHECK(std::get<BestMoveEvent>(ev[1]).coord == Coord{6, 6});
+}
+
+TEST_CASE("ext03_parser: a custom parser sees the line first") {
+    FakeTransport            t;
+    std::vector<std::string> seen;
+    GomocupEngine            e{t, [&](std::string_view l) -> SearchEvent {
+                        seen.emplace_back(l);
+                        return MessageEvent{"mine"};
+                    }};
+    REQUIRE(e.open());
+    Collect sink;
+    REQUIRE(e.startSearch(threeMoves(), Limits{}, sink));
+    t.say("6,6");  // the custom parser answers, so the default never reads this move
+    REQUIRE(sink.get().size() == 1);
+    CHECK(std::get<MessageEvent>(sink.get()[0]).text == "mine");
+    CHECK(seen == std::vector<std::string>{"6,6"});
+}
+
+TEST_CASE("ext03_parser: Unparsed falls back to the default; no parser keeps old behaviour") {
+    FakeTransport t;
+    GomocupEngine e{t, parse::chainParsers(vcParser, parse::parseGomocupLine)};
+    REQUIRE(e.open());
+    Collect sink;
+    REQUIRE(e.startSearch(threeMoves(), Limits{}, sink));
+    t.say("VC 1");
+    t.say("MESSAGE depth 5-8 ev 20 n 100K tm 50 pv 6,6");
+    t.say("6,6");
+    auto ev = sink.get();
+    REQUIRE(ev.size() == 3);
+    CHECK(std::holds_alternative<CustomEvent>(ev[0]));
+    CHECK(std::get<InfoEvent>(ev[1]).depth == 5);
+    CHECK(std::holds_alternative<BestMoveEvent>(ev[2]));
+
+    Rig     r;  // default constructor argument
+    Collect s2;
+    REQUIRE(r.e.startSearch(threeMoves(), Limits{}, s2));
+    r.t.say("VC 1");
+    r.t.say("6,6");
+    REQUIRE(s2.get().size() == 2);
+    CHECK(std::holds_alternative<UnparsedEvent>(s2.get()[0]));
+}
+
+TEST_CASE("ext03_parser: ERROR and the illegal-move check still apply to a custom result") {
+    FakeTransport t;
+    GomocupEngine e{t, [](std::string_view l) -> SearchEvent {
+                        if (l == "BOOM") return ErrorEvent{"boom"};
+                        return BestMoveEvent{{7, 7}};  // occupied
+                    }};
+    REQUIRE(e.open());
+    Collect sink;
+    REQUIRE(e.startSearch(threeMoves(), Limits{}, sink));
+    t.say("BOOM");
+    CHECK(std::holds_alternative<MessageEvent>(sink.get().at(0)));
+    t.say("x");
+    CHECK(std::holds_alternative<ErrorEvent>(sink.get().at(1)));
+}
+
+TEST_CASE("ext03_chain: skips an empty custom parser and tries custom first") {
+    auto only = parse::chainParsers({}, parse::parseGomocupLine);
+    CHECK(std::holds_alternative<SwapEvent>(only("SWAP")));
+    auto both = parse::chainParsers(vcParser, parse::parseGomocupLine);
+    CHECK(std::holds_alternative<CustomEvent>(both("VC 3")));
+    CHECK(std::holds_alternative<SwapEvent>(both("SWAP")));
 }

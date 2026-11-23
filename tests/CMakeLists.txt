@@ -16,6 +16,7 @@ add_test(NAME cand1_defaults COMMAND pygomo_core_tests "-tc=cand1_defaults*")
 add_test(NAME cand1_equality COMMAND pygomo_core_tests "-tc=cand1_equality*")
 add_test(NAME cand1_compat COMMAND pygomo_core_tests "-tc=cand1_compat*")
 add_test(NAME ext01_is_terminal COMMAND pygomo_core_tests "-tc=ext01_is_terminal*")
+add_test(NAME ext02_core COMMAND pygomo_core_tests "-tc=ext02_*")
 add_test(NAME core_tests COMMAND pygomo_core_tests)
 
 add_executable(pygomo_transport_tests
@@ -63,6 +64,7 @@ foreach(group timeout intime nodeadline callback serialization)
   add_test(NAME dead1_${group} COMMAND pygomo_engine_tests "-tc=dead1_${group}*")
 endforeach()
 add_test(NAME core4_failed_start COMMAND pygomo_engine_tests "-tc=core4_failed_start*")
+add_test(NAME ext02_engine COMMAND pygomo_engine_tests "-tc=ext02_*")
 
 add_executable(pygomo_gomocup_tests
   main.cpp
@@ -73,6 +75,8 @@ pygomo_enable_warnings(pygomo_gomocup_tests)
 foreach(group sequence rules events warning stop closed rect deadline)
   add_test(NAME gomo_${group} COMMAND pygomo_gomocup_tests "-tc=gomo_${group}*")
 endforeach()
+add_test(NAME ext02_gomocup COMMAND pygomo_gomocup_tests "-tc=ext02_*")
+add_test(NAME ext03_gomocup COMMAND pygomo_gomocup_tests "-tc=ext03_*")
 
 if(UNIX)
   add_executable(pygomo_process_tests
