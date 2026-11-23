@@ -2,7 +2,7 @@
 id: EXT-09-rect-boards
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -24,7 +24,7 @@ Rapfi under `FLIPY_X` coordinate mode swaps w and h (`gomocup.cpp` RECTSTART); n
 Features `EXT-09-*` in `docs/features.json` (`harness-track EXT-09`).
 
 ## Evidence
-(fill in before marking done)
+2026-11-23, Sonnet subagent. `ctest -R '^ext09_'` 4/4 (live skipped without env); full suite 113/113 on master. Live: `PYGOMO_RAPFI_V3=.../Rapfi_V3_PTR/dev/rapfi/gomoku-portal-ui-distribute/pbrain-rapfi ctest -R ext09_live` passed (RECTSTART accepted, legal move on 15x10), cwd = binary dir for config.toml. Existing tests changed because the approved behaviour changed: `gomo_rect` now expects RECTSTART; the non-square refusal line in `ext07_default` removed. GtpEngine needed no code change.
 
 ## Links
 `features/extensible-engine-commands/planning.md`
