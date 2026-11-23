@@ -6,10 +6,10 @@
 #include <string>
 #include <vector>
 
-#include "pygomo/gomocup/gomocup_encode.hpp"
-#include "pygomo/gomocup/gomocup_engine.hpp"
+#include "gomo/gomocup/gomocup_encode.hpp"
+#include "gomo/gomocup/gomocup_engine.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 
 namespace {
 

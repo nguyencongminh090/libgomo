@@ -1,9 +1,9 @@
-#include "pygomo/engine/deadline_engine.hpp"
+#include "gomo/engine/deadline_engine.hpp"
 
 #include <utility>
 #include <variant>
 
-namespace pygomo {
+namespace gomo {
 
 DeadlineEngine::DeadlineEngine(EnginePort& inner) : DeadlineEngine(inner, Options{}) {}
 
@@ -213,4 +213,4 @@ void DeadlineEngine::watchdog() {
     }
 }
 
-}  // namespace pygomo
+}  // namespace gomo

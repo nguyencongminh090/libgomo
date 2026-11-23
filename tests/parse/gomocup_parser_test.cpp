@@ -3,11 +3,11 @@
 #include <chrono>
 #include <string>
 
-#include "pygomo/parse/gomocup_parser.hpp"
+#include "gomo/parse/gomocup_parser.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 using namespace std::chrono_literals;
-using pygomo::parse::parseGomocupLine;
+using gomo::parse::parseGomocupLine;
 
 namespace {
 // Line shapes follow Rapfi command/gomocup.cpp, search/searchoutput.cpp, core/iohelper.cpp.

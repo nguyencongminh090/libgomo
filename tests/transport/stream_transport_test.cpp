@@ -11,9 +11,9 @@
 #include <thread>
 #include <vector>
 
-#include "pygomo/transport/stream_transport.hpp"
+#include "gomo/transport/stream_transport.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 using namespace std::chrono_literals;
 
 namespace {

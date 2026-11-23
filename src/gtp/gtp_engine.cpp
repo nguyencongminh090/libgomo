@@ -1,4 +1,4 @@
-#include "pygomo/gtp/gtp_engine.hpp"
+#include "gomo/gtp/gtp_engine.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -7,10 +7,10 @@
 #include <variant>
 #include <vector>
 
-#include "pygomo/gtp/gtp_encode.hpp"
-#include "pygomo/parse/gtp_parser.hpp"
+#include "gomo/gtp/gtp_encode.hpp"
+#include "gomo/parse/gtp_parser.hpp"
 
-namespace pygomo {
+namespace gomo {
 namespace {
 
 // True if the engine replies to `line`: GTP 2 (section 2.4) skips empty and comment lines.
@@ -297,4 +297,4 @@ bool GtpEngine::canExecute(const Command& command) const {
            !command.terminator && CommandPort::canExecute(command);
 }
 
-}  // namespace pygomo
+}  // namespace gomo

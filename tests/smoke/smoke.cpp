@@ -1,10 +1,10 @@
 // Smoke check: the core links and one short game behaves. Exit code 0 means pass.
 #include <cstdio>
 
-#include "pygomo/core/limits.hpp"
-#include "pygomo/core/position.hpp"
-#include "pygomo/core/rules.hpp"
-#include "pygomo/core/search_event.hpp"
+#include "gomo/core/limits.hpp"
+#include "gomo/core/position.hpp"
+#include "gomo/core/rules.hpp"
+#include "gomo/core/search_event.hpp"
 
 // Prints the failed step and returns false so run() can bail out in one line.
 namespace {
@@ -15,7 +15,7 @@ bool fail(const char* what) {
 }
 
 bool run() {
-    using namespace pygomo;
+    using namespace gomo;
 
     auto position = Position::create(15, 15);
     if (!position) return fail("create 15x15");

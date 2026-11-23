@@ -2,9 +2,9 @@
 
 #include <thread>
 
-#include "pygomo/engine/blocking_search.hpp"
+#include "gomo/engine/blocking_search.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 
 namespace {
 

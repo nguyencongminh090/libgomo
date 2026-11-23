@@ -1,10 +1,10 @@
-#include "pygomo/core/position.hpp"
+#include "gomo/core/position.hpp"
 
 #include <algorithm>
 #include <cstddef>
 #include <utility>
 
-namespace pygomo {
+namespace gomo {
 
 Position::Position(int width, int height, BoardLayout layout)
     : width_(width), height_(height),
@@ -59,4 +59,4 @@ bool Position::operator==(const Position& other) const noexcept {
            layout_ == other.layout_;
 }
 
-}  // namespace pygomo
+}  // namespace gomo

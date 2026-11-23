@@ -3,9 +3,9 @@
 #include <algorithm>
 #include <string>
 
-#include "pygomo/core/position.hpp"
+#include "gomo/core/position.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 
 TEST_CASE("Position::create accepts square and rectangular boards") {
     auto square = Position::create(15, 15);

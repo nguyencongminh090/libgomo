@@ -1,9 +1,9 @@
-#include "pygomo/katagomo/katagomo_encode.hpp"
+#include "gomo/katagomo/katagomo_encode.hpp"
 
 #include <string>
 #include <vector>
 
-namespace pygomo::encode {
+namespace gomo::encode {
 namespace {
 
 const char* ruleCommand(BoardRule r) {
@@ -48,4 +48,4 @@ EncodedRequest defaultKataGomoRequest(const SearchRequest& request) {
     return lines;
 }
 
-}  // namespace pygomo::encode
+}  // namespace gomo::encode

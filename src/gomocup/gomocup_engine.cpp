@@ -1,11 +1,11 @@
-#include "pygomo/gomocup/gomocup_engine.hpp"
+#include "gomo/gomocup/gomocup_engine.hpp"
 
 #include <string>
 
-#include "pygomo/gomocup/gomocup_encode.hpp"
-#include "pygomo/parse/gomocup_parser.hpp"
+#include "gomo/gomocup/gomocup_encode.hpp"
+#include "gomo/parse/gomocup_parser.hpp"
 
-namespace pygomo {
+namespace gomo {
 
 GomocupEngine::GomocupEngine(Transport& transport, parse::LineParser parser, RequestEncoder encoder)
     : transport_(transport),
@@ -301,4 +301,4 @@ EventSink* GomocupEngine::failLocked() {
     return dropped;
 }
 
-}  // namespace pygomo
+}  // namespace gomo

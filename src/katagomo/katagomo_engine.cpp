@@ -1,13 +1,13 @@
-#include "pygomo/katagomo/katagomo_engine.hpp"
+#include "gomo/katagomo/katagomo_engine.hpp"
 
 #include <string>
 #include <utility>
 #include <vector>
 
-#include "pygomo/katagomo/katagomo_encode.hpp"
-#include "pygomo/parse/gomocup_parser.hpp"
+#include "gomo/katagomo/katagomo_encode.hpp"
+#include "gomo/parse/gomocup_parser.hpp"
 
-namespace pygomo {
+namespace gomo {
 
 KataGomoEngine::KataGomoEngine(Transport& transport, parse::LineParser parser,
                                RequestEncoder encoder)
@@ -253,4 +253,4 @@ EventSink* KataGomoEngine::failLocked() {
     return dropped;
 }
 
-}  // namespace pygomo
+}  // namespace gomo

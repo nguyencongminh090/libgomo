@@ -1,4 +1,4 @@
-#include "pygomo/gtp/gtp_encode.hpp"
+#include "gomo/gtp/gtp_encode.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -6,9 +6,9 @@
 #include <string>
 #include <vector>
 
-#include "pygomo/parse/gtp_parser.hpp"
+#include "gomo/parse/gtp_parser.hpp"
 
-namespace pygomo::encode {
+namespace gomo::encode {
 namespace {
 
 const char* basicRule(BoardRule r) {
@@ -62,4 +62,4 @@ EncodedRequest defaultGtpRequest(const SearchRequest&                     reques
     return commands;
 }
 
-}  // namespace pygomo::encode
+}  // namespace gomo::encode

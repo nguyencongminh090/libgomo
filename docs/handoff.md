@@ -12,14 +12,16 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-CORE-07 is done. The owner approved the [libgomo rename plan](../features/rename-libgomo/planning.md)
-and direct migration. `CORE-07-plan` passed. `AUD-09` records the compatibility decision.
+CORE-08 moved the public C++ headers to `include/gomo/` and the namespace to `gomo` under the
+approved [libgomo rename plan](../features/rename-libgomo/planning.md). The fresh default
+build passed all 119 CTest entries with Rapfi V2 and V3. The consumer, dependency, and style
+checks passed. CORE-08 is active pending acceptance-file approval.
 LIVE-01 done: `ext10_live` (5 cases, V2 and V3 force) in tests/live; run with
 PYGOMO_RAPFI_V2 and PYGOMO_RAPFI_V3, skipped without them.
 
 ## Next step
-Start with `CORE-08` for the namespace and header tree, then `CORE-09` for CMake and test
-names and `CORE-10` for consumer documentation.
+Close `CORE-08` after the acceptance-file edits are approved and checked, then proceed to
+`CORE-09` for CMake and test names and `CORE-10` for consumer documentation.
 
 ## Uncertain
 - LIVE-01: YXANALZ asserts one of the two listed moves (spike saw only 9,9; 6,6 also appears).
@@ -57,5 +59,6 @@ names and `CORE-10` for consumer documentation.
 - DeadlineEngine: an engine that never answers after a timeout stays Busy; the caller must close it (docs/audit/AUD-03). The Gomocup timeout path ran against a real Rapfi (frozen with SIGSTOP, DEAD-04); GTP and KataGomo only against fake transports.
 
 ## Blockers
-The implementation todos still need owner authorization for their acceptance entries and
-the mechanical updates to existing checks listed in the plan.
+CORE-08 needs owner approval for its acceptance entries and the seven style-check header
+path updates in `docs/features.json`. CORE-09 and CORE-10 have their own acceptance edits
+listed in the migration plan.

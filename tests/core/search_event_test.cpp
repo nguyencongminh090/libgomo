@@ -4,10 +4,10 @@
 #include <type_traits>
 #include <vector>
 
-#include "pygomo/core/search_event.hpp"
-#include "pygomo/core/value.hpp"
+#include "gomo/core/search_event.hpp"
+#include "gomo/core/value.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 using namespace std::chrono_literals;
 
 namespace {

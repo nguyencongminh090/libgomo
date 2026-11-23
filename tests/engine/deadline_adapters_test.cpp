@@ -6,13 +6,13 @@
 #include <thread>
 #include <vector>
 
-#include "pygomo/engine/deadline_engine.hpp"
-#include "pygomo/gtp/gtp_engine.hpp"
-#include "pygomo/katagomo/katagomo_engine.hpp"
+#include "gomo/engine/deadline_engine.hpp"
+#include "gomo/gtp/gtp_engine.hpp"
+#include "gomo/katagomo/katagomo_engine.hpp"
 
 // DeadlineEngine over the real adapters with a fake transport (shapes as in the adapters' own
 // tests).
-using namespace pygomo;
+using namespace gomo;
 using namespace std::chrono_literals;
 
 namespace {

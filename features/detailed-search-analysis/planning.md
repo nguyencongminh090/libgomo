@@ -143,7 +143,7 @@ Tách việc sau khi duyệt (mỗi todo tối đa M, `planning: detailed-search
 
 ## References
 
-[InfoEvent](../../include/pygomo/core/search_event.hpp) ·
+[InfoEvent](../../include/gomo/core/search_event.hpp) ·
 [Parser Gomocup](../../src/parse/gomocup_parser.cpp) ·
 [Parser GTP](../../src/parse/gtp_parser.cpp) ·
 Rapfi `search/searchoutput.cpp` (repo ngoài, xem handoff) ·

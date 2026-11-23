@@ -2,13 +2,13 @@
 # Proves two module-architecture constraints. Exit 0 = clean, 1 = violation(s) printed.
 #
 #  1. pygomo_core includes no process, stream, thread or protocol-name header.
-#  2. The transport port headers (include/pygomo/transport/) mention no protocol or engine name:
+#  2. The transport port headers (include/gomo/transport/) mention no protocol or engine name:
 #     the port must stay protocol-blind.
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-core_dirs=("$root/include/pygomo/core" "$root/src/core")
-transport_dir="$root/include/pygomo/transport"
+core_dirs=("$root/include/gomo/core" "$root/src/core")
+transport_dir="$root/include/gomo/transport"
 
 # System headers the core must not use: I/O, threads, processes, OS APIs.
 forbidden_system='<(iostream|istream|ostream|fstream|sstream|iosfwd|cstdio|stdio\.h|thread|mutex|shared_mutex|condition_variable|future|atomic|stop_token|semaphore|latch|barrier|coroutine|unistd\.h|windows\.h|sys/[^>]*|fcntl\.h|poll\.h|spawn\.h|signal\.h|csignal|filesystem|process)>'

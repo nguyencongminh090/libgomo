@@ -2,7 +2,7 @@
 id: CORE-08-rename-cpp-integration
 type: todo
 size: M
-status: backlog
+status: active
 owner: codex
 created: 2026-11-23
 supersedes: []
@@ -28,7 +28,21 @@ updates with owner authorization.
 
 ## Evidence
 
-Pending implementation.
+- Relocated all 25 public headers to `include/gomo/` and migrated the namespace and include
+  references in the library, tests, and test support. The dependency script uses the new
+  paths with the same checks.
+- Configured the default preset in a fresh temporary build directory and built with g++
+  15.2.0 and warnings as errors. CTest passed all 119 entries, including all seven live entries
+  with the local Rapfi V2 and V3 binaries. All CTest names and doctest filters matched the
+  baseline.
+- A standalone CMake consumer linked `pygomo::gomocup` via `add_subdirectory` and used the new
+  headers and namespace to create a position, construct the adapter, and parse a move.
+- The core dependency check and all seven style commands passed with the relocated paths.
+  Temporary negative cases verified that the dependency and style scripts still reject
+  forbidden dependencies and style violations.
+- Updated four Markdown link targets to point to the relocated headers.
+- The acceptance entries and the seven path-only changes in `docs/features.json` await owner
+  approval.
 
 ## Links
 

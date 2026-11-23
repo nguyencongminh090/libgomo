@@ -1,4 +1,4 @@
-#include "pygomo/process/process_transport.hpp"
+#include "gomo/process/process_transport.hpp"
 
 #include <fcntl.h>
 #include <poll.h>
@@ -15,7 +15,7 @@
 
 extern char** environ;
 
-namespace pygomo {
+namespace gomo {
 namespace {
 
 // Blocks SIGPIPE on the calling thread only, so a write to a dead child returns EPIPE without
@@ -259,4 +259,4 @@ void ProcessTransport::terminateChild() {
     closeFd(stdinFd_);
 }
 
-}  // namespace pygomo
+}  // namespace gomo

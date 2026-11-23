@@ -51,4 +51,4 @@ trả `TransportFailed`. Các test `port3_*` giữ lại các tình huống này
 ## Links
 
 [CORE-04](CORE-04-failed-start-clears-newer-search.md) ·
-[EnginePort](../../include/pygomo/core/engine_port.hpp)
+[EnginePort](../../include/gomo/core/engine_port.hpp)

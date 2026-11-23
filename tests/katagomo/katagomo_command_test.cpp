@@ -8,10 +8,10 @@
 #include <vector>
 
 #include "../support/command_fakes.hpp"
-#include "pygomo/katagomo/katagomo_engine.hpp"
+#include "gomo/katagomo/katagomo_engine.hpp"
 
-using namespace pygomo;
-using namespace pygomo::testing;
+using namespace gomo;
+using namespace gomo::testing;
 
 namespace {
 

@@ -1,8 +1,8 @@
 #include <doctest.h>
 
-#include "pygomo/core/limits.hpp"
+#include "gomo/core/limits.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 using namespace std::chrono_literals;
 
 TEST_CASE("Default limits impose nothing") {

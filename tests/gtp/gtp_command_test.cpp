@@ -9,10 +9,10 @@
 #include <vector>
 
 #include "../support/command_fakes.hpp"
-#include "pygomo/gtp/gtp_engine.hpp"
+#include "gomo/gtp/gtp_engine.hpp"
 
-using namespace pygomo;
-using namespace pygomo::testing;
+using namespace gomo;
+using namespace gomo::testing;
 using namespace std::chrono_literals;
 
 namespace {

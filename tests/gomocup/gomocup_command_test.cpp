@@ -11,11 +11,11 @@
 #include <vector>
 
 #include "../support/command_fakes.hpp"
-#include "pygomo/engine/deadline_engine.hpp"
-#include "pygomo/gomocup/gomocup_engine.hpp"
+#include "gomo/engine/deadline_engine.hpp"
+#include "gomo/gomocup/gomocup_engine.hpp"
 
-using namespace pygomo;
-using namespace pygomo::testing;
+using namespace gomo;
+using namespace gomo::testing;
 using namespace std::chrono_literals;
 
 namespace {

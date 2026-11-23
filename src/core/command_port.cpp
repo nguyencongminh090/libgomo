@@ -1,6 +1,6 @@
-#include "pygomo/core/command_port.hpp"
+#include "gomo/core/command_port.hpp"
 
-namespace pygomo {
+namespace gomo {
 
 std::vector<std::string> commandLines(const Command& command) {
     std::vector<std::string> out;
@@ -25,4 +25,4 @@ bool CommandPort::canExecute(const Command& command) const {
     return !commandLines(command).empty();
 }
 
-}  // namespace pygomo
+}  // namespace gomo

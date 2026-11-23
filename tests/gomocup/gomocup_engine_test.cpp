@@ -8,12 +8,12 @@
 #include <thread>
 #include <vector>
 
-#include "pygomo/engine/blocking_search.hpp"
-#include "pygomo/engine/deadline_engine.hpp"
-#include "pygomo/gomocup/gomocup_engine.hpp"
-#include "pygomo/parse/gomocup_parser.hpp"
+#include "gomo/engine/blocking_search.hpp"
+#include "gomo/engine/deadline_engine.hpp"
+#include "gomo/gomocup/gomocup_engine.hpp"
+#include "gomo/parse/gomocup_parser.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 
 namespace {
 

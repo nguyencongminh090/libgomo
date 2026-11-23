@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 
-#include "pygomo/core/command_port.hpp"
+#include "gomo/core/command_port.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 
 using Lines = std::vector<std::string>;
 

@@ -1,8 +1,8 @@
-#include "pygomo/core/value.hpp"
+#include "gomo/core/value.hpp"
 
 #include <format>
 
-namespace pygomo {
+namespace gomo {
 namespace {
 
 std::string formatCoord(const Coord& c) { return std::format("{},{}", c.x, c.y); }
@@ -40,4 +40,4 @@ std::string format(const Value& value) {
     return std::visit(Visitor{}, value);
 }
 
-}  // namespace pygomo
+}  // namespace gomo

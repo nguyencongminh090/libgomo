@@ -15,10 +15,10 @@
 #include <variant>
 #include <vector>
 
-#include "pygomo/core/engine_port.hpp"
-#include "pygomo/transport/transport.hpp"
+#include "gomo/core/engine_port.hpp"
+#include "gomo/transport/transport.hpp"
 
-namespace pygomo::testing {
+namespace gomo::testing {
 
 using Lines = std::vector<std::string>;
 
@@ -157,4 +157,4 @@ inline std::size_t indexOf(const Lines& lines, const std::string& line) {
     return i;
 }
 
-}  // namespace pygomo::testing
+}  // namespace gomo::testing

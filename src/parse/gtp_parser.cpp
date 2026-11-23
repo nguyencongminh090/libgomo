@@ -1,4 +1,4 @@
-#include "pygomo/parse/gtp_parser.hpp"
+#include "gomo/parse/gtp_parser.hpp"
 
 #include <cctype>
 #include <charconv>
@@ -8,7 +8,7 @@
 #include <span>
 #include <vector>
 
-namespace pygomo::parse {
+namespace gomo::parse {
 namespace {
 
 constexpr int kMaxLetterWidth = 625;  // 25 single + 25 * 24 double-letter columns, as the engine
@@ -246,4 +246,4 @@ SearchEvent parseGtpAnalyzeLine(std::string_view line, int width, int height) {
     return info;
 }
 
-}  // namespace pygomo::parse
+}  // namespace gomo::parse

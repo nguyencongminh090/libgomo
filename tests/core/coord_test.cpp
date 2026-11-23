@@ -1,8 +1,8 @@
 #include <doctest.h>
 
-#include "pygomo/core/coord.hpp"
+#include "gomo/core/coord.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 
 TEST_CASE("Coord defaults to the origin and compares by value") {
     CHECK(Coord{} == Coord{0, 0});

@@ -61,5 +61,5 @@ Phát hiện khi review CORE-02 (2026-11-22).
 ## Links
 
 [DeadlineEngine](../../src/engine/deadline_engine.cpp) ·
-[EnginePort](../../include/pygomo/core/engine_port.hpp) ·
+[EnginePort](../../include/gomo/core/engine_port.hpp) ·
 [CORE-02](CORE-02-serialize-deadline-callbacks.md)

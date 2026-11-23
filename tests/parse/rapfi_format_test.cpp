@@ -4,11 +4,11 @@
 #include <string>
 #include <vector>
 
-#include "pygomo/parse/gomocup_parser.hpp"
+#include "gomo/parse/gomocup_parser.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 using namespace std::chrono_literals;
-using pygomo::parse::parseGomocupLine;
+using gomo::parse::parseGomocupLine;
 
 namespace {
 const InfoEvent* info(const SearchEvent& e) { return std::get_if<InfoEvent>(&e); }

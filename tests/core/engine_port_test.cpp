@@ -3,9 +3,9 @@
 #include <string>
 #include <vector>
 
-#include "pygomo/core/engine_port.hpp"
+#include "gomo/core/engine_port.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 
 namespace {
 

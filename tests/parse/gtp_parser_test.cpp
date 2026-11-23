@@ -4,10 +4,10 @@
 #include <random>
 #include <string>
 
-#include "pygomo/parse/gtp_parser.hpp"
+#include "gomo/parse/gtp_parser.hpp"
 
-using namespace pygomo;
-using namespace pygomo::parse;
+using namespace gomo;
+using namespace gomo::parse;
 
 namespace {
 

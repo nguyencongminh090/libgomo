@@ -1,9 +1,9 @@
-#include "pygomo/engine/blocking_search.hpp"
+#include "gomo/engine/blocking_search.hpp"
 
 #include <condition_variable>
 #include <mutex>
 
-namespace pygomo {
+namespace gomo {
 namespace {
 
 class CollectingSink final : public EventSink {
@@ -46,4 +46,4 @@ std::expected<SearchOutcome, EngineError> search(EnginePort& engine, const Posit
     return sink.wait();
 }
 
-}  // namespace pygomo
+}  // namespace gomo

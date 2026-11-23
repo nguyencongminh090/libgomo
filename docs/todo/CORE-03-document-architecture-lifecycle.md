@@ -60,4 +60,4 @@ Acceptance in `docs/features.json` (`"todo": "CORE-03"`), đã được chủ re
 [Draw.io](../design/architecture.drawio) · [PNG](../design/architecture.drawio.png) ·
 [Mermaid](../design/architecture.md) ·
 [CMake](../../CMakeLists.txt) ·
-[Hợp đồng vòng đời của DeadlineEngine](../../include/pygomo/engine/deadline_engine.hpp)
+[Hợp đồng vòng đời của DeadlineEngine](../../include/gomo/engine/deadline_engine.hpp)

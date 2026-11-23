@@ -9,9 +9,9 @@
 #include <utility>
 #include <vector>
 
-#include "pygomo/engine/deadline_engine.hpp"
+#include "gomo/engine/deadline_engine.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 using namespace std::chrono_literals;
 
 namespace {

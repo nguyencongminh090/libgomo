@@ -1,4 +1,4 @@
-#include "pygomo/parse/gomocup_parser.hpp"
+#include "gomo/parse/gomocup_parser.hpp"
 
 #include <charconv>
 #include <cmath>
@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-namespace pygomo::parse {
+namespace gomo::parse {
 namespace {
 
 bool startsWith(std::string_view s, std::string_view prefix) {
@@ -368,4 +368,4 @@ SearchEvent parseGomocupLine(std::string_view rawLine) {
     return unparsed();
 }
 
-}  // namespace pygomo::parse
+}  // namespace gomo::parse

@@ -6,10 +6,10 @@
 #include <string>
 #include <vector>
 
-#include "pygomo/gtp/gtp_encode.hpp"
-#include "pygomo/gtp/gtp_engine.hpp"
+#include "gomo/gtp/gtp_encode.hpp"
+#include "gomo/gtp/gtp_engine.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 
 namespace {
 

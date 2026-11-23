@@ -1,6 +1,6 @@
-#include "pygomo/gomocup/gomocup_encode.hpp"
+#include "gomo/gomocup/gomocup_encode.hpp"
 
-namespace pygomo::encode {
+namespace gomo::encode {
 
 std::optional<int> gomocupRuleId(const Rules& r) {
     if (r.opening == OpeningRule::FreeOpen) {
@@ -66,4 +66,4 @@ std::vector<std::string> boardBlock(std::string_view command, std::span<const Mo
     return lines;
 }
 
-}  // namespace pygomo::encode
+}  // namespace gomo::encode

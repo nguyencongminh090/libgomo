@@ -1,10 +1,10 @@
-#include "pygomo/transport/stream_transport.hpp"
+#include "gomo/transport/stream_transport.hpp"
 
 #include <istream>
 #include <ostream>
 #include <string>
 
-namespace pygomo {
+namespace gomo {
 
 StreamTransport::StreamTransport(std::istream& in, std::ostream& out,
                                  StreamTransportOptions options)
@@ -77,4 +77,4 @@ void StreamTransport::finish(CloseReason reason) {
     if (TransportListener* listener = listener_.load()) listener->onClosed(reason);
 }
 
-}  // namespace pygomo
+}  // namespace gomo

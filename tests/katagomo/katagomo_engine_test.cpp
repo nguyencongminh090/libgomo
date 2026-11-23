@@ -7,11 +7,11 @@
 #include <string>
 #include <vector>
 
-#include "pygomo/katagomo/katagomo_encode.hpp"
-#include "pygomo/katagomo/katagomo_engine.hpp"
-#include "pygomo/parse/gomocup_parser.hpp"
+#include "gomo/katagomo/katagomo_encode.hpp"
+#include "gomo/katagomo/katagomo_engine.hpp"
+#include "gomo/parse/gomocup_parser.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 
 namespace {
 

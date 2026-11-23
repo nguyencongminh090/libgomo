@@ -5,11 +5,11 @@
 #include <string>
 
 #include "../support/command_fakes.hpp"
-#include "pygomo/engine/deadline_engine.hpp"
-#include "pygomo/gtp/gtp_engine.hpp"
+#include "gomo/engine/deadline_engine.hpp"
+#include "gomo/gtp/gtp_engine.hpp"
 
-using namespace pygomo;
-using namespace pygomo::testing;
+using namespace gomo;
+using namespace gomo::testing;
 
 TEST_CASE("ext10_deadline_check: force during a search refuses an unsendable command at once") {
     Log            log;

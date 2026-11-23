@@ -1,8 +1,8 @@
 #include <doctest.h>
 
-#include "pygomo/core/rules.hpp"
+#include "gomo/core/rules.hpp"
 
-using namespace pygomo;
+using namespace gomo;
 
 TEST_CASE("Default rules are freestyle with a free opening and no move limit") {
     Rules r;
