@@ -2,7 +2,7 @@
 id: EXT-05-rules-extensions
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -24,7 +24,7 @@ Rules is an aggregate: designated initialisers in existing code must still compi
 Features `EXT-05-*` in `docs/features.json` (`harness-track EXT-05`).
 
 ## Evidence
-(fill in before marking done)
+2026-11-23, codex (gpt-6.2-sol). `ctest -R '^ext05_'` 5/5 (ext05_core, gomocup, gtp, katagomo, deadline); full suite 93/93 on master after merge (live skipped); check-core-deps OK. `Rules::operator==` lost `constexpr` (std::map); no constant-expression caller existed.
 
 ## Links
 `features/extensible-engine-commands/planning.md`

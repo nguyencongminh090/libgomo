@@ -1745,7 +1745,7 @@
         "ctest --preset default -R '^ext05_' --no-tests=error --output-on-failure"
       ],
       "checked_by": "ctest --preset default -R '^ext05_' --no-tests=error --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-05-suite",
@@ -1755,7 +1755,7 @@
         "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
       ],
       "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-06-tests",
@@ -1765,7 +1765,7 @@
         "ctest --preset default -R '^ext06_' --no-tests=error --output-on-failure"
       ],
       "checked_by": "ctest --preset default -R '^ext06_' --no-tests=error --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-06-core-deps",
@@ -1775,7 +1775,7 @@
         "scripts/check-core-deps.sh"
       ],
       "checked_by": "scripts/check-core-deps.sh",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-06-suite",
@@ -1785,7 +1785,7 @@
         "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure"
       ],
       "checked_by": "cmake --preset default && cmake --build --preset default && ctest --preset default --output-on-failure",
-      "passes": false
+      "passes": true
     },
     {
       "id": "EXT-07-tests",

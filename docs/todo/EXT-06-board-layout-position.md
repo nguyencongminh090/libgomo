@@ -2,7 +2,7 @@
 id: EXT-06-board-layout-position
 type: todo
 size: M
-status: backlog
+status: done
 owner: claude
 created: 2026-11-23
 supersedes: []
@@ -24,7 +24,7 @@ Core does not check what the engine checks (torus size, portal on a rectangular 
 Features `EXT-06-*` in `docs/features.json` (`harness-track EXT-06`).
 
 ## Evidence
-(fill in before marking done)
+2026-11-23, Opus subagent. `ctest -R '^ext06_'` pass; check-core-deps OK; full suite 93/93 on master. No `switch` on PositionError in the repo (only returns and test comparisons); guide listing updated. Open: `BoardLayout ==` is order-sensitive (walls in another order compare unequal); duplicate walls accepted.
 
 ## Links
 `features/extensible-engine-commands/planning.md`
