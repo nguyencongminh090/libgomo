@@ -1,6 +1,7 @@
 # TODO
 
 ## Backlog
+- [ ] **LIVE-01.** Live test: Command/force against Rapfi V2 and V3 - size M - [detail](docs/todo/LIVE-01-force-live-test.md)
 
 ## Active
 

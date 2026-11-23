@@ -17,7 +17,7 @@ TSAN-01 done: the tsan preset demotes `free-nonheap-object` and `maybe-uninitial
 warnings (g++ 15 false positives in libstdc++); tsan 118/118, no race; EXT-10 closed.
 
 ## Next step
-1. Command/force ran live on Rapfi V2 (incl. YXANALZ) and V3 dev by spike: all rounds passed,
+1. LIVE-01 (backlog): turn the force spike into a permanent live test `ext10_live`; not started.
    no V3 drop seen (docs/reports/rapfi-force-live-spike-2026-11-23.md). Owner: keep it as a
    live test? (new todo if yes).
 2. Pick the next todo or planning with the owner (backlog is empty).
