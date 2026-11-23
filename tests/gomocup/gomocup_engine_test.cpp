@@ -197,11 +197,12 @@ TEST_CASE("gomo_closed: one error event, no hang, later search is NotReady") {
     CHECK(std::holds_alternative<ErrorEvent>(out->terminal));
 }
 
-TEST_CASE("gomo_rect: a non-square board is Unsupported and writes nothing") {
+TEST_CASE("gomo_rect: a non-square board starts with RECTSTART w,h") {
     Rig     r;
     Collect sink;
-    CHECK(r.e.startSearch(threeMoves(15, 12), Limits{}, sink).error() == EngineError::Unsupported);
-    CHECK(r.t.lines().empty());
+    REQUIRE(r.e.startSearch(threeMoves(15, 12), Limits{}, sink));
+    CHECK(r.t.lines() ==
+          Lines{"RECTSTART 15,12", "INFO rule 0", "BOARD", "7,7,2", "8,7,1", "7,8,2", "DONE"});
 }
 
 TEST_CASE("gomo_warning: an ERROR line during a search does not end it") {
@@ -497,4 +498,27 @@ TEST_CASE("ext05_deadline: forwards rules with extensions to GomocupEngine") {
     REQUIRE_FALSE(result);
     CHECK(result.error() == EngineError::Unsupported);
     CHECK(r.t.lines().empty());
+}
+
+TEST_CASE("ext09_gomocup: a 15x10 position sends RECTSTART 15,10 and the rest of the script") {
+    Rig     r;
+    Collect sink;
+    Limits  lim;
+    lim.turnTime = std::chrono::milliseconds{1000};
+    REQUIRE(r.e.startSearch(threeMoves(15, 10), lim, sink));
+    CHECK(r.t.lines() == Lines{"RECTSTART 15,10", "INFO rule 0", "INFO timeout_turn 1000", "BOARD",
+                               "7,7,2", "8,7,1", "7,8,2", "DONE"});
+}
+
+TEST_CASE("ext09_gomocup: an empty rectangular board uses BEGIN; a square board keeps START") {
+    Rig        r;
+    Collect    sink;
+    const auto empty = Position::create(10, 15);
+    REQUIRE(empty);
+    REQUIRE(r.e.startSearch(*empty, Limits{}, sink));
+    CHECK(r.t.lines() == Lines{"RECTSTART 10,15", "INFO rule 0", "BEGIN"});
+
+    Rig square;
+    REQUIRE(square.e.startSearch(threeMoves(12, 12), Limits{}, sink));
+    CHECK(square.t.lines().front() == "START 12");
 }

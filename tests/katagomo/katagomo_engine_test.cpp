@@ -370,3 +370,12 @@ TEST_CASE("ext08_kata_refuse: an encoder error or empty script leaves the engine
     REQUIRE_FALSE(closed);
     CHECK(closed.error() == EngineError::NotReady);
 }
+
+TEST_CASE("ext09_kata: a 15x10 position is Unsupported and nothing is written") {
+    Rig        r;
+    Collect    sink;
+    const auto p = Position::create(15, 10);
+    REQUIRE(p);
+    CHECK(r.e.startSearch(*p, {}, sink).error() == EngineError::Unsupported);
+    CHECK(r.t.lines().empty());
+}

@@ -41,13 +41,15 @@ class GomocupEngine final : public EnginePort, private TransportListener {
     [[nodiscard]] bool supports(const Rules& rules) const override;
     /// Stores the rules for later searches; sends nothing. Unsupported if supports() is false.
     [[nodiscard]] std::expected<void, EngineError> setRules(const Rules& rules) override;
-    /// Sends the encoder's lines (by default START, the INFO settings and the position: BEGIN,
-    /// or BOARD..DONE), then returns.
+    /// Sends the encoder's lines (by default START, or RECTSTART w,h for a non-square board, the
+    /// INFO settings and the position: BEGIN, or BOARD..DONE), then returns.
+    /// An engine without RECTSTART prints ERROR, which does not end a search (GOMO-04): the
+    /// search stays open until a DeadlineEngine fires. Rapfi's FLIPY_X mode swaps w and h.
     /// Errors: Busy while a search runs, NotReady after the connection closed, the encoder's
-    /// error with nothing sent (the default gives Unsupported for a non-square board or a
-    /// non-default layout), TransportFailed when a line cannot be written.
-    /// A failed write after the search already ended (its terminal event was delivered) is not
-    /// an error: the call succeeds, so the caller sees one outcome.
+    /// error with nothing sent (the default gives Unsupported for a non-default layout),
+    /// TransportFailed when a line cannot be written. A failed write after the search already ended
+    /// (its terminal event was delivered) is not an error: the call succeeds, so the caller sees
+    /// one outcome.
     [[nodiscard]] std::expected<void, EngineError> startSearch(const Position& position,
                                                                const Limits&   limits,
                                                                EventSink&      sink) override;

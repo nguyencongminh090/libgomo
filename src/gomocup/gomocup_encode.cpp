@@ -20,13 +20,17 @@ std::expected<std::vector<std::string>, EngineError> defaultGomocupRequest(
     const Position& position = request.position;
     const Limits&   limits   = request.limits;
     const auto      rule     = gomocupRuleId(rules);
-    if (!rule || !rules.extensions.empty() || position.layout() != BoardLayout{} ||
-        position.width() != position.height()) {
+    if (!rule || !rules.extensions.empty() || position.layout() != BoardLayout{}) {
         return std::unexpected(EngineError::Unsupported);
     }
 
     std::vector<std::string> lines;
-    lines.push_back("START " + std::to_string(position.width()));
+    if (position.width() == position.height()) {
+        lines.push_back("START " + std::to_string(position.width()));
+    } else {
+        lines.push_back("RECTSTART " + std::to_string(position.width()) + "," +
+                        std::to_string(position.height()));
+    }
     lines.push_back("INFO rule " + std::to_string(*rule));
     if (rules.maxMoves) lines.push_back("INFO max_moves " + std::to_string(*rules.maxMoves));
     if (limits.turnTime) {
