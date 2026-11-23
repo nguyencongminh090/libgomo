@@ -2,28 +2,17 @@
 
 #include <string>
 
+#include "pygomo/gomocup/gomocup_encode.hpp"
 #include "pygomo/parse/gomocup_parser.hpp"
 
 namespace pygomo {
-namespace {
 
-std::optional<int> ruleId(const Rules& r) {
-    if (r.opening == OpeningRule::FreeOpen) {
-        switch (r.board) {
-        case BoardRule::Freestyle: return 0;
-        case BoardRule::Standard: return 1;
-        case BoardRule::Renju: return 4;
-        }
-    }
-    if (r.board == BoardRule::Freestyle) { return r.opening == OpeningRule::Swap1 ? 5 : 6; }
-    return std::nullopt;
-}
-
-}  // namespace
-
-GomocupEngine::GomocupEngine(Transport& transport, parse::LineParser parser)
+GomocupEngine::GomocupEngine(Transport& transport, parse::LineParser parser, RequestEncoder encoder)
     : transport_(transport),
-      parser_(parser ? std::move(parser) : parse::LineParser{parse::parseGomocupLine}) {}
+      parser_(parser ? std::move(parser) : parse::LineParser{parse::parseGomocupLine}),
+      customEncoder_(static_cast<bool>(encoder)) {
+    encoder_ = customEncoder_ ? std::move(encoder) : RequestEncoder{encode::defaultGomocupRequest};
+}
 
 std::expected<void, EngineError> GomocupEngine::open() {
     if (!transport_.start(*this)) return std::unexpected(EngineError::NotReady);
@@ -31,8 +20,10 @@ std::expected<void, EngineError> GomocupEngine::open() {
 }
 
 bool GomocupEngine::supports(const Rules& rules) const {
+    // A custom encoder decides what it can send, and refuses the rest at startSearch.
+    if (customEncoder_) return validate(rules).has_value();
     if (!rules.extensions.empty()) return false;
-    return ruleId(rules).has_value() && validate(rules).has_value();
+    return encode::gomocupRuleId(rules).has_value() && validate(rules).has_value();
 }
 
 std::expected<void, EngineError> GomocupEngine::setRules(const Rules& rules) {
@@ -44,36 +35,16 @@ std::expected<void, EngineError> GomocupEngine::setRules(const Rules& rules) {
 
 std::expected<void, EngineError> GomocupEngine::startSearch(const Position& position,
                                                             const Limits& limits, EventSink& sink) {
-    if (position.width() != position.height()) return std::unexpected(EngineError::Unsupported);
-
     std::vector<std::string> lines;
     std::uint64_t            id = 0;
     {
         std::lock_guard lock(mutex_);
         if (closed_) return std::unexpected(EngineError::NotReady);
         if (sink_) return std::unexpected(EngineError::Busy);
-        lines.push_back("START " + std::to_string(position.width()));
-        lines.push_back("INFO rule " + std::to_string(*ruleId(rules_)));
-        if (rules_.maxMoves) lines.push_back("INFO max_moves " + std::to_string(*rules_.maxMoves));
-        if (limits.turnTime) {
-            lines.push_back("INFO timeout_turn " + std::to_string(limits.turnTime->count()));
-        }
-        if (limits.matchTime) {
-            lines.push_back("INFO timeout_match " + std::to_string(limits.matchTime->count()));
-        }
-        if (limits.maxDepth) lines.push_back("INFO max_depth " + std::to_string(*limits.maxDepth));
-        if (limits.maxNodes) lines.push_back("INFO max_node " + std::to_string(*limits.maxNodes));
-        if (position.moves().empty()) {
-            lines.push_back("BEGIN");
-        } else {
-            lines.push_back("BOARD");
-            const Side mine = position.sideToMove();
-            for (const Move& m : position.moves()) {
-                lines.push_back(std::to_string(m.coord.x) + "," + std::to_string(m.coord.y) + "," +
-                                (m.side == mine ? "1" : "2"));
-            }
-            lines.push_back("DONE");
-        }
+        // Built before any state changes: an encoder error leaves no sink set and sends nothing.
+        auto encoded = encoder_(SearchRequest{rules_, position, limits});
+        if (!encoded) return std::unexpected(encoded.error());
+        lines     = std::move(*encoded);
         sink_     = &sink;
         position_ = position;
         id        = ++searchId_;

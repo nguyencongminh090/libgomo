@@ -5,6 +5,7 @@
 #include <optional>
 
 #include "pygomo/core/engine_port.hpp"
+#include "pygomo/core/search_request.hpp"
 #include "pygomo/parse/line_parser.hpp"
 #include "pygomo/transport/transport.hpp"
 
@@ -25,19 +26,26 @@ class GomocupEngine final : public EnginePort, private TransportListener {
     /// `parser` reads every engine line on the reader thread; empty means parseGomocupLine.
     /// To add to the default instead of replacing it, pass chainParsers(custom, parseGomocupLine).
     /// The ERROR rule and the illegal-move check run on the parser's result, so they still hold.
-    explicit GomocupEngine(Transport& transport, parse::LineParser parser = {});
+    /// `encoder` builds the lines of each search; empty means encode::defaultGomocupRequest.
+    /// It runs under the engine's lock, so it must be pure and must not call back into it.
+    explicit GomocupEngine(Transport& transport, parse::LineParser parser = {},
+                           RequestEncoder encoder = {});
 
     /// Starts reading from the transport. Returns NotReady if the transport cannot start.
     [[nodiscard]] std::expected<void, EngineError> open();
 
-    /// Accepts valid rules with empty extensions and a Gomocup rule id. Supports any board rule
-    /// with free opening, or freestyle with swap1 or swap2.
+    /// Without a custom encoder: accepts valid rules with empty extensions and a Gomocup rule
+    /// id (any board rule with free opening, or freestyle with swap1 or swap2).
+    /// With a custom encoder: accepts any valid rules; the encoder refuses what it cannot send
+    /// when startSearch runs (Unsupported).
     [[nodiscard]] bool supports(const Rules& rules) const override;
     /// Stores the rules for later searches; sends nothing. Unsupported if supports() is false.
     [[nodiscard]] std::expected<void, EngineError> setRules(const Rules& rules) override;
-    /// Sends START, the INFO settings and the position (BEGIN, or BOARD..DONE), then returns.
-    /// Errors: Unsupported for a non-square board, Busy while a search runs, NotReady after the
-    /// connection closed, TransportFailed when a line cannot be written.
+    /// Sends the encoder's lines (by default START, the INFO settings and the position: BEGIN,
+    /// or BOARD..DONE), then returns.
+    /// Errors: Busy while a search runs, NotReady after the connection closed, the encoder's
+    /// error with nothing sent (the default gives Unsupported for a non-square board or a
+    /// non-default layout), TransportFailed when a line cannot be written.
     /// A failed write after the search already ended (its terminal event was delivered) is not
     /// an error: the call succeeds, so the caller sees one outcome.
     [[nodiscard]] std::expected<void, EngineError> startSearch(const Position& position,
@@ -54,6 +62,8 @@ class GomocupEngine final : public EnginePort, private TransportListener {
 
     Transport&              transport_;
     parse::LineParser       parser_;
+    RequestEncoder          encoder_;
+    bool                    customEncoder_;
     std::mutex              mutex_;
     Rules                   rules_{};
     bool                    closed_{false};

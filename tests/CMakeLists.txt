@@ -70,7 +70,8 @@ add_test(NAME ext02_engine COMMAND pygomo_engine_tests "-tc=ext02_*")
 
 add_executable(pygomo_gomocup_tests
   main.cpp
-  gomocup/gomocup_engine_test.cpp)
+  gomocup/gomocup_engine_test.cpp
+  gomocup/gomocup_encode_test.cpp)
 target_link_libraries(pygomo_gomocup_tests PRIVATE pygomo::gomocup pygomo::engine)
 target_include_directories(pygomo_gomocup_tests SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/third_party/doctest)
 pygomo_enable_warnings(pygomo_gomocup_tests)
@@ -80,6 +81,9 @@ endforeach()
 add_test(NAME ext02_gomocup COMMAND pygomo_gomocup_tests "-tc=ext02_*")
 add_test(NAME ext03_gomocup COMMAND pygomo_gomocup_tests "-tc=ext03_*")
 add_test(NAME ext05_gomocup COMMAND pygomo_gomocup_tests "-tc=ext05_*")
+foreach(group default custom refuse board_block)
+  add_test(NAME ext07_${group} COMMAND pygomo_gomocup_tests "-tc=ext07_${group}*")
+endforeach()
 
 if(UNIX)
   add_executable(pygomo_process_tests
