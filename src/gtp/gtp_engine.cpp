@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <format>
+#include <utility>
+#include <variant>
 #include <vector>
 
 #include "pygomo/parse/gtp_parser.hpp"
@@ -30,7 +32,8 @@ bool getsReply(std::string_view line) {
 
 }  // namespace
 
-GtpEngine::GtpEngine(Transport& transport) : transport_(transport) {}
+GtpEngine::GtpEngine(Transport& transport, parse::LineParser parser)
+    : transport_(transport), parser_(std::move(parser)) {}
 
 std::expected<void, EngineError> GtpEngine::open() {
     if (!transport_.start(*this)) return std::unexpected(EngineError::NotReady);
@@ -183,6 +186,33 @@ void GtpEngine::onReply(bool ok, std::optional<int> id, const std::string& text,
 }
 
 void GtpEngine::onLine(std::string_view line) {
+    if (parser_ && !line.empty()) {
+        int searchId = 0;
+        {
+            std::lock_guard lock(mutex_);
+            // Check candidacy under the lock, then release it before invoking the user's parser
+            // so the callback never runs while mutex_ is held.
+            // A stale reply of an earlier search is not shown to this search's parser (AUD-04).
+            const bool stale =
+                inReply_ && replyId_ && (*replyId_ < firstId_ || *replyId_ > lastId_);
+            if (sink_ && !stale && (inReply_ || !parse::parseGtpResponseHeader(line))) {
+                searchId = lastId_;
+            }
+        }
+        if (searchId != 0) {
+            SearchEvent custom = parser_(line);
+            if (!std::holds_alternative<UnparsedEvent>(custom) && !isTerminal(custom)) {
+                EventSink* deliver = nullptr;
+                {
+                    std::lock_guard lock(mutex_);
+                    if (sink_ && lastId_ == searchId) deliver = sink_;
+                }
+                if (deliver) deliver->onEvent(custom);
+                return;
+            }
+        }
+    }
+
     EventSink*                 deliver = nullptr;
     std::optional<SearchEvent> event;
     {

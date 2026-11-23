@@ -549,6 +549,118 @@ TEST_CASE("gtp7_engine: analyze streams multi-candidate kata InfoEvent and ends 
     CHECK(std::get<BestMoveEvent>(r.sink.events[1]).coord == Coord{8, 6});
 }
 
+TEST_CASE("ext04_gtp: custom parser handles analyze info and free text; default unchanged") {
+    auto parser = [](std::string_view l) -> SearchEvent {
+        if (l.starts_with("NOTE ")) {
+            return CustomEvent{"note", {{"text", std::string{l.substr(5)}}}};
+        }
+        if (l.starts_with("info ")) return CustomEvent{"info", {{"raw", std::string{l}}}};
+        return UnparsedEvent{std::string{l}};
+    };
+
+    FakeTransport t;
+    GtpEngine     e{t, parser};
+    Collect       sink;
+    REQUIRE(e.open());
+    e.setAnalyze(std::chrono::milliseconds{500});
+    REQUIRE(e.startSearch(twoMoves(), Limits{}, sink));
+    t.say("NOTE warmup");
+    for (int id = 1; id < 6; ++id) t.reply("=" + std::to_string(id));
+    t.say("=6");
+    t.say("info move H8 visits 120 order 0 pv H8");
+    t.say("play H9");
+    t.say("");
+    REQUIRE(sink.events.size() == 3);
+    CHECK(std::get<CustomEvent>(sink.events[0]).tag == "note");
+    CHECK(std::get<CustomEvent>(sink.events[1]).tag == "info");
+    CHECK(std::get<BestMoveEvent>(sink.events[2]).coord == Coord{7, 6});
+
+    Rig r;  // default constructor argument
+    r.e.setAnalyze(std::chrono::milliseconds{500});
+    REQUIRE(r.e.startSearch(twoMoves(), Limits{}, r.sink));
+    r.t.say("NOTE warmup");
+    r.ackSetup(6);
+    r.t.say("=6");
+    r.t.say("info move H8 visits 120 order 0 pv H8");
+    r.t.say("play H9");
+    r.t.say("");
+    REQUIRE(r.sink.events.size() == 3);
+    CHECK(std::get<MessageEvent>(r.sink.events[0]).text == "NOTE warmup");
+    CHECK(std::holds_alternative<InfoEvent>(r.sink.events[1]));
+    CHECK(std::get<BestMoveEvent>(r.sink.events[2]).coord == Coord{7, 6});
+}
+
+TEST_CASE("ext04_gtp: reply headers, blank terminators and lines outside a search are skipped") {
+    Lines seen;
+    auto  parser = [&](std::string_view l) -> SearchEvent {
+        seen.emplace_back(l);
+        return UnparsedEvent{std::string{l}};
+    };
+
+    FakeTransport t;
+    GtpEngine     e{t, parser};
+    Collect       sink;
+    REQUIRE(e.open());
+    t.say("banner");  // before search: skipped
+    REQUIRE(e.startSearch(twoMoves(), Limits{}, sink));
+    t.say("free line");
+    t.say("");  // blank line outside a reply: skipped
+    t.say("=1 first");
+    t.say("body line");
+    t.say("");
+    for (int id = 2; id < 6; ++id) t.reply("=" + std::to_string(id));
+    t.reply("=6 H9");
+    t.say("after");  // after search: skipped
+    CHECK(seen == Lines{"free line", "body line"});
+    CHECK(sink.events ==
+          std::vector<SearchEvent>{MessageEvent{"free line"}, BestMoveEvent{Coord{7, 6}}});
+}
+
+TEST_CASE("ext04_gtp: a terminal event from the custom parser is ignored") {
+    auto parser = [](std::string_view l) -> SearchEvent {
+        if (l == "NOTE oops") return ErrorEvent{"ignored"};
+        if (l == "play H9") return BestMoveEvent{{0, 0}};
+        return UnparsedEvent{std::string{l}};
+    };
+
+    FakeTransport t;
+    GtpEngine     e{t, parser};
+    Collect       sink;
+    REQUIRE(e.open());
+    e.setAnalyze(std::chrono::milliseconds{500});
+    REQUIRE(e.startSearch(twoMoves(), Limits{}, sink));
+    t.say("NOTE oops");
+    for (int id = 1; id < 6; ++id) t.reply("=" + std::to_string(id));
+    t.say("=6");
+    t.say("play H9");
+    CHECK(sink.events.size() == 1);  // search still open until the blank terminator
+    t.say("");
+    CHECK(sink.events ==
+          std::vector<SearchEvent>{MessageEvent{"NOTE oops"}, BestMoveEvent{Coord{7, 6}}});
+}
+
+TEST_CASE("ext04_gtp: the body of a stale reply of an earlier search is not parsed") {
+    Lines seen;
+    auto  parser = [&](std::string_view l) -> SearchEvent {
+        seen.emplace_back(l);
+        return CustomEvent{"seen", {}};
+    };
+
+    FakeTransport t;
+    GtpEngine     e{t, parser};
+    Collect       first;
+    Collect       second;
+    REQUIRE(e.open());
+    REQUIRE(e.startSearch(twoMoves(), Limits{}, first));
+    t.reply("?1 refused");  // ends the first search; its ids 2..6 are now stale
+    REQUIRE(e.startSearch(twoMoves(), Limits{}, second));
+    t.say("=2 old");
+    t.say("stale body");
+    t.say("");
+    CHECK(seen.empty());
+    CHECK(second.events.empty());
+}
+
 TEST_CASE("ext05_gtp: rules with extensions are unsupported and write nothing") {
     Rig         r;
     const Rules rules{.extensions = {{"custom-rule", true}}};
