@@ -3,8 +3,8 @@ id: handoff
 type: handoff
 size: S
 status: active
-owner: claude
-created: 2026-11-19
+owner: antigravity
+created: 2026-11-26
 supersedes: []
 links: []
 ---
@@ -12,10 +12,10 @@ links: []
 Overwritten each session. Where the work stands between agent sessions.
 
 ## Doing now
-CORE-10 updated the README migration instructions, contributor commands, guide and architecture.
-The README and guide examples built in a standalone CMake project and returned moves from Rapfi.
-The guide PDF rebuilt, and the Draw.io source and PNG agree on `links gomo::core`. A clean
-`default` build passed all 119 CTest entries, including the Rapfi V2 and V3 live tests.
+Published the repository publicly to GitHub at `https://github.com/nguyencongminh090/libgomo` on
+default branch `main` (preserving commit history), added the MIT `LICENSE`, and ignored `.codex/`.
+Prior session: CORE-10 updated the README migration instructions, contributor commands, guide and
+architecture; a clean `default` build passed all 119 CTest entries.
 
 ## Next step
 Close CORE-10 once its acceptance-file edits are approved and checked. CORE-08 and CORE-09
